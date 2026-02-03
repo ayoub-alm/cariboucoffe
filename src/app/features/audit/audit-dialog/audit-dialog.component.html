@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>{{ data ? 'Modifier l\'audit' : 'Nouvel Audit' }}</h2>
+<mat-dialog-content class="dialog-container">
+    <form [formGroup]="auditForm" (ngSubmit)="onSubmit()">
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Café</mat-label>
+            <input matInput formControlName="coffeeShop" placeholder="Ex. Caribou ANFA">
+            <mat-error *ngIf="auditForm.get('coffeeShop')?.hasError('required')">Requis</mat-error>
+        </mat-form-field>
+
+        <div style="display: flex; gap: 16px;">
+            <mat-form-field appearance="outline" style="flex: 1;">
+                <mat-label>Auditeur</mat-label>
+                <input matInput formControlName="auditor" placeholder="Ex. John Doe">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" style="width: 120px;">
+                <mat-label>Shift</mat-label>
+                <mat-select formControlName="shift">
+                    <mat-option value="AM">AM</mat-option>
+                    <mat-option value="PM">PM</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Statut Initial</mat-label>
+            <mat-select formControlName="status">
+                <mat-option value="Conforme">Conforme</mat-option>
+                <mat-option value="Non-conforme">Non-conforme</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="auditForm.invalid">
+        {{ data ? 'Mettre à jour' : 'Créer' }}
+    </button>
+</mat-dialog-actions>

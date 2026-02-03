@@ -1,1 +1,107 @@
-/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+    background-color: #FAFAFA;
+}
+
+/* Global overrides or utility classes */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Outfit', sans-serif;
+}
+
+:root {
+    --primary-color: #326295;
+    /* Caribou Blue */
+    --accent-color: #D3A15F;
+}
+
+/* Override Material Primary Colors with our custom variable */
+.mat-mdc-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary,
+.mat-mdc-icon-button.mat-primary {
+    --mdc-filled-button-container-color: var(--primary-color);
+    --mdc-protected-button-container-color: var(--primary-color);
+    --mat-text-button-state-layer-color: var(--primary-color);
+    --mat-text-button-ripple-color: var(--primary-color);
+}
+
+.mat-mdc-flat-button.mat-primary {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+/* Text colors */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+/* Dark Theme Global Styles */
+body.dark-theme {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.dark-theme {
+    --primary-color: #64b5f6;
+    --accent-color: #ffb74d;
+}
+
+.dark-theme .mat-mdc-card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-mdc-table {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-mdc-header-cell {
+    color: #b0b0b0;
+}
+
+.dark-theme .mat-mdc-cell {
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-mdc-form-field {
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-mdc-input-element {
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-mdc-select {
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-toolbar {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-drawer {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.dark-theme .mat-drawer-container {
+    background-color: #121212;
+    color: #e0e0e0;
+}

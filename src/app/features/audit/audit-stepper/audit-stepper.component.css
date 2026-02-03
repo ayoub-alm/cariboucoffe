@@ -1,0 +1,111 @@
+/* Base Colors */
+:host {
+    --primary-brown: #4E342E;
+    --accent-green: #2E7D32;
+    --error-red: #D32F2F;
+    --bg-light: #f5f5f5;
+    --card-bg: #ffffff;
+}
+
+.audit-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+    background-color: var(--bg-light);
+    min-height: 100vh;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-title {
+    color: #3e2723;
+    /* Brown 900 */
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    color: #616161;
+}
+
+/* Stepper Customization */
+::ng-deep .mat-step-header .mat-step-icon-selected {
+    background-color: var(--primary-brown) !important;
+}
+
+::ng-deep .mat-step-header .mat-step-icon-state-edit {
+    background-color: var(--accent-green) !important;
+}
+
+.stepper-bg {
+    background-color: transparent;
+}
+
+.step-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-top: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.step-title {
+    color: var(--primary-brown);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    border-bottom: 2px solid rgba(78, 52, 46, 0.1);
+    padding-bottom: 12px;
+}
+
+/* Info Grid */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.full-width-col {
+    grid-column: 1 / -1;
+}
+
+/* Form Fields */
+.full-width {
+    width: 100%;
+    margin-bottom: 16px;
+    display: block;
+}
+
+/* Actions Footer */
+.actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary {
+    background-color: var(--primary-brown) !important;
+    color: white !important;
+}
+
+/* Section Dividers */
+.conclusion-section {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.section-divider {
+    margin: 0 0 16px;
+    color: var(--primary-brown);
+    font-size: 1.2rem;
+    font-weight: 500;
+}

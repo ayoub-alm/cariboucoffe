@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>{{ data ? 'Modifier Utilisateur' : 'Nouvel Utilisateur' }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="userForm" class="user-form">
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Prénom</mat-label>
+                <input matInput formControlName="firstName" placeholder="Ex. Ilham">
+                <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">Requis</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Nom</mat-label>
+                <input matInput formControlName="lastName" placeholder="Ex. Yardi">
+                <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">Requis</mat-error>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="Ex. ilham.yardi@caribou.ma">
+            <mat-error *ngIf="userForm.get('email')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="userForm.get('email')?.hasError('email')">Email invalide</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phone" placeholder="Ex. +212 6 12 34 56 78">
+        </mat-form-field>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Rôle</mat-label>
+                <mat-select formControlName="role">
+                    <mat-option value="Admin">Admin</mat-option>
+                    <mat-option value="Auditeur">Auditeur</mat-option>
+                    <mat-option value="Manager">Manager</mat-option>
+                    <mat-option value="Staff">Staff</mat-option>
+                </mat-select>
+                <mat-error *ngIf="userForm.get('role')?.hasError('required')">Requis</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Statut</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option value="active">Actif</mat-option>
+                    <mat-option value="inactive">Inactif</mat-option>
+                </mat-select>
+                <mat-error *ngIf="userForm.get('status')?.hasError('required')">Requis</mat-error>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Café Assigné</mat-label>
+            <mat-select formControlName="coffeeShop">
+                <mat-option [value]="null">Aucun</mat-option>
+                <mat-option value="Caribou ANFA">Caribou ANFA</mat-option>
+                <mat-option value="Caribou CASA VOYAGEUR">Caribou CASA VOYAGEUR</mat-option>
+                <mat-option value="Caribou MAARIF">Caribou MAARIF</mat-option>
+                <mat-option value="Caribou RABAT AGDAL">Caribou RABAT AGDAL</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Annuler</button>
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="userForm.invalid">
+        {{ data ? 'Mettre à jour' : 'Créer' }}
+    </button>
+</mat-dialog-actions>

@@ -1,0 +1,45 @@
+<div class="login-container">
+    <!-- Centered Login Card -->
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="logo-section text-center">
+            <img src="/logo.png" alt="Caribou Coffee" class="login-logo">
+        </div>
+
+        <!-- Title -->
+        <h2 class="login-title">Veuillez vous connecter</h2>
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" placeholder="Email*">
+                <mat-error *ngIf="loginForm.get('email')?.hasError('required')">L'email est requis</mat-error>
+                <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Email invalide</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Mot de passe</mat-label>
+                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'"
+                    placeholder="Mot de passe*">
+                <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" tabindex="-1">
+                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                    Le mot de passe est requis
+                </mat-error>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" type="submit" [disabled]="loginForm.invalid" class="submit-btn">
+                <span *ngIf="!isLoading">Se connecter</span>
+                <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p class="copyright">© 2024–2025</p>
+            <p class="company-name">Caribou Coffee</p>
+        </div>
+    </div>
+</div>

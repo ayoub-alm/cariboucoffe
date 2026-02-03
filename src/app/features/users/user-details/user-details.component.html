@@ -1,0 +1,105 @@
+<div class="details-container" *ngIf="user; else loading">
+
+    <div class="page-header">
+        <div class="title-section">
+            <h1>
+                <button mat-icon-button (click)="goBack()">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
+                {{ user.firstName }} {{ user.lastName }}
+            </h1>
+
+            <div class="user-meta">
+                <span>{{ user.role }}</span>
+                <span *ngIf="user.coffeeShop">• {{ user.coffeeShop }}</span>
+            </div>
+        </div>
+
+        <div class="header-badge" [ngClass]="user.status === 'active' ? 'badge-active' : 'badge-inactive'">
+            <mat-icon style="font-size: 18px; width: 18px; height: 18px;">
+                {{ user.status === 'active' ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            {{ user.status === 'active' ? 'Actif' : 'Inactif' }}
+        </div>
+    </div>
+
+    <!-- Personal Information -->
+    <section class="section-card">
+        <div class="section-header">
+            <h2>Informations Personnelles</h2>
+        </div>
+        <div class="section-content">
+            <div class="details-grid">
+                <div class="detail-item">
+                    <label>Email</label>
+                    <p>{{ user.email }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>Téléphone</label>
+                    <p>{{ user.phone || '-' }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>Rôle</label>
+                    <p>{{ user.role }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>Café Assigné</label>
+                    <p>{{ user.coffeeShop || '-' }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>Date de Création</label>
+                    <p>{{ user.createdAt | date:'dd/MM/yyyy' }}</p>
+                </div>
+                <div class="detail-item">
+                    <label>Dernière Connexion</label>
+                    <p>{{ user.lastLogin ? (user.lastLogin | date:'dd/MM/yyyy HH:mm') : '-' }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity -->
+    <section class="section-card">
+        <div class="section-header">
+            <h2>Activité Récente</h2>
+        </div>
+        <div class="section-content">
+            <ul class="activity-list">
+                <li class="activity-item">
+                    <div class="activity-icon">
+                        <mat-icon>login</mat-icon>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-title">Connexion au système</p>
+                        <p class="activity-time">{{ user.lastLogin | date:'dd/MM/yyyy à HH:mm' }}</p>
+                    </div>
+                </li>
+                <li class="activity-item" *ngIf="user.role === 'Auditeur'">
+                    <div class="activity-icon">
+                        <mat-icon>assignment</mat-icon>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-title">Audit complété - {{ user.coffeeShop }}</p>
+                        <p class="activity-time">Il y a 2 jours</p>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon">
+                        <mat-icon>person</mat-icon>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-title">Profil mis à jour</p>
+                        <p class="activity-time">{{ user.createdAt | date:'dd/MM/yyyy' }}</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+</div>
+
+<ng-template #loading>
+    <div style="display: flex; justify-content: center; align-items: center; height: 50vh;">
+        <p>Chargement...</p>
+    </div>
+</ng-template>

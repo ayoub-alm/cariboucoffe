@@ -1,0 +1,48 @@
+<!-- Floating Action Button -->
+<button mat-fab class="chat-fab" (click)="toggleChat()" *ngIf="!isOpen">
+    <mat-icon>smart_toy</mat-icon>
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window" *ngIf="isOpen">
+    <div class="chat-header">
+        <h3>
+            <mat-icon style="font-size: 20px; width: 20px; height: 20px;">smart_toy</mat-icon>
+            Assistant Caribou
+        </h3>
+        <button mat-icon-button (click)="toggleChat()">
+            <mat-icon style="color: white;">close</mat-icon>
+        </button>
+    </div>
+
+    <div class="chat-messages" #messagesContainer>
+        <div *ngFor="let msg of messages" class="message" [class.user]="msg.sender === 'user'"
+            [class.bot]="msg.sender === 'bot'">
+            <div class="message-avatar">
+                <mat-icon style="font-size: 20px; width: 20px; height: 20px;">
+                    {{ msg.sender === 'user' ? 'person' : 'smart_toy' }}
+                </mat-icon>
+            </div>
+            <div class="message-bubble">{{ msg.text }}</div>
+        </div>
+
+        <div class="message bot" *ngIf="isTyping">
+            <div class="message-avatar">
+                <mat-icon style="font-size: 20px; width: 20px; height: 20px;">smart_toy</mat-icon>
+            </div>
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-container">
+        <input type="text" placeholder="Posez votre question..." [(ngModel)]="userInput" (keyup.enter)="sendMessage()"
+            #inputField>
+        <button mat-icon-button class="send-btn" (click)="sendMessage()" [disabled]="!userInput.trim()">
+            <mat-icon>send</mat-icon>
+        </button>
+    </div>
+</div>

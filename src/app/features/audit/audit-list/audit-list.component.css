@@ -1,0 +1,117 @@
+.audit-page-container {
+    padding: 24px;
+    background-color: #F8F9FA;
+    /* Light gray background like the image */
+    min-height: 100%;
+}
+
+.content-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid #EEE;
+    padding: 16px;
+}
+
+.table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.search-container {
+    flex: 0 0 300px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 20px;
+    /* Rounded pill shape */
+    border: 1px solid #E0E0E0;
+    background-color: #F8F9FA;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-container input:focus {
+    border-color: #1976D2;
+}
+
+.actions-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.add-btn {
+    border-radius: 4px;
+    /* Slightly rounded unlike pill */
+    text-transform: none;
+    font-weight: 500;
+    box-shadow: none !important;
+    background-color: white !important;
+    color: #1976D2 !important;
+    border: 1px solid #1976D2 !important;
+}
+
+/* Or if the image has a blue filled button */
+/* 
+.add-btn {
+    border-radius: 4px;
+    background-color: #f0f7ff !important; 
+    color: #1976D2 !important;
+} 
+*/
+
+.custom-table {
+    width: 100%;
+}
+
+.custom-table th.mat-header-cell {
+    color: #1976D2;
+    /* Blue headers */
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid #F0F0F0;
+    padding: 16px;
+}
+
+.custom-table td.mat-cell {
+    padding: 16px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #F5F5F5;
+}
+
+/* Status Pill */
+.status-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #E3F2FD;
+    /* Light Blue */
+    color: #1976D2;
+    /* Blue */
+}
+
+.status-inactive {
+    background-color: #FFEBEE;
+    /* Light Red */
+    color: #C62828;
+    /* Red */
+}
+
+/* Checkbox Style Override */
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:checked~.mdc-checkbox__background,
+::ng-deep .mat-mdc-checkbox.mat-primary .mdc-checkbox__native-control:enabled:indeterminate~.mdc-checkbox__background {
+    background-color: #1976D2 !important;
+    border-color: #1976D2 !important;
+}

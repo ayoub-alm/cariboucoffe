@@ -1,0 +1,128 @@
+<div class="audit-container">
+
+    <div class="page-header">
+        <h1 class="page-title">Nouvel Audit - Caribou Coffee</h1>
+        <p class="page-subtitle">Formulaire d'inspection et de conformité</p>
+    </div>
+
+    <form [formGroup]="auditForm">
+        <mat-stepper linear #stepper class="stepper-bg" orientation="vertical">
+
+            <!-- Step 1: Info -->
+            <mat-step [stepControl]="infoGroup" label="Informations Générales">
+                <div class="step-card" [formGroup]="infoGroup">
+                    <h2 class="step-title">Détails de l'Audit</h2>
+
+                    <div class="info-grid">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Café / Établissement</mat-label>
+                            <mat-select formControlName="coffeeShop" placeholder="Sélectionner...">
+                                <mat-option value="Caribou ANFA">Caribou ANFA</mat-option>
+                                <mat-option value="Caribou CASA VOYAGEUR">Caribou CASA VOYAGEUR</mat-option>
+                                <mat-option value="Caribou MAARIF">Caribou MAARIF</mat-option>
+                                <mat-option value="Caribou RABAT AGDAL">Caribou RABAT AGDAL</mat-option>
+                            </mat-select>
+                            <mat-error>Requis</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Auditeur</mat-label>
+                            <input matInput formControlName="auditor" placeholder="Nom de l'auditeur">
+                            <mat-error>Requis</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Date</mat-label>
+                            <input matInput [matDatepicker]="picker" formControlName="date">
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker #picker></mat-datepicker>
+                            <mat-error>Requis</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Shift</mat-label>
+                            <mat-select formControlName="shift">
+                                <mat-option value="AM">Matin (AM)</mat-option>
+                                <mat-option value="PM">Après-midi (PM)</mat-option>
+                            </mat-select>
+                            <mat-error>Requis</mat-error>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width-col">
+                            <mat-label>Personnel en poste</mat-label>
+                            <textarea matInput formControlName="staffPresent" rows="2"
+                                placeholder="Noms des collaborateurs présents..."></textarea>
+                            <mat-error>Requis</mat-error>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="actions-footer">
+                        <button mat-raised-button color="primary" matStepperNext>Suivant</button>
+                    </div>
+                </div>
+            </mat-step>
+
+            <!-- Steps 2..N: Categories -->
+            <mat-step *ngFor="let cat of auditCategories; let i = index" [stepControl]="getCategoryGroup(i)"
+                [label]="cat.name">
+                <div class="step-card">
+                    <h2 class="step-title">{{ cat.name }} ({{ cat.items.length }} pts)</h2>
+
+                    <div [formGroup]="getCategoryGroup(i)">
+                        <div formArrayName="items">
+                            <div *ngFor="let item of cat.items; let j = index">
+                                <app-question-item [group]="getItemGroup(i, j)" [item]="item"></app-question-item>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Section for Marketing/Conclusion Step -->
+                    <!-- Special Section for Marketing/Conclusion Step -->
+                    <div *ngIf="cat.id === 'marketing'" [formGroup]="conclusionGroup" class="conclusion-section">
+                        <h3 class="section-divider">Conclusion & Actions</h3>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Actions Correctives (Maintenance lourde)</mat-label>
+                            <textarea matInput formControlName="actionsCorrectives" rows="3"
+                                placeholder="Réparations, infrastructure..."></textarea>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Besoins en Formation</mat-label>
+                            <textarea matInput formControlName="trainingNeeds" rows="3"
+                                placeholder="Coaching nécessaire sur..."></textarea>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Achats / Smallware</mat-label>
+                            <textarea matInput formControlName="purchases" rows="3"
+                                placeholder="Matériel à commander..."></textarea>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="actions-footer">
+                        <button mat-button matStepperPrevious>Retour</button>
+                        <button mat-raised-button color="primary" matStepperNext>Suivant</button>
+                    </div>
+                </div>
+            </mat-step>
+
+            <!-- Final Step: Validation -->
+            <mat-step label="Validation & Résumé">
+                <div class="step-card">
+                    <h2 class="step-title">Résumé de l'Audit</h2>
+
+                    <app-audit-summary [auditForm]="auditForm"></app-audit-summary>
+
+                    <div class="actions-footer">
+                        <button mat-button matStepperPrevious>Retour</button>
+                        <button mat-raised-button class="btn-primary" (click)="submitAudit()">
+                            <mat-icon class="mr-2">save</mat-icon> Enregistrer l'Audit
+                        </button>
+                    </div>
+                </div>
+            </mat-step>
+
+        </mat-stepper>
+    </form>
+</div>
