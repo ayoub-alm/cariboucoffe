@@ -22,9 +22,33 @@ h6 {
 }
 
 :root {
-    --primary-color: #326295;
-    /* Caribou Blue */
-    --accent-color: #D3A15F;
+    /* Primary Brand Colors - Enhanced */
+    --primary-color: #2B5A8E;
+    --primary-light: #4A7BB7;
+    --primary-dark: #1E3F6B;
+
+    /* Accent Colors - Warm Coffee Tones */
+    --accent-color: #D4A574;
+    --accent-light: #E8C9A0;
+    --accent-dark: #B8895C;
+
+    /* Semantic Colors */
+    --success-color: #4CAF50;
+    --warning-color: #FF9800;
+    --error-color: #F44336;
+    --info-color: #2196F3;
+
+    /* Neutral Colors */
+    --background-light: #FAFAFA;
+    --background-white: #FFFFFF;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --border-color: #E0E0E0;
+
+    /* Gradient Backgrounds */
+    --gradient-primary: linear-gradient(135deg, #2B5A8E 0%, #4A7BB7 100%);
+    --gradient-accent: linear-gradient(135deg, #D4A574 0%, #E8C9A0 100%);
+    --gradient-warm: linear-gradient(135deg, #B8895C 0%, #D4A574 50%, #E8C9A0 100%);
 }
 
 /* Override Material Primary Colors with our custom variable */
@@ -52,56 +76,211 @@ h6 {
 
 /* Dark Theme Global Styles */
 body.dark-theme {
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: #0F1419;
+    color: #E8E8E8;
 }
 
 .dark-theme {
-    --primary-color: #64b5f6;
-    --accent-color: #ffb74d;
+    /* Enhanced Dark Theme Colors */
+    --primary-color: #5B9BD5;
+    --primary-light: #7DB3E8;
+    --primary-dark: #3A7BB8;
+
+    --accent-color: #E8C9A0;
+    --accent-light: #F5E1C8;
+    --accent-dark: #D4A574;
+
+    /* Dark Theme Backgrounds */
+    --background-dark: #0F1419;
+    --background-card: #1A1F26;
+    --background-elevated: #252B33;
+
+    /* Dark Theme Text */
+    --text-primary: #E8E8E8;
+    --text-secondary: #A0A0A0;
+    --border-color: #2D3339;
 }
 
 .dark-theme .mat-mdc-card {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: var(--background-card);
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-mdc-table {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: var(--background-card);
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-mdc-header-cell {
-    color: #b0b0b0;
+    color: var(--text-secondary);
 }
 
 .dark-theme .mat-mdc-cell {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-mdc-form-field {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-mdc-input-element {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-mdc-select {
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-toolbar {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: var(--background-card);
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-drawer {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: var(--background-card);
+    color: var(--text-primary);
 }
 
 .dark-theme .mat-drawer-container {
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: var(--background-dark);
+    color: var(--text-primary);
+}
+
+/* Mobile-Friendly Global Styles */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Touch-friendly buttons and interactive elements */
+button,
+a,
+.mat-mdc-button,
+.mat-mdc-icon-button {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+    .mat-mdc-table {
+        font-size: 13px;
+    }
+
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+        padding: 8px 12px !important;
+    }
+
+    /* Hide less important columns on mobile */
+    .mat-column-select,
+    .mat-column-actions {
+        position: sticky;
+    }
+}
+
+/* Responsive cards */
+@media (max-width: 768px) {
+    .mat-mdc-card {
+        margin: 12px;
+        border-radius: 12px;
+    }
+
+    .mat-mdc-card-content {
+        padding: 16px !important;
+    }
+}
+
+/* Responsive forms */
+@media (max-width: 768px) {
+    .mat-mdc-form-field {
+        width: 100%;
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    .mat-mdc-text-field-wrapper {
+        padding: 0 12px;
+    }
+}
+
+/* Responsive dialogs */
+@media (max-width: 768px) {
+    .mat-mdc-dialog-container {
+        max-width: 95vw !important;
+        margin: 16px;
+    }
+}
+
+/* Responsive toolbar */
+@media (max-width: 768px) {
+    .mat-toolbar {
+        padding: 0 12px !important;
+    }
+
+    .mat-toolbar h1,
+    .mat-toolbar h2 {
+        font-size: 18px !important;
+    }
+}
+
+/* Prevent text selection on double-tap */
+.mat-mdc-button,
+.mat-mdc-icon-button,
+.mat-mdc-fab {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Improve touch scrolling */
+.mat-drawer-content,
+.mat-sidenav-content {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile navigation improvements */
+@media (max-width: 768px) {
+    .mat-drawer {
+        width: 280px !important;
+    }
+}
+
+/* Responsive spacing utilities */
+@media (max-width: 768px) {
+    .mobile-hide {
+        display: none !important;
+    }
+
+    .mobile-full-width {
+        width: 100% !important;
+    }
+
+    .mobile-padding {
+        padding: 12px !important;
+    }
+}
+
+/* Better focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Prevent horizontal scroll */
+body {
+    overflow-x: hidden;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
 }

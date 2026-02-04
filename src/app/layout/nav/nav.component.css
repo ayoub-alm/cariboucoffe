@@ -1,15 +1,16 @@
 /* Layout Structure */
 .sidenav-container {
   height: 100vh;
-  background-color: #F8F9FA;
+  background-color: var(--background-light);
 }
 
 .sidenav {
   width: 260px;
-  background-color: white;
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--background-white);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Logo Area */
@@ -46,7 +47,7 @@
   padding: 16px 24px 8px;
   font-size: 11px;
   text-transform: uppercase;
-  color: #888;
+  color: var(--text-secondary);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
