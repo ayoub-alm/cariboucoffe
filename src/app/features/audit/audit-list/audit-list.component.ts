@@ -11,7 +11,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
-import { DatePipe, NgClass, NgIf } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
 import { Audit } from '../../../core/models/audit.model';
 import { Router, RouterModule } from '@angular/router';
@@ -27,7 +27,7 @@ import { MatMenuModule } from '@angular/material/menu';
         MatInputModule, MatFormFieldModule, MatButtonModule,
         MatIconModule, MatChipsModule, MatTooltipModule,
         MatDialogModule, MatCheckboxModule, MatMenuModule,
-        DatePipe, NgClass, RouterModule, NgIf
+        DatePipe, NgClass, RouterModule
     ],
     templateUrl: './audit-list.component.html',
     styleUrls: ['./audit-list.component.css']
