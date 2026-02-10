@@ -6,20 +6,20 @@
                 <button mat-icon-button (click)="goBack()">
                     <mat-icon>arrow_back</mat-icon>
                 </button>
-                {{ user.firstName }} {{ user.lastName }}
+                {{ user.full_name || user.email }}
             </h1>
 
             <div class="user-meta">
                 <span>{{ user.role }}</span>
-                <span *ngIf="user.coffeeShop">• {{ user.coffeeShop }}</span>
+                <span *ngIf="user.coffee_id">• Café ID: {{ user.coffee_id }}</span>
             </div>
         </div>
 
-        <div class="header-badge" [ngClass]="user.status === 'active' ? 'badge-active' : 'badge-inactive'">
+        <div class="header-badge" [ngClass]="user.is_active ? 'badge-active' : 'badge-inactive'">
             <mat-icon style="font-size: 18px; width: 18px; height: 18px;">
-                {{ user.status === 'active' ? 'check_circle' : 'cancel' }}
+                {{ user.is_active ? 'check_circle' : 'cancel' }}
             </mat-icon>
-            {{ user.status === 'active' ? 'Actif' : 'Inactif' }}
+            {{ user.is_active ? 'Actif' : 'Inactif' }}
         </div>
     </div>
 
@@ -35,64 +35,41 @@
                     <p>{{ user.email }}</p>
                 </div>
                 <div class="detail-item">
-                    <label>Téléphone</label>
-                    <p>{{ user.phone || '-' }}</p>
+                    <label>Nom Complet</label>
+                    <p>{{ user.full_name || '-' }}</p>
                 </div>
                 <div class="detail-item">
                     <label>Rôle</label>
                     <p>{{ user.role }}</p>
                 </div>
                 <div class="detail-item">
-                    <label>Café Assigné</label>
-                    <p>{{ user.coffeeShop || '-' }}</p>
+                    <label>Statut</label>
+                    <p>{{ user.is_active ? 'Actif' : 'Inactif' }}</p>
                 </div>
-                <div class="detail-item">
-                    <label>Date de Création</label>
-                    <p>{{ user.createdAt | date:'dd/MM/yyyy' }}</p>
-                </div>
-                <div class="detail-item">
-                    <label>Dernière Connexion</label>
-                    <p>{{ user.lastLogin ? (user.lastLogin | date:'dd/MM/yyyy HH:mm') : '-' }}</p>
+                <div class="detail-item" *ngIf="user.coffee_id">
+                    <label>Café Assigné (ID)</label>
+                    <p>{{ user.coffee_id }}</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Recent Activity -->
-    <section class="section-card">
+    <!-- Recent Activity Section -->
+    <section class="section-card" *ngIf="user.role === UserRole.AUDITOR">
         <div class="section-header">
             <h2>Activité Récente</h2>
         </div>
         <div class="section-content">
-            <ul class="activity-list">
-                <li class="activity-item">
-                    <div class="activity-icon">
-                        <mat-icon>login</mat-icon>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <mat-icon>assignment</mat-icon>
+                    <div class="activity-info">
+                        <p class="activity-title">Audits effectués</p>
+                        <p class="activity-date">Dernière activité: {{ user.createdAt || 'Non disponible' }}</p>
                     </div>
-                    <div class="activity-content">
-                        <p class="activity-title">Connexion au système</p>
-                        <p class="activity-time">{{ user.lastLogin | date:'dd/MM/yyyy à HH:mm' }}</p>
-                    </div>
-                </li>
-                <li class="activity-item" *ngIf="user.role === 'Auditeur'">
-                    <div class="activity-icon">
-                        <mat-icon>assignment</mat-icon>
-                    </div>
-                    <div class="activity-content">
-                        <p class="activity-title">Audit complété - {{ user.coffeeShop }}</p>
-                        <p class="activity-time">Il y a 2 jours</p>
-                    </div>
-                </li>
-                <li class="activity-item">
-                    <div class="activity-icon">
-                        <mat-icon>person</mat-icon>
-                    </div>
-                    <div class="activity-content">
-                        <p class="activity-title">Profil mis à jour</p>
-                        <p class="activity-time">{{ user.createdAt | date:'dd/MM/yyyy' }}</p>
-                    </div>
-                </li>
-            </ul>
+                </div>
+            </div>
+            <p *ngIf="!user.createdAt" class="empty-state">Aucune activité récente enregistrée.</p>
         </div>
     </section>
 

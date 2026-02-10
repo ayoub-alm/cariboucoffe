@@ -8,6 +8,10 @@
 
         <!-- Title -->
         <h2 class="login-title">Veuillez vous connecter</h2>
+        
+        <div *ngIf="error" class="error-message">
+            {{ error }}
+        </div>
 
         <!-- Login Form -->
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">

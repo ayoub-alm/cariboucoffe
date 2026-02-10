@@ -43,7 +43,7 @@
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Nom Complet </th>
-                    <td mat-cell *matCellDef="let row"> {{row.firstName}} {{row.lastName}} </td>
+                    <td mat-cell *matCellDef="let row"> {{row.full_name}} </td>
                 </ng-container>
 
                 <!-- Email Column -->
@@ -64,8 +64,8 @@
 
                 <!-- Coffee Shop Column -->
                 <ng-container matColumnDef="coffeeShop">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Café </th>
-                    <td mat-cell *matCellDef="let row" style="color: #888;"> {{row.coffeeShop || '-'}} </td>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Café (ID) </th>
+                    <td mat-cell *matCellDef="let row" style="color: #888;"> {{row.coffee_id || '-'}} </td>
                 </ng-container>
 
                 <!-- Status Column -->
@@ -73,10 +73,10 @@
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Statut </th>
                     <td mat-cell *matCellDef="let row">
                         <span class="status-pill" [ngClass]="{
-                            'status-active': row.status === 'active',
-                            'status-inactive': row.status === 'inactive'
+                            'status-active': row.is_active,
+                            'status-inactive': !row.is_active
                         }">
-                            {{row.status === 'active' ? 'Actif' : 'Inactif'}}
+                            {{row.is_active ? 'Actif' : 'Inactif'}}
                         </span>
                     </td>
                 </ng-container>
@@ -95,7 +95,7 @@
                             <button mat-menu-item (click)="editUser(row)">
                                 <mat-icon>edit</mat-icon> Modifier
                             </button>
-                            <button mat-menu-item>
+                            <button mat-menu-item (click)="deleteUser(row)">
                                 <mat-icon>delete</mat-icon> Supprimer
                             </button>
                         </mat-menu>

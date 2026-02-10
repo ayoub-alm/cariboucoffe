@@ -164,27 +164,44 @@
     flex: 1;
 }
 
-.q-status {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 16px;
+.q-score {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
     white-space: nowrap;
+    min-width: 50px;
+    text-align: center;
 }
 
-.status-oui {
+.score-excellent {
     background-color: #e8f5e9;
     color: #2e7d32;
+    border: 1px solid #a5d6a7;
 }
 
-.status-non {
+.score-good {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #90caf9;
+}
+
+.score-average {
+    background-color: #fff3e0;
+    color: #f57c00;
+    border: 1px solid #ffcc80;
+}
+
+.score-poor {
     background-color: #ffebee;
     color: #c62828;
+    border: 1px solid #ef9a9a;
 }
 
-.status-na {
+.score-na {
     background-color: #f5f5f5;
     color: #757575;
+    border: 1px solid #e0e0e0;
 }
 
 .q-remarks {
@@ -198,8 +215,6 @@
 }
 
 /* Conclusion Box */
-.conclusion-box {}
-
 .conclusion-item {
     margin-bottom: 24px;
 }

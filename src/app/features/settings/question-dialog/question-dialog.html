@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Modifier la question' : 'Nouvelle question' }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="questionForm">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Texte de la question</mat-label>
+            <textarea matInput formControlName="text" rows="3"
+                placeholder="Ex: Les surfaces de travail sont propres et désinfectées" required></textarea>
+            @if (questionForm.get('text')?.hasError('required')) {
+            <mat-error>Le texte est requis</mat-error>
+            }
+            @if (questionForm.get('text')?.hasError('minlength')) {
+            <mat-error>Le texte doit contenir au moins 10 caractères</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Poids (Importance)</mat-label>
+            <mat-select formControlName="weight" required>
+                @for (w of weights; track w) {
+                <mat-option [value]="w">
+                    {{ w }} - {{ w === 1 ? 'Faible' : w === 2 ? 'Moyen' : w === 3 ? 'Important' : w === 4 ? 'Très
+                    important' : 'Critique' }}
+                </mat-option>
+                }
+            </mat-select>
+            <mat-hint>Le poids détermine l'importance de la question dans le calcul du score</mat-hint>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!questionForm.valid">
+        {{ isEdit ? 'Modifier' : 'Créer' }}
+    </button>
+</mat-dialog-actions>

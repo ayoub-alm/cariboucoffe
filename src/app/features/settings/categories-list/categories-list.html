@@ -1,0 +1,68 @@
+<div class="categories-container">
+    <div class="page-header">
+        <h1>Gestion des Catégories d'Audit</h1>
+        <button mat-raised-button color="primary" (click)="openAddDialog()">
+            <mat-icon>add</mat-icon>
+            Nouvelle Catégorie
+        </button>
+    </div>
+
+    <mat-card class="table-card">
+        <div class="table-container">
+            <table mat-table [dataSource]="categories()" class="categories-table">
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Nom</th>
+                    <td mat-cell *matCellDef="let category">
+                        <strong>{{ category.name }}</strong>
+                    </td>
+                </ng-container>
+
+                <!-- Description Column -->
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef>Description</th>
+                    <td mat-cell *matCellDef="let category">{{ category.description || '-' }}</td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+                    <td mat-cell *matCellDef="let category" class="actions-cell">
+                        <button mat-icon-button [matMenuTriggerFor]="menu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="viewQuestions(category)">
+                                <mat-icon>list</mat-icon>
+                                <span>Voir les questions</span>
+                            </button>
+                            <button mat-menu-item (click)="openEditDialog(category)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Modifier</span>
+                            </button>
+                            <button mat-menu-item (click)="deleteCategory(category)" class="delete-action">
+                                <mat-icon color="warn">delete</mat-icon>
+                                <span>Supprimer</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+                <!-- No data row -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell" [attr.colspan]="displayedColumns.length"
+                        style="text-align: center; padding: 24px;">
+                        @if (isLoading()) {
+                        <p>Chargement...</p>
+                        } @else {
+                        <p>Aucune catégorie trouvée</p>
+                        }
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </mat-card>
+</div>

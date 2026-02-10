@@ -1,14 +1,24 @@
 export interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
+    id: number;
     email: string;
+    full_name?: string;
+    is_active: boolean;
     role: UserRole;
-    phone?: string;
-    coffeeShop?: string;
-    status: 'active' | 'inactive';
-    createdAt: Date;
-    lastLogin?: Date;
+    coffee_id?: number;
+    createdAt?: string;
+    coffee?: {
+        id: number;
+        name: string;
+    };
 }
 
-export type UserRole = 'Admin' | 'Auditeur' | 'Manager' | 'Staff';
+export enum UserRole {
+    ADMIN = 'ADMIN',
+    AUDITOR = 'AUDITOR',
+    VIEWER = 'VIEWER'
+}
+
+export interface LoginResponse {
+    access_token: string;
+    token_type: string;
+}

@@ -7,8 +7,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuditService } from '../../../core/services/audit.service';
-import { Audit, AuditCategory } from '../../../core/models/audit.model';
+import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/models/audit.model';
 
 @Component({
     selector: 'app-audit-details',
@@ -20,7 +21,8 @@ import { Audit, AuditCategory } from '../../../core/models/audit.model';
         MatExpansionModule,
         MatCardModule,
         MatChipsModule,
-        MatListModule
+        MatListModule,
+        MatProgressBarModule
     ],
     templateUrl: './audit-details.component.html',
     styleUrls: ['./audit-details.component.css']
@@ -35,12 +37,13 @@ export class AuditDetailsComponent implements OnInit {
     ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
-            this.auditService.getAuditById(id).subscribe(data => {
-                if (data) {
+            this.auditService.getAudit(+id).subscribe({
+                next: (data) => {
                     this.audit = data;
-                } else {
-                    // Handle not found
-                    console.error('Audit not found');
+                    console.log('Audit loaded:', data);
+                },
+                error: (err) => {
+                    console.error('Audit not found', err);
                     this.router.navigate(['/audits']);
                 }
             });
@@ -58,17 +61,30 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     hasNonConformity(cat: AuditCategory): boolean {
-        return cat.items.some(i => i.status === 'non');
+        return cat.items.some(i => i.status === 'non' || (i.numericValue !== undefined && i.numericValue < 3));
     }
 
     getCategoryScore(cat: AuditCategory): { yes: number, total: number, percentage: number } {
-        const scorable = cat.items.filter(i => i.status === 'oui' || i.status === 'non');
-        const yes = scorable.filter(i => i.status === 'oui').length;
-        const total = scorable.length;
+        const scorable = cat.items.filter(i => i.numericValue !== undefined && i.numericValue !== null);
+        const maxScore = scorable.length * 5; // Assuming max score is 5 per question
+        const actualScore = scorable.reduce((sum, i) => sum + (i.numericValue || 0), 0);
         return {
-            yes,
-            total,
-            percentage: total > 0 ? (yes / total) * 100 : 100
+            yes: actualScore,
+            total: maxScore,
+            percentage: maxScore > 0 ? (actualScore / maxScore) * 100 : 100
         };
+    }
+
+    getQuestionScoreClass(value: number | undefined): string {
+        if (value === undefined || value === null) return 'score-na';
+        if (value >= 4) return 'score-excellent';
+        if (value >= 3) return 'score-good';
+        if (value >= 2) return 'score-average';
+        return 'score-poor';
+    }
+
+    getQuestionScoreLabel(value: number | undefined): string {
+        if (value === undefined || value === null) return 'N/A';
+        return `${value}/5`;
     }
 }

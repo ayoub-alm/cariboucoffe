@@ -36,6 +36,12 @@
                     <div matListItemTitle>Utilisateurs</div>
                 </a>
 
+                <!-- KPI Item -->
+                <a mat-list-item routerLink="/kpi" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon class="nav-icon">bar_chart</mat-icon>
+                    <div matListItemTitle>Rapports KPI</div>
+                </a>
+
                 <!-- Settings Item -->
                 <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">settings</mat-icon>
@@ -98,14 +104,14 @@
             <!-- User Profile Menu -->
             <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
 
-                <span class="user-name">{{ currentUser.name }}</span>
+                <span class="user-name">{{ currentUser()?.full_name }}</span>
                 <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
             </button>
             <mat-menu #userMenu="matMenu" class="user-menu">
                 <div class="user-menu-header d-flex">
                     <div class="user-info col">
-                        <div class="user-name-large">{{ currentUser.name }}</div>
-                        <div class="user-email">{{ currentUser.email }}</div>
+                        <div class="user-name-large">{{ currentUser()?.full_name }}</div>
+                        <div class="user-email">{{ currentUser()?.email }}</div>
                     </div>
                 </div>
                 <mat-divider></mat-divider>
@@ -130,9 +136,6 @@
         <div class="main-body">
             <router-outlet></router-outlet>
         </div>
-
-        <!-- AI Chat Bubble -->
-        <app-ai-chat></app-ai-chat>
 
     </mat-sidenav-content>
 </mat-sidenav-container>

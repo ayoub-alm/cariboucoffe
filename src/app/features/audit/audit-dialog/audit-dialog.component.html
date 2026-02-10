@@ -4,14 +4,18 @@
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Café</mat-label>
-            <input matInput formControlName="coffeeShop" placeholder="Ex. Caribou ANFA">
-            <mat-error *ngIf="auditForm.get('coffeeShop')?.hasError('required')">Requis</mat-error>
+            <mat-select formControlName="coffeeId" placeholder="Sélectionner...">
+                <mat-option *ngFor="let coffee of coffees$ | async" [value]="coffee.id">
+                    {{ coffee.name }}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="auditForm.get('coffeeId')?.hasError('required')">Requis</mat-error>
         </mat-form-field>
 
         <div style="display: flex; gap: 16px;">
             <mat-form-field appearance="outline" style="flex: 1;">
                 <mat-label>Auditeur</mat-label>
-                <input matInput formControlName="auditor" placeholder="Ex. John Doe">
+                <input matInput formControlName="auditorName" placeholder="Ex. John Doe">
             </mat-form-field>
 
             <mat-form-field appearance="outline" style="width: 120px;">

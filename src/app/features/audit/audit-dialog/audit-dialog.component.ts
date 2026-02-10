@@ -7,8 +7,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { Audit } from '../../../core/models/audit.model';
-import { NgIf } from '@angular/common';
+import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { CoffeeService } from '../../../core/services/coffee.service';
+import { AsyncPipe, NgIf } from '@angular/common';
 
 @Component({
     selector: 'app-audit-dialog',
@@ -21,7 +22,8 @@ import { NgIf } from '@angular/common';
         MatButtonModule,
         MatSelectModule,
         MatDatepickerModule,
-        NgIf
+        NgIf,
+        AsyncPipe
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './audit-dialog.component.html',
@@ -33,12 +35,15 @@ import { NgIf } from '@angular/common';
 })
 export class AuditDialogComponent {
     private fb = inject(FormBuilder);
+    private coffeeService = inject(CoffeeService);
     dialogRef = inject(MatDialogRef<AuditDialogComponent>);
     data = inject<Audit | null>(MAT_DIALOG_DATA);
 
+    coffees$ = this.coffeeService.getCoffees();
+
     auditForm = this.fb.group({
-        coffeeShop: [this.data?.coffeeShop || '', Validators.required],
-        auditor: [this.data?.auditor || '', Validators.required],
+        coffeeId: [this.data?.coffeeId || null, Validators.required],
+        auditorName: [this.data?.auditorName || '', Validators.required],
         date: [this.data?.date || new Date(), Validators.required],
         shift: [this.data?.shift || 'AM', Validators.required],
         status: [this.data?.status || 'Non-conforme', Validators.required]

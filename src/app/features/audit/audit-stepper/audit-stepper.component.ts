@@ -1,5 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,12 +8,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router';
 
-import { AUDIT_CATEGORIES_TEMPLATE, Audit, AuditCategory } from '../../../core/models/audit.model';
+import { AuditUI as Audit, AuditCategory } from '../../../core/models/audit.model';
 import { QuestionItemComponent } from '../components/question-item/question-item.component';
 import { AuditSummaryComponent } from '../components/audit-summary/audit-summary.component';
 import { AuditService } from '../../../core/services/audit.service';
+import { CoffeeService } from '../../../core/services/coffee.service';
 
 @Component({
     selector: 'app-audit-stepper',
@@ -26,10 +27,11 @@ import { AuditService } from '../../../core/services/audit.service';
         MatInputModule,
         MatSelectModule,
         MatDatepickerModule,
-        MatNativeDateModule, // Usually implicit with provideNativeDateAdapter
+        MatNativeDateModule,
         MatIconModule,
         QuestionItemComponent,
-        AuditSummaryComponent
+        AuditSummaryComponent,
+        AsyncPipe
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './audit-stepper.component.html',
@@ -38,15 +40,20 @@ import { AuditService } from '../../../core/services/audit.service';
 export class AuditStepperComponent {
     private fb = inject(FormBuilder);
     private auditService = inject(AuditService);
+    private coffeeService = inject(CoffeeService);
+    private router = inject(Router);
 
     auditForm: FormGroup;
-    auditCategories = AUDIT_CATEGORIES_TEMPLATE;
+    auditCategories: AuditCategory[] = [];
+    isLoadingCategories = true;
+
+    coffees$ = this.coffeeService.getCoffees();
 
     constructor() {
         this.auditForm = this.fb.group({
             info: this.fb.group({
                 auditor: ['', Validators.required],
-                coffeeShop: ['', Validators.required],
+                coffeeShop: [null, Validators.required], // Holds ID
                 shift: ['AM', Validators.required],
                 date: [new Date(), Validators.required],
                 staffPresent: ['', Validators.required]
@@ -59,11 +66,22 @@ export class AuditStepperComponent {
             })
         });
 
-        this.initCategories();
+        // Fetch categories from backend
+        this.auditService.getAuditTemplate().subscribe({
+            next: (categories) => {
+                this.auditCategories = categories;
+                this.isLoadingCategories = false;
+                this.initCategories();
+            },
+            error: (err) => {
+                console.error('Error loading audit template:', err);
+                this.isLoadingCategories = false;
+            }
+        });
     }
 
     get itemsArray(): FormArray {
-        return this.categoriesArray.at(0).get('items')! as FormArray; // purely helpers
+        return this.categoriesArray.at(0).get('items')! as FormArray;
     }
 
     get infoGroup(): FormGroup {
@@ -101,14 +119,10 @@ export class AuditStepperComponent {
             cat.items.forEach(item => {
                 const itemGroup = this.fb.group({
                     id: [item.id],
-                    status: [null, Validators.required], // Required to answer 'oui', 'non', or 'n/a'
-                    remarks: [''] // Conditional validation handled in component or dynamically?
-                    // It's handled in QuestionItemComponent via template error, but Form Control validation needs to be set if we want the STEP to be invalid.
-                    // I will add a validator hook or relying on QuestionItemComponent logic.
-                    // To strictly enforce: listen to status changes.
+                    status: [null, Validators.required],
+                    remarks: ['']
                 });
 
-                // Add dynamic validator for remarks if status is 'non'
                 itemGroup.get('status')?.valueChanges.subscribe(val => {
                     const remarksCtrl = itemGroup.get('remarks');
                     if (val === 'non') {
@@ -128,14 +142,39 @@ export class AuditStepperComponent {
 
     submitAudit() {
         if (this.auditForm.invalid) {
-            // Should mark all as touched
             this.auditForm.markAllAsTouched();
             return;
         }
 
         const formVal = this.auditForm.getRawValue();
-        // Here we would map formVal back to Audit model and call service
-        console.log('Audit Submitted:', formVal);
-        // TODO: Map to Audit interface and save
+
+        const auditData: Audit = {
+            date: formVal.info.date,
+            coffeeShop: '', // Not needed for create DTO, will be ignored/handled by mapToCreateDTO using coffeeId
+            coffeeId: formVal.info.coffeeShop, // This comes from MatSelect which binds to ID
+            auditorName: formVal.info.auditor,
+            score: 0,
+            shift: formVal.info.shift,
+            staffPresent: formVal.info.staffPresent,
+            actionsCorrectives: formVal.conclusion.actionsCorrectives,
+            trainingNeeds: formVal.conclusion.trainingNeeds,
+            purchases: formVal.conclusion.purchases,
+            categories: this.auditCategories.map((cat, i) => ({
+                ...cat,
+                items: cat.items.map((item, j) => ({
+                    ...item,
+                    status: formVal.categories[i].items[j].status,
+                    remarks: formVal.categories[i].items[j].remarks
+                }))
+            }))
+        };
+
+        this.auditService.createAudit(auditData).subscribe({
+            next: (res) => {
+                console.log('Audit Created:', res);
+                this.router.navigate(['/audits']);
+            },
+            error: (err) => console.error('Error creating audit', err)
+        });
     }
 }

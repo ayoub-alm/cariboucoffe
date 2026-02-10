@@ -4,7 +4,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AuditService } from '../../core/services/audit.service';
-import { Audit } from '../../core/models/audit.model';
+import { KpiService } from '../../core/services/kpi.service';
+import { AuditUI as Audit } from '../../core/models/audit.model';
 
 Chart.register(...registerables);
 
@@ -14,7 +15,7 @@ Chart.register(...registerables);
   imports: [MatCardModule, MatIconModule, CommonModule],
   template: `
     <div class="dashboard-container">
-      <h1 class="dashboard-title">Tableau de Bord</h1>
+      <h1 class="dashboard-title">Tableau de Bord Caribou</h1>
       
       <div class="stats-grid">
         <mat-card class="stat-card">
@@ -23,7 +24,7 @@ Chart.register(...registerables);
                 <mat-icon>assignment</mat-icon>
             </div>
             <mat-card-title class="stat-label">Total Audits</mat-card-title>
-            <mat-card-subtitle>Ce mois</mat-card-subtitle>
+            <mat-card-subtitle>Global</mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
             <div class="stat-value">{{ totalAudits }}</div>
@@ -39,7 +40,7 @@ Chart.register(...registerables);
             <mat-card-subtitle>Global</mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
-            <div class="stat-value">{{ averageScore | number:'1.0-0' }}%</div>
+            <div class="stat-value">{{ averageScore | number:'1.1-1' }}%</div>
           </mat-card-content>
         </mat-card>
 
@@ -49,25 +50,34 @@ Chart.register(...registerables);
                 <mat-icon>check_circle</mat-icon>
             </div>
             <mat-card-title class="stat-label">Conformité</mat-card-title>
-            <mat-card-subtitle>Taux</mat-card-subtitle>
+            <mat-card-subtitle>Taux Global</mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
-            <div class="stat-value">{{ complianceRate | number:'1.0-0' }}%</div>
+            <div class="stat-value">{{ complianceRate | number:'1.1-1' }}%</div>
           </mat-card-content>
         </mat-card>
 
         <mat-card class="stat-card">
           <mat-card-header>
-             <div mat-card-avatar class="stat-icon-container red">
-                <mat-icon>warning</mat-icon>
+             <div mat-card-avatar class="stat-icon-container orange">
+                <mat-icon>event</mat-icon>
             </div>
-            <mat-card-title class="stat-label">Alertes</mat-card-title>
-            <mat-card-subtitle>En cours</mat-card-subtitle>
+            <mat-card-title class="stat-label">Audits (Mois)</mat-card-title>
+            <mat-card-subtitle>Ce mois-ci</mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
-            <div class="stat-value">{{ alertsCount }}</div>
+            <div class="stat-value">{{ auditsMonth }}</div>
           </mat-card-content>
         </mat-card>
+      </div>
+
+      <div class="secondary-stats-grid">
+         <mat-card class="mini-stat-card">
+            <mat-card-title>Top Performer: <strong>{{ topPerformer }}</strong></mat-card-title>
+         </mat-card>
+         <mat-card class="mini-stat-card">
+            <mat-card-title>Score Moyen (Mois): <strong>{{ avgScoreMonth }}%</strong></mat-card-title>
+         </mat-card>
       </div>
 
       <div class="charts-grid">
@@ -123,9 +133,28 @@ Chart.register(...registerables);
     
     .stats-grid { 
         display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
         gap: 24px; 
-        margin-bottom: 24px; 
+        margin-bottom: 16px; 
+    }
+
+    .secondary-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .mini-stat-card {
+        padding: 16px;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+
+    .mini-stat-card mat-card-title {
+        margin: 0;
+        font-size: 14px;
+        color: #5d4037;
     }
     
     .stat-card { 
@@ -137,15 +166,15 @@ Chart.register(...registerables);
     
     .stat-icon-container {
         border-radius: 50%;
-        background-color: #EFEBE9; /* Brown 50 */
+        background-color: #EFEBE9;
         color: #5D4037;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    .stat-icon-container.blue { background-color: #E3F2FD; color: var(--primary-color); }
+    .stat-icon-container.blue { background-color: #E3F2FD; color: #1976D2; }
     .stat-icon-container.green { background-color: #E8F5E9; color: #2E7D32; }
-    .stat-icon-container.red { background-color: #FFEBEE; color: #C62828; }
+    .stat-icon-container.orange { background-color: #FFF3E0; color: #EF6C00; }
 
     .stat-label { font-size: 16px; font-weight: 500; }
     
@@ -178,6 +207,7 @@ Chart.register(...registerables);
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private auditService = inject(AuditService);
+  private kpiService = inject(KpiService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('pieCanvas') pieCanvas!: ElementRef<HTMLCanvasElement>;
@@ -192,8 +222,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   totalAudits = 0;
   averageScore = 0;
   complianceRate = 0;
-  alertsCount = 0;
-
+  auditsMonth = 0;
+  avgScoreMonth = 0;
+  topPerformer = '';
   audits: Audit[] = [];
 
   ngOnInit(): void {
@@ -201,9 +232,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Charts will be initialized after data load in loadData() -> initCharts()
-    // But if data is instant, we might need to check. 
-    // Since loadData calls service which is async (mock delay), we are safe to wait for subscription.
   }
 
   ngOnDestroy(): void {
@@ -214,31 +242,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadData() {
+    this.kpiService.getKPI().subscribe(kpi => {
+      this.totalAudits = kpi.total_audits;
+      this.averageScore = kpi.average_score;
+      this.complianceRate = kpi.compliance_rate;
+      this.auditsMonth = kpi.audits_this_month;
+      this.avgScoreMonth = kpi.average_score_this_month;
+      this.topPerformer = kpi.top_performer || 'N/A';
+    });
+
     this.auditService.getAudits().subscribe(data => {
       this.audits = data;
-      this.calculateStats();
-      // Allow view to settle before rendering charts if viewChild not yet available
       setTimeout(() => this.initCharts(), 0);
     });
-  }
-
-  calculateStats() {
-    this.totalAudits = this.audits.length;
-    if (this.totalAudits === 0) return;
-
-    const totalScore = this.audits.reduce((acc, curr) => acc + curr.score, 0);
-    this.averageScore = totalScore / this.totalAudits;
-
-    const compliantCount = this.audits.filter(a => a.status === 'Conforme').length;
-    this.complianceRate = (compliantCount / this.totalAudits) * 100;
-
-    this.alertsCount = this.audits.filter(a => a.status === 'Non-conforme').length;
   }
 
   initCharts() {
     if (!this.barCanvas || !this.pieCanvas || !this.categoryCanvas || !this.cafeComplianceCanvas) return;
 
-    // 1. Bar Chart: Average Score per Coffee Shop
     const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
     const shopScores = shops.map(shop => {
       const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
@@ -249,11 +270,11 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.barChart = new Chart(this.barCanvas.nativeElement, {
       type: 'bar',
       data: {
-        labels: shops.map(s => s.replace('Caribou ', '')), // Shorten names
+        labels: shops.map(s => s.replace('Caribou ', '')),
         datasets: [{
           label: 'Score Moyen (%)',
           data: shopScores,
-          backgroundColor: '#326295', // Primary Blue
+          backgroundColor: '#326295',
           borderRadius: 4,
           barThickness: 40
         }]
@@ -262,22 +283,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            grid: { color: '#f0f0f0' }
-          },
-          x: {
-            grid: { display: false }
-          }
+          y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+          x: { grid: { display: false } }
         },
-        plugins: {
-          legend: { display: false }
-        }
+        plugins: { legend: { display: false } }
       }
     });
 
-    // 2. Pie Chart: Compliance Distribution
     const conforming = this.audits.filter(a => a.status === 'Conforme').length;
     const nonConforming = this.audits.filter(a => a.status === 'Non-conforme').length;
 
@@ -295,96 +307,66 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' }
-        },
+        plugins: { legend: { position: 'bottom' } },
         cutout: '70%'
       }
     });
 
-    // 3. Horizontal Bar Chart: Compliance by Category
     this.initCategoryComplianceChart();
-
-    // 4. Bar Chart: Compliance by Cafe
     this.initCafeComplianceChart();
   }
 
   initCategoryComplianceChart() {
-    // Calculate compliance rate per category across all audits
-    const categoryNames: string[] = [];
-    const complianceRates: number[] = [];
+    const categoryMap = new Map<string, { total: number, compliant: number }>();
 
-    // Get all unique categories from AUDIT_CATEGORIES_TEMPLATE
-    const categories = [
-      { id: 'hygiene', name: 'Hygiène & Sécurité' },
-      { id: 'staff', name: 'Personnel & Connaissance' },
-      { id: 'quality', name: 'Qualité des produits' },
-      { id: 'maintenance', name: 'Maintenance & Matériel' },
-      { id: 'zone_client', name: 'Zone client & Ambiance' },
-      { id: 'gestion', name: 'Gestion / Système' },
-      { id: 'stock', name: 'Stock / Réception' },
-      { id: 'marketing', name: 'Marketing & Conclusion' }
-    ];
-
-    categories.forEach(cat => {
-      let totalQuestions = 0;
-      let compliantQuestions = 0;
-
-      // Iterate through all audits and sum up compliance for this category
-      this.audits.forEach(audit => {
-        const auditCategory = audit.categories?.find(c => c.id === cat.id);
-        if (auditCategory) {
-          auditCategory.items.forEach(item => {
+    this.audits.forEach(audit => {
+      if (audit.categories) {
+        audit.categories.forEach(cat => {
+          if (!categoryMap.has(cat.name)) {
+            categoryMap.set(cat.name, { total: 0, compliant: 0 });
+          }
+          cat.items.forEach(item => {
             if (item.status === 'oui' || item.status === 'non') {
-              totalQuestions++;
-              if (item.status === 'oui') {
-                compliantQuestions++;
-              }
+              const stats = categoryMap.get(cat.name)!;
+              stats.total++;
+              if (item.status === 'oui') stats.compliant++;
             }
           });
-        }
-      });
-
-      if (totalQuestions > 0) {
-        categoryNames.push(cat.name);
-        complianceRates.push((compliantQuestions / totalQuestions) * 100);
+        });
       }
+    });
+
+    const labels = Array.from(categoryMap.keys());
+    const data = labels.map(label => {
+      const stats = categoryMap.get(label)!;
+      return (stats.compliant / stats.total) * 100;
     });
 
     this.categoryChart = new Chart(this.categoryCanvas.nativeElement, {
       type: 'bar',
       data: {
-        labels: categoryNames,
+        labels: labels,
         datasets: [{
-          label: 'Taux de Conformité (%)',
-          data: complianceRates,
+          label: 'Conformité (%)',
+          data: data,
           backgroundColor: '#4CAF50',
           borderRadius: 4
         }]
       },
       options: {
-        indexAxis: 'y', // Horizontal bars
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: {
-            beginAtZero: true,
-            max: 100,
-            grid: { color: '#f0f0f0' }
-          },
-          y: {
-            grid: { display: false }
-          }
+          x: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+          y: { grid: { display: false } }
         },
-        plugins: {
-          legend: { display: false }
-        }
+        plugins: { legend: { display: false } }
       }
     });
   }
 
   initCafeComplianceChart() {
-    // Calculate compliance rate per cafe
     const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
     const cafeCompliance = shops.map(shop => {
       const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
@@ -397,7 +379,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       data: {
         labels: shops.map(s => s.replace('Caribou ', '')),
         datasets: [{
-          label: 'Taux de Conformité (%)',
+          label: 'Conformité (%)',
           data: cafeCompliance,
           backgroundColor: cafeCompliance.map(rate =>
             rate >= 85 ? '#4CAF50' : rate >= 70 ? '#FF9800' : '#F44336'
@@ -410,18 +392,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            grid: { color: '#f0f0f0' }
-          },
-          x: {
-            grid: { display: false }
-          }
+          y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+          x: { grid: { display: false } }
         },
-        plugins: {
-          legend: { display: false }
-        }
+        plugins: { legend: { display: false } }
       }
     });
   }

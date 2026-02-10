@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="categoryForm">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom de la catégorie</mat-label>
+            <input matInput formControlName="name" placeholder="Ex: Hygiène et Propreté" required>
+            @if (categoryForm.get('name')?.hasError('required')) {
+            <mat-error>Le nom est requis</mat-error>
+            }
+            @if (categoryForm.get('name')?.hasError('minlength')) {
+            <mat-error>Le nom doit contenir au moins 3 caractères</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+                placeholder="Description de la catégorie"></textarea>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!categoryForm.valid">
+        {{ isEdit ? 'Modifier' : 'Créer' }}
+    </button>
+</mat-dialog-actions>

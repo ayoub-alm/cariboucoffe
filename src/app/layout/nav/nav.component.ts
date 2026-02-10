@@ -11,10 +11,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { Observable } from 'rxjs';
-import { map, shareReplay } from 'rxjs/operators';
+import { map, shareReplay, filter } from 'rxjs/operators';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { AiChatComponent } from '../../shared/components/ai-chat/ai-chat.component';
-import { filter } from 'rxjs/operators';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-nav',
@@ -35,13 +34,13 @@ import { filter } from 'rxjs/operators';
         NgIf,
         RouterOutlet,
         RouterLink,
-        RouterLinkActive,
-        AiChatComponent,MatButtonModule
+        RouterLinkActive
     ]
 })
 export class NavComponent {
     private breakpointObserver = inject(BreakpointObserver);
     private router = inject(Router);
+    private authService = inject(AuthService);
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
@@ -53,11 +52,7 @@ export class NavComponent {
     isDarkMode = signal(false);
 
     // User information
-    currentUser = {
-        name: 'Ilham Yardi',
-        email: 'ilham.yardi@caribou.ma',
-        role: 'Auditeur'
-    };
+    currentUser = this.authService.currentUser;
 
     // Notifications
     notificationCount = 2;
@@ -112,9 +107,6 @@ export class NavComponent {
     }
 
     logout() {
-        // Clear any stored data
-        localStorage.removeItem('authToken');
-        // Navigate to login
-        this.router.navigate(['/login']);
+        this.authService.logout();
     }
 }

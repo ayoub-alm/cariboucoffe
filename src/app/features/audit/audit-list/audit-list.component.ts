@@ -13,7 +13,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
-import { Audit } from '../../../core/models/audit.model';
+import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { Router, RouterModule } from '@angular/router';
 import { AuditDialogComponent } from '../audit-dialog/audit-dialog.component';
 
@@ -121,16 +121,26 @@ export class AuditListComponent implements AfterViewInit {
         });
 
         dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                // Update logic (mock)
-                console.log('Updated audit:', result);
-                const index = this.dataSource.data.findIndex(a => a.id === result.id);
-                if (index >= 0) {
-                    const updatedData = [...this.dataSource.data];
-                    updatedData[index] = result;
-                    this.dataSource.data = updatedData;
-                }
+            if (result && audit.id) {
+                this.auditService.updateAudit(audit.id, result).subscribe({
+                    next: (updatedAudit) => {
+                        console.log('Audit updated:', updatedAudit);
+                        // Refresh data or specific item
+                        this.loadAudits();
+                    },
+                    error: (err) => console.error('Error updating audit', err)
+                });
             }
         });
+    }
+
+    deleteAudit(audit: Audit) {
+        if (audit.id && confirm(`Êtes-vous sûr de vouloir supprimer l'audit #${audit.id} ?`)) {
+            // Need to cast or check because model says id? but runtime it should be there.
+            const id = audit.id;
+            this.auditService.deleteAudit(id).subscribe(() => {
+                this.dataSource.data = this.dataSource.data.filter(a => a.id !== id);
+            });
+        }
     }
 }

@@ -17,7 +17,7 @@
                 </div>
                 <div class="meta-item">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">person</mat-icon>
-                    {{ audit.auditor }}
+                    {{ audit.auditorName }}
                 </div>
                 <div class="meta-item" *ngIf="audit.shift">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
@@ -75,8 +75,8 @@
                         <div *ngFor="let item of cat.items" class="question-item">
                             <div class="q-header">
                                 <span class="q-text">{{ item.label }}</span>
-                                <span class="q-status" [ngClass]="'status-' + (item.status || 'na')">
-                                    {{ item.status | uppercase }}
+                                <span class="q-score" [ngClass]="getQuestionScoreClass(item.numericValue)">
+                                    {{ getQuestionScoreLabel(item.numericValue) }}
                                 </span>
                             </div>
                             <div *ngIf="item.remarks" class="q-remarks">
@@ -134,19 +134,21 @@
                     <mat-list>
                         <ng-container *ngFor="let cat of audit.categories">
                             <ng-container *ngFor="let item of cat.items">
-                                <mat-list-item *ngIf="item.status === 'non'" lines="3">
+                                <mat-list-item *ngIf="item.numericValue !== undefined && item.numericValue < 3"
+                                    lines="3">
                                     <mat-icon matListItemIcon style="color: #c62828;">warning</mat-icon>
                                     <div matListItemTitle
                                         style="font-size: 13px; font-weight: 600; white-space: normal; line-height: 1.4;">
                                         {{ item.label }}</div>
-                                    <div matListItemLine style="color: #666; font-size: 12px;">{{ cat.name }}</div>
+                                    <div matListItemLine style="color: #666; font-size: 12px;">{{ cat.name }} - Score:
+                                        {{ item.numericValue }}/5</div>
                                 </mat-list-item>
                             </ng-container>
                         </ng-container>
                         <!-- Empty State -->
-                        <div *ngIf="audit.score === 100" style="padding: 24px; text-align: center; color: #2e7d32;">
+                        <div *ngIf="audit.score >= 80" style="padding: 24px; text-align: center; color: #2e7d32;">
                             <mat-icon>check_circle</mat-icon>
-                            <p>Tout est conforme !</p>
+                            <p>Aucun point critique !</p>
                         </div>
                     </mat-list>
                 </div>

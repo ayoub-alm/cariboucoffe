@@ -103,9 +103,17 @@ export class UserListComponent implements AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                console.log('New user:', result);
-                // Add to table
-                this.dataSource.data = [result, ...this.dataSource.data];
+                // Actually, the dialog handles the call? Or returns data?
+                // The dialog returned 'result' which was an object.
+                // We should call service here.
+                // Assuming dialog returns the FORM data, not the created user.
+
+                this.userService.createUser(result).subscribe({
+                    next: (newUser) => {
+                        this.dataSource.data = [newUser, ...this.dataSource.data];
+                    },
+                    error: (err) => console.error(err)
+                });
             }
         });
     }
@@ -122,14 +130,29 @@ export class UserListComponent implements AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                console.log('Updated user:', result);
-                const index = this.dataSource.data.findIndex(u => u.id === result.id);
-                if (index >= 0) {
-                    const updatedData = [...this.dataSource.data];
-                    updatedData[index] = result;
-                    this.dataSource.data = updatedData;
-                }
+                this.userService.updateUser(user.id, result).subscribe({
+                    next: (updatedUser) => {
+                        const index = this.dataSource.data.findIndex(u => u.id === updatedUser.id);
+                        if (index >= 0) {
+                            const updatedData = [...this.dataSource.data];
+                            updatedData[index] = updatedUser;
+                            this.dataSource.data = updatedData;
+                        }
+                    },
+                    error: (err) => console.error(err)
+                });
             }
         });
+    }
+
+    deleteUser(user: User) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer ${user.full_name}?`)) {
+            this.userService.deleteUser(user.id).subscribe({
+                next: () => {
+                    this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+                },
+                error: (err) => console.error(err)
+            });
+        }
     }
 }
