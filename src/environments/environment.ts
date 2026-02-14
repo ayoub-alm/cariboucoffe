@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiBaseUrl: 'https://caribou.meilleurpfe.com/api'
+    apiBaseUrl: 'http://161.97.149.132:8008'
 };
