@@ -36,12 +36,6 @@
                     <div matListItemTitle>Utilisateurs</div>
                 </a>
 
-                <!-- KPI Item -->
-                <a mat-list-item routerLink="/kpi" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">bar_chart</mat-icon>
-                    <div matListItemTitle>Rapports KPI</div>
-                </a>
-
                 <!-- Settings Item -->
                 <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">settings</mat-icon>
@@ -78,8 +72,8 @@
             <!-- Right Actions -->
             <!-- Dark Mode Toggle -->
             <button mat-icon-button (click)="toggleDarkMode()"
-                [matTooltip]="isDarkMode() ? 'Mode Clair' : 'Mode Sombre'">
-                <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+                [matTooltip]="themeService.isDarkMode() ? 'Mode Clair' : 'Mode Sombre'">
+                <mat-icon>{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
             </button>
 
             <!-- Notifications -->

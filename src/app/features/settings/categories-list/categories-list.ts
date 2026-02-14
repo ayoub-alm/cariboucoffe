@@ -36,20 +36,27 @@ export class CategoriesListComponent implements OnInit {
   private router = inject(Router);
 
   categories = signal<Category[]>([]);
-  displayedColumns = ['name', 'description', 'actions'];
+  totalCategories = 0;
+  totalGlobalScore = 0;
+  displayedColumns = ['name', 'description', 'total_score', 'actions'];
   isLoading = signal(false);
 
   ngOnInit() {
     this.loadCategories();
   }
 
+
   loadCategories() {
     this.isLoading.set(true);
     this.categoryService.getCategories().subscribe({
       next: (data) => {
         this.categories.set(data);
+        this.totalCategories = data.length;
+        this.totalGlobalScore = data.reduce((acc, curr) => acc + (curr.total_score || 0), 0);
         this.isLoading.set(false);
       },
+
+
       error: (err) => {
         console.error('Error loading categories:', err);
         this.snackBar.open('Erreur lors du chargement des catégories', 'Fermer', { duration: 3000 });

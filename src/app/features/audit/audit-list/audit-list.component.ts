@@ -48,12 +48,27 @@ export class AuditListComponent implements AfterViewInit {
         this.loadAudits();
     }
 
+    totalAudits = 0;
+    averageScore = 0;
+
     loadAudits() {
         this.auditService.getAudits().subscribe(data => {
             this.dataSource.data = data;
+            this.calculateStats(data);
             this.initTableFeatures();
         });
     }
+
+    calculateStats(data: Audit[]) {
+        this.totalAudits = data.length;
+        if (this.totalAudits > 0) {
+            const sum = data.reduce((acc, curr) => acc + curr.score, 0);
+            this.averageScore = Math.round(sum / this.totalAudits);
+        } else {
+            this.averageScore = 0;
+        }
+    }
+
 
     initTableFeatures() {
         if (this.paginator) this.dataSource.paginator = this.paginator;

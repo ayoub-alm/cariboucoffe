@@ -52,12 +52,22 @@ export class UserListComponent implements AfterViewInit {
         this.loadUsers();
     }
 
+    totalUsers = 0;
+    activeUsers = 0;
+
     loadUsers() {
         this.userService.getUsers().subscribe(data => {
             this.dataSource.data = data;
+            this.calculateStats(data);
             this.initTableFeatures();
         });
     }
+
+    calculateStats(data: User[]) {
+        this.totalUsers = data.length;
+        this.activeUsers = data.filter(u => u.is_active).length;
+    }
+
 
     initTableFeatures() {
         if (this.paginator) this.dataSource.paginator = this.paginator;

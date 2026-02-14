@@ -8,9 +8,10 @@
 
 .chat-fab {
     position: relative;
-    background: var(--gradient-primary) !important;
-    color: white !important;
-    box-shadow: 0 6px 20px rgba(43, 90, 142, 0.4) !important;
+    background: var(--primary) !important;
+    /* Use theme primary */
+    color: var(--on-primary) !important;
+    box-shadow: var(--shadow-lg) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 64px;
     height: 64px;
@@ -18,7 +19,7 @@
 
 .chat-fab:hover {
     transform: scale(1.1);
-    box-shadow: 0 8px 28px rgba(43, 90, 142, 0.5) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Custom Coffee AI Icon - SVG */
@@ -59,7 +60,7 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--primary);
     opacity: 0;
     animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
@@ -73,18 +74,18 @@
     0% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 0.6;
-        border-color: var(--primary-light);
+        border-color: var(--primary-container);
     }
 
     50% {
         opacity: 0.3;
-        border-color: var(--primary-color);
+        border-color: var(--primary);
     }
 
     100% {
         transform: translate(-50%, -50%) scale(1.4);
         opacity: 0;
-        border-color: var(--primary-color);
+        border-color: var(--primary);
     }
 }
 
@@ -93,8 +94,8 @@
     position: absolute;
     top: -6px;
     right: -6px;
-    background: linear-gradient(135deg, #FF5252, #F44336);
-    color: white;
+    background: var(--error);
+    color: var(--on-error);
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -103,8 +104,8 @@
     justify-content: center;
     font-size: 12px;
     font-weight: 700;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+    border: 3px solid var(--surface);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     animation: badge-pulse 2s ease-in-out infinite;
     z-index: 1;
 }
@@ -114,12 +115,12 @@
     0%,
     100% {
         transform: scale(1);
-        box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     50% {
         transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.6);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 }
 
@@ -132,15 +133,15 @@
     max-width: calc(100vw - 48px);
     height: 600px;
     max-height: calc(100vh - 140px);
-    background: white;
+    background: var(--surface);
     border-radius: 20px;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
     z-index: 999;
     overflow: hidden;
     animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--outline-variant);
 }
 
 @keyframes slideUp {
@@ -156,14 +157,14 @@
 }
 
 .chat-header {
-    background: var(--gradient-primary);
-    color: white;
+    background: var(--primary);
+    color: var(--on-primary);
     padding: 20px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(43, 90, 142, 0.15);
+    box-shadow: var(--shadow-sm);
 }
 
 .chat-header h3 {
@@ -179,7 +180,8 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    background: var(--surface-container-low);
+    /* Slightly off-white/dark */
 }
 
 /* Custom Scrollbar */
@@ -192,12 +194,12 @@
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-    background: #d0d0d0;
+    background: var(--outline);
     border-radius: 3px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
-    background: #b0b0b0;
+    background: var(--outline-variant);
 }
 
 .message {
@@ -231,17 +233,17 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
 }
 
 .message.bot .message-avatar {
-    background: var(--gradient-primary);
-    color: white;
+    background: var(--primary-container);
+    color: var(--on-primary-container);
 }
 
 .message.user .message-avatar {
-    background: linear-gradient(135deg, #E0E0E0, #BDBDBD);
-    color: #666;
+    background: var(--surface-variant);
+    color: var(--on-surface-variant);
 }
 
 .message-bubble {
@@ -251,19 +253,19 @@
     font-size: 14px;
     line-height: 1.5;
     word-wrap: break-word;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
 }
 
 .message.bot .message-bubble {
-    background: white;
-    color: #333;
+    background: var(--surface);
+    color: var(--on-surface);
     border-bottom-left-radius: 6px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid var(--outline-variant);
 }
 
 .message.user .message-bubble {
-    background: var(--gradient-primary);
-    color: white;
+    background: var(--primary);
+    color: var(--on-primary);
     border-bottom-right-radius: 6px;
 }
 
@@ -271,18 +273,18 @@
     display: flex;
     gap: 5px;
     padding: 12px 16px;
-    background: white;
+    background: var(--surface);
     border-radius: 16px;
     width: fit-content;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #f0f0f0;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--outline-variant);
 }
 
 .typing-dot {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: var(--primary);
     animation: typing 1.4s infinite;
 }
 
@@ -311,8 +313,8 @@
 
 .chat-input-container {
     padding: 16px 20px;
-    background: white;
-    border-top: 1px solid #f0f0f0;
+    background: var(--surface);
+    border-top: 1px solid var(--outline-variant);
     display: flex;
     gap: 10px;
     align-items: center;
@@ -321,36 +323,43 @@
 
 .chat-input-container input {
     flex: 1;
-    border: 2px solid #e8e8e8;
+    border: 2px solid var(--outline-variant);
     border-radius: 24px;
     padding: 12px 18px;
     font-size: 14px;
     outline: none;
     transition: all 0.2s;
-    background: #fafafa;
+    background: var(--surface-container);
+    color: var(--on-surface);
+}
+
+.chat-input-container input::placeholder {
+    color: var(--on-surface-variant);
 }
 
 .chat-input-container input:focus {
-    border-color: var(--primary-color);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(43, 90, 142, 0.1);
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-container);
 }
 
 .send-btn {
-    background: var(--gradient-primary) !important;
-    color: white !important;
+    background: var(--primary) !important;
+    color: var(--on-primary) !important;
     flex-shrink: 0;
     transition: all 0.2s;
 }
 
 .send-btn:hover:not([disabled]) {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(43, 90, 142, 0.3) !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
 .send-btn[disabled] {
     opacity: 0.5;
     cursor: not-allowed;
+    background: var(--surface-variant) !important;
+    color: var(--on-surface-variant) !important;
 }
 
 /* Mobile Responsive */
@@ -409,43 +418,6 @@
     }
 }
 
-/* Dark Mode Support */
-:host-context(.dark-theme) .chat-window {
-    background: var(--background-card);
-    border-color: var(--border-color);
-}
-
-:host-context(.dark-theme) .chat-messages {
-    background: linear-gradient(to bottom, var(--background-dark) 0%, var(--background-card) 100%);
-}
-
-:host-context(.dark-theme) .message.bot .message-bubble {
-    background: var(--background-elevated);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-:host-context(.dark-theme) .chat-input-container {
-    background: var(--background-card);
-    border-top-color: var(--border-color);
-}
-
-:host-context(.dark-theme) .chat-input-container input {
-    background: var(--background-dark);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-}
-
-:host-context(.dark-theme) .chat-input-container input:focus {
-    border-color: var(--primary-color);
-    background: var(--background-elevated);
-}
-
-:host-context(.dark-theme) .typing-indicator {
-    background: var(--background-elevated);
-    border-color: var(--border-color);
-}
-
-:host-context(.dark-theme) .message-avatar {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
+/* Dark Mode Support (Specifics)
+   Most are handled by vars, but some gradients might need adjustment if they were specific
+*/

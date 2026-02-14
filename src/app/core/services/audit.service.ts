@@ -56,9 +56,12 @@ export class AuditService {
                             remarks: '',
                             backendId: q.id,
                             numericValue: 0,
-                            weight: q.weight
+                            weight: q.weight,
+                            correct_answer: q.correct_answer,
+                            na_score: q.na_score
                         }))
                 }));
+
             })
         );
     }
@@ -83,12 +86,15 @@ export class AuditService {
 
                     categoryMap.get(catId).items.push({
                         label: ans.question.text,
-                        status: ans.value >= 3 ? 'oui' : 'non',
+                        status: (ans.choice as any) || (ans.value >= 3 ? 'oui' : 'non'),
                         remarks: ans.comment || '',
                         backendId: ans.question_id,
                         numericValue: ans.value,
-                        weight: ans.question.weight || 1
+                        weight: ans.question.weight || 1,
+                        correct_answer: ans.question.correct_answer,
+                        na_score: ans.question.na_score
                     });
+
                 }
             });
 
@@ -113,7 +119,13 @@ export class AuditService {
     }
 
     private mapToCreateDTO(ui: AuditUI): AuditCreateDTO {
-        const answers = [];
+        const answers: {
+            question_id: number;
+            value: number;
+            choice: 'oui' | 'non' | 'n/a';
+            comment?: string
+        }[] = [];
+
         for (const cat of ui.categories) {
             for (const item of cat.items) {
                 // Use numericValue if available, otherwise convert status
@@ -124,8 +136,10 @@ export class AuditService {
                 answers.push({
                     question_id: item.backendId || 0,
                     value: value,
+                    choice: (item.status || 'non') as 'oui' | 'non' | 'n/a',
                     comment: item.remarks || ''
                 });
+
             }
         }
 

@@ -15,16 +15,24 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Poids (Importance)</mat-label>
-            <mat-select formControlName="weight" required>
-                @for (w of weights; track w) {
-                <mat-option [value]="w">
-                    {{ w }} - {{ w === 1 ? 'Faible' : w === 2 ? 'Moyen' : w === 3 ? 'Important' : w === 4 ? 'Très
-                    important' : 'Critique' }}
-                </mat-option>
-                }
+            <mat-label>Points (Score Total)</mat-label>
+            <input matInput type="number" formControlName="weight" min="0" required>
+            <mat-hint>Points attribués si la réponse est correcte</mat-hint>
+        </mat-form-field>
+
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Réponse correcte (Full Point)</mat-label>
+            <mat-select formControlName="correct_answer" required>
+                <mat-option value="oui">Oui</mat-option>
+                <mat-option value="non">Non</mat-option>
             </mat-select>
-            <mat-hint>Le poids détermine l'importance de la question dans le calcul du score</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Points pour N/A</mat-label>
+            <input matInput type="number" formControlName="na_score" min="0">
+            <mat-hint>Points attribués si la réponse est N/A</mat-hint>
         </mat-form-field>
     </form>
 </mat-dialog-content>

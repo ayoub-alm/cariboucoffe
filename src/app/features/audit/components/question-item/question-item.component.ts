@@ -137,16 +137,31 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.sub = this.group().get('status')?.valueChanges.subscribe(val => {
-      const isNon = val === 'non';
-      this.showRemarks.set(isNon);
-      if (isNon) this.isExpanded.set(true);
+      this.checkConformity(val);
     });
     // Initial check
-    if (this.group().get('status')?.value === 'non') {
-      this.showRemarks.set(true);
+    this.checkConformity(this.group().get('status')?.value);
+  }
+
+  private checkConformity(val: string | null | undefined) {
+    if (!val) {
+      this.showRemarks.set(false);
+      return;
+    }
+
+    // Default to 'oui' if undefined
+    const correctAnswer = this.item().correct_answer?.toLowerCase() || 'oui';
+    const choice = val.toLowerCase();
+
+    // It is non-conform if it's NOT the correct answer AND it's NOT 'n/a'
+    const isNonConform = (choice !== correctAnswer && choice !== 'n/a');
+
+    this.showRemarks.set(isNonConform);
+    if (isNonConform && !this.isExpanded()) {
       this.isExpanded.set(true);
     }
   }
+
 
   ngOnDestroy() {
     this.sub?.unsubscribe();

@@ -1,162 +1,382 @@
+/* Google Material Design 3 Theme System */
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 html,
 body {
     height: 100%;
+    margin: 0;
 }
 
 body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-    background-color: #FAFAFA;
+    font-family: 'Google Sans', 'Roboto', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global overrides or utility classes */
+/* ========== LIGHT THEME (Default) ========== */
+:root {
+    /* Surface Colors */
+    --surface: #ffffff;
+    --surface-variant: #f8f9fa;
+    --surface-container: #f1f3f4;
+    --surface-container-high: #e8eaed;
+    --background: #fafafa;
+
+    /* Text Colors */
+    --on-surface: #202124;
+    --on-surface-variant: #5f6368;
+    --on-background: #202124;
+
+    /* Primary Colors */
+    --primary: #1a73e8;
+    --on-primary: #ffffff;
+    --primary-container: #d3e3fd;
+    --on-primary-container: #041e49;
+
+    /* Secondary Colors */
+    --secondary: #5f6368;
+    --on-secondary: #ffffff;
+
+    /* Error Colors */
+    --error: #d93025;
+    --on-error: #ffffff;
+    --error-container: #fce8e6;
+    --on-error-container: #410002;
+
+    /* Success Colors */
+    --success: #1e8e3e;
+    --on-success: #ffffff;
+    --success-container: #c4eed0;
+    --on-success-container: #003a12;
+
+    /* Warning Colors */
+    --warning: #f9ab00;
+    --on-warning: #000000;
+    --warning-container: #fef7e0;
+    --on-warning-container: #3e2d00;
+
+    /* Outline */
+    --outline: #dadce0;
+    --outline-variant: #e8eaed;
+
+    /* Shadow */
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    --shadow-lg: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 8px 24px 4px rgba(60, 64, 67, 0.15);
+}
+
+body {
+    background-color: var(--background);
+    color: var(--on-background);
+}
+
+/* ========== DARK THEME ========== */
+body.dark-theme {
+    /* Surface Colors */
+    --surface: #202124;
+    --surface-variant: #292a2d;
+    --surface-container: #2d2e30;
+    --surface-container-high: #35363a;
+    --background: #17181a;
+
+    /* Text Colors */
+    --on-surface: #e8eaed;
+    --on-surface-variant: #9aa0a6;
+    --on-background: #e8eaed;
+
+    /* Primary Colors */
+    --primary: #8ab4f8;
+    --on-primary: #041e49;
+    --primary-container: #174ea6;
+    --on-primary-container: #d3e3fd;
+
+    /* Secondary Colors */
+    --secondary: #9aa0a6;
+    --on-secondary: #202124;
+
+    /* Error Colors */
+    --error: #f28b82;
+    --on-error: #410002;
+    --error-container: #5f2120;
+    --on-error-container: #fce8e6;
+
+    /* Success Colors */
+    --success: #81c995;
+    --on-success: #003a12;
+    --success-container: #0d652d;
+    --on-success-container: #c4eed0;
+
+    /* Warning Colors */
+    --warning: #fdd663;
+    --on-warning: #3e2d00;
+    --warning-container: #5f4400;
+    --on-warning-container: #fef7e0;
+
+    /* Outline */
+    --outline: #5f6368;
+    --outline-variant: #444746;
+
+    /* Shadow */
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 8px 24px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== GLOBAL STYLES ========== */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Text Consistency Reset */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-weight: 400;
+    color: var(--on-background);
 }
 
-:root {
-    /* Primary Brand Colors - Enhanced */
-    --primary-color: #2B5A8E;
-    --primary-light: #4A7BB7;
-    --primary-dark: #1E3F6B;
-
-    /* Accent Colors - Warm Coffee Tones */
-    --accent-color: #D4A574;
-    --accent-light: #E8C9A0;
-    --accent-dark: #B8895C;
-
-    /* Semantic Colors */
-    --success-color: #4CAF50;
-    --warning-color: #FF9800;
-    --error-color: #F44336;
-    --info-color: #2196F3;
-
-    /* Neutral Colors */
-    --background-light: #FAFAFA;
-    --background-white: #FFFFFF;
-    --text-primary: #212121;
-    --text-secondary: #757575;
-    --border-color: #E0E0E0;
-
-    /* Gradient Backgrounds */
-    --gradient-primary: linear-gradient(135deg, #2B5A8E 0%, #4A7BB7 100%);
-    --gradient-accent: linear-gradient(135deg, #D4A574 0%, #E8C9A0 100%);
-    --gradient-warm: linear-gradient(135deg, #B8895C 0%, #D4A574 50%, #E8C9A0 100%);
+p,
+label,
+li {
+    color: var(--on-surface);
 }
 
-/* Override Material Primary Colors with our custom variable */
+span,
+div {
+    /* Inherit by default, but ensure if they are root text they use theme */
+    color: inherit;
+}
+
+/* Form Controls */
+input,
+textarea,
+select {
+    color: var(--on-surface) !important;
+}
+
+::placeholder {
+    color: var(--on-surface-variant) !important;
+    opacity: 0.7;
+}
+
+/* Secondary Text Helper */
+.text-secondary,
+.text-muted,
+.mat-caption {
+    color: var(--on-surface-variant) !important;
+}
+
+/* Material Stepper Fixes */
+.mat-step-header .mat-step-label.mat-step-label-active {
+    color: var(--on-surface) !important;
+}
+
+.mat-step-header .mat-step-label {
+    color: var(--on-surface-variant);
+    /* Inactive steps */
+}
+
+/* ========== MATERIAL COMPONENT OVERRIDES ========== */
+
+/* Cards */
+.mat-mdc-card {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+    box-shadow: var(--shadow-sm) !important;
+    border-radius: 8px !important;
+}
+
+/* Tables */
+.mat-mdc-table {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+.mat-mdc-header-cell {
+    color: var(--on-surface-variant) !important;
+    font-weight: 500 !important;
+    border-bottom-color: var(--outline) !important;
+}
+
+.mat-mdc-cell {
+    color: var(--on-surface) !important;
+    border-bottom-color: var(--outline-variant) !important;
+}
+
+.mat-mdc-row:hover {
+    background-color: var(--surface-variant) !important;
+}
+
+/* Buttons */
 .mat-mdc-button.mat-primary,
 .mat-mdc-raised-button.mat-primary,
-.mat-mdc-flat-button.mat-primary,
-.mat-mdc-fab.mat-primary,
-.mat-mdc-mini-fab.mat-primary,
-.mat-mdc-icon-button.mat-primary {
-    --mdc-filled-button-container-color: var(--primary-color);
-    --mdc-protected-button-container-color: var(--primary-color);
-    --mat-text-button-state-layer-color: var(--primary-color);
-    --mat-text-button-ripple-color: var(--primary-color);
+.mat-mdc-flat-button.mat-primary {
+    --mdc-filled-button-container-color: var(--primary);
+    --mdc-filled-button-label-text-color: var(--on-primary);
 }
 
 .mat-mdc-flat-button.mat-primary {
-    background-color: var(--primary-color) !important;
-    color: white !important;
+    background-color: var(--primary) !important;
+    color: var(--on-primary) !important;
 }
 
-/* Text colors */
+/* Forms */
+.mat-mdc-form-field {
+    color: var(--on-surface) !important;
+}
+
+.mat-mdc-input-element {
+    color: var(--on-surface) !important;
+    caret-color: var(--primary) !important;
+}
+
+.mat-mdc-select {
+    color: var(--on-surface) !important;
+}
+
+/* Toolbar */
+.mat-toolbar {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* Sidenav */
+.mat-drawer {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+    border-right-color: var(--outline) !important;
+}
+
+.mat-drawer-container {
+    background-color: var(--background) !important;
+    color: var(--on-background) !important;
+}
+
+/* Dialogs */
+.mat-mdc-dialog-container {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+/* Expansion Panels */
+.mat-expansion-panel {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+/* Progress Bar */
+.mat-mdc-progress-bar {
+    --mdc-linear-progress-active-indicator-color: var(--primary);
+    --mdc-linear-progress-track-color: var(--surface-container);
+}
+
+/* Chips */
+.mat-mdc-chip {
+    background-color: var(--surface-container) !important;
+    color: var(--on-surface) !important;
+}
+
+/* List */
+.mat-mdc-list-item {
+    color: var(--on-surface) !important;
+}
+
+.mat-mdc-list-item:hover {
+    background-color: var(--surface-variant) !important;
+}
+
+/* ========== UTILITY CLASSES ========== */
+
+/* Backgrounds */
+.bg-surface {
+    background-color: var(--surface) !important;
+}
+
+.bg-surface-variant {
+    background-color: var(--surface-variant) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+    color: var(--on-primary) !important;
+}
+
+.bg-error {
+    background-color: var(--error) !important;
+    color: var(--on-error) !important;
+}
+
+.bg-success {
+    background-color: var(--success) !important;
+    color: var(--on-success) !important;
+}
+
+.bg-warning {
+    background-color: var(--warning) !important;
+    color: var(--on-warning) !important;
+}
+
+/* Text Colors */
 .text-primary {
-    color: var(--primary-color) !important;
+    color: var(--primary) !important;
 }
 
-/* Dark Theme Global Styles */
-body.dark-theme {
-    background-color: #0F1419;
-    color: #E8E8E8;
+.text-on-surface {
+    color: var(--on-surface) !important;
 }
 
-.dark-theme {
-    /* Enhanced Dark Theme Colors */
-    --primary-color: #5B9BD5;
-    --primary-light: #7DB3E8;
-    --primary-dark: #3A7BB8;
-
-    --accent-color: #E8C9A0;
-    --accent-light: #F5E1C8;
-    --accent-dark: #D4A574;
-
-    /* Dark Theme Backgrounds */
-    --background-dark: #0F1419;
-    --background-card: #1A1F26;
-    --background-elevated: #252B33;
-
-    /* Dark Theme Text */
-    --text-primary: #E8E8E8;
-    --text-secondary: #A0A0A0;
-    --border-color: #2D3339;
+.text-on-surface-variant {
+    color: var(--on-surface-variant) !important;
 }
 
-.dark-theme .mat-mdc-card {
-    background-color: var(--background-card);
-    color: var(--text-primary);
+.text-error {
+    color: var(--error) !important;
 }
 
-.dark-theme .mat-mdc-table {
-    background-color: var(--background-card);
-    color: var(--text-primary);
+.text-success {
+    color: var(--success) !important;
 }
 
-.dark-theme .mat-mdc-header-cell {
-    color: var(--text-secondary);
+.text-warning {
+    color: var(--warning) !important;
 }
 
-.dark-theme .mat-mdc-cell {
-    color: var(--text-primary);
+/* Borders */
+.border-outline {
+    border-color: var(--outline) !important;
 }
 
-.dark-theme .mat-mdc-form-field {
-    color: var(--text-primary);
+.border-outline-variant {
+    border-color: var(--outline-variant) !important;
 }
 
-.dark-theme .mat-mdc-input-element {
-    color: var(--text-primary);
+/* Shadows */
+.shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
 }
 
-.dark-theme .mat-mdc-select {
-    color: var(--text-primary);
+.shadow-md {
+    box-shadow: var(--shadow-md) !important;
 }
 
-.dark-theme .mat-toolbar {
-    background-color: var(--background-card);
-    color: var(--text-primary);
+.shadow-lg {
+    box-shadow: var(--shadow-lg) !important;
 }
 
-.dark-theme .mat-drawer {
-    background-color: var(--background-card);
-    color: var(--text-primary);
-}
+/* ========== RESPONSIVE DESIGN ========== */
 
-.dark-theme .mat-drawer-container {
-    background-color: var(--background-dark);
-    color: var(--text-primary);
-}
-
-/* Mobile-Friendly Global Styles */
-* {
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* Smooth scrolling */
-html {
-    scroll-behavior: smooth;
-}
-
-/* Touch-friendly buttons and interactive elements */
+/* Touch-friendly */
 button,
 a,
 .mat-mdc-button,
@@ -165,7 +385,7 @@ a,
     min-width: 44px;
 }
 
-/* Responsive tables */
+/* Mobile */
 @media (max-width: 768px) {
     .mat-mdc-table {
         font-size: 13px;
@@ -176,15 +396,6 @@ a,
         padding: 8px 12px !important;
     }
 
-    /* Hide less important columns on mobile */
-    .mat-column-select,
-    .mat-column-actions {
-        position: sticky;
-    }
-}
-
-/* Responsive cards */
-@media (max-width: 768px) {
     .mat-mdc-card {
         margin: 12px;
         border-radius: 12px;
@@ -193,31 +404,18 @@ a,
     .mat-mdc-card-content {
         padding: 16px !important;
     }
-}
 
-/* Responsive forms */
-@media (max-width: 768px) {
     .mat-mdc-form-field {
         width: 100%;
         font-size: 16px;
         /* Prevents zoom on iOS */
     }
 
-    .mat-mdc-text-field-wrapper {
-        padding: 0 12px;
-    }
-}
-
-/* Responsive dialogs */
-@media (max-width: 768px) {
     .mat-mdc-dialog-container {
         max-width: 95vw !important;
         margin: 16px;
     }
-}
 
-/* Responsive toolbar */
-@media (max-width: 768px) {
     .mat-toolbar {
         padding: 0 12px !important;
     }
@@ -225,6 +423,22 @@ a,
     .mat-toolbar h1,
     .mat-toolbar h2 {
         font-size: 18px !important;
+    }
+
+    .mat-drawer {
+        width: 280px !important;
+    }
+
+    .mobile-hide {
+        display: none !important;
+    }
+
+    .mobile-full-width {
+        width: 100% !important;
+    }
+
+    .mobile-padding {
+        padding: 12px !important;
     }
 }
 
@@ -242,33 +456,11 @@ a,
     -webkit-overflow-scrolling: touch;
 }
 
-/* Mobile navigation improvements */
-@media (max-width: 768px) {
-    .mat-drawer {
-        width: 280px !important;
-    }
-}
-
-/* Responsive spacing utilities */
-@media (max-width: 768px) {
-    .mobile-hide {
-        display: none !important;
-    }
-
-    .mobile-full-width {
-        width: 100% !important;
-    }
-
-    .mobile-padding {
-        padding: 12px !important;
-    }
-}
-
 /* Better focus states for accessibility */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
 
@@ -283,4 +475,333 @@ body {
         padding-left: max(0px, env(safe-area-inset-left));
         padding-right: max(0px, env(safe-area-inset-right));
     }
+}
+
+/* Smooth transitions for theme switching */
+* {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ========== ROUNDED BUTTONS (GOOGLE STYLE) ========== */
+
+/* All buttons get rounded corners */
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-flat-button,
+.mat-mdc-stroked-button,
+.mat-mdc-icon-button,
+.mat-mdc-fab,
+.mat-mdc-mini-fab {
+    border-radius: 20px !important;
+}
+
+/* Icon buttons should be circular */
+.mat-mdc-icon-button,
+.mat-mdc-fab,
+.mat-mdc-mini-fab {
+    border-radius: 50% !important;
+}
+
+/* Form field buttons */
+.mat-mdc-form-field button {
+    border-radius: 20px !important;
+}
+
+/* Menu items */
+.mat-mdc-menu-item {
+    border-radius: 8px !important;
+    margin: 4px 8px !important;
+}
+
+/* Chips */
+.mat-mdc-chip {
+    border-radius: 16px !important;
+}
+
+/* ========== DARK MODE FIXES ========== */
+
+/* Input fields in dark mode */
+body.dark-theme .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: var(--surface-container);
+    --mdc-outlined-text-field-outline-color: var(--outline);
+}
+
+body.dark-theme .mat-mdc-text-field-wrapper {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .mat-mdc-form-field-focus-overlay {
+    background-color: transparent !important;
+}
+
+/* Select dropdowns in dark mode */
+body.dark-theme .mat-mdc-select-panel {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .mat-mdc-option {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-option:hover {
+    background-color: var(--surface-container-high) !important;
+}
+
+/* Menu panels in dark mode */
+body.dark-theme .mat-mdc-menu-panel {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .mat-mdc-menu-item {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-menu-item:hover {
+    background-color: var(--surface-container-high) !important;
+}
+
+/* Dialog in dark mode */
+body.dark-theme .mat-mdc-dialog-surface {
+    background-color: var(--surface) !important;
+}
+
+body.dark-theme .mat-mdc-dialog-title {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-dialog-content {
+    color: var(--on-surface-variant) !important;
+}
+
+/* Snackbar in dark mode */
+body.dark-theme .mat-mdc-snack-bar-container {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface) !important;
+}
+
+/* Tabs in dark mode */
+body.dark-theme .mat-mdc-tab {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .mat-mdc-tab.mat-mdc-tab-active {
+    color: var(--primary) !important;
+}
+
+body.dark-theme .mat-mdc-tab-header {
+    border-bottom-color: var(--outline) !important;
+}
+
+/* Checkbox and radio in dark mode */
+body.dark-theme .mat-mdc-checkbox,
+body.dark-theme .mat-mdc-radio-button {
+    --mdc-checkbox-unselected-icon-color: var(--on-surface-variant);
+    --mdc-radio-unselected-icon-color: var(--on-surface-variant);
+}
+
+/* Slider in dark mode */
+body.dark-theme .mat-mdc-slider {
+    --mdc-slider-handle-color: var(--primary);
+    --mdc-slider-focus-handle-color: var(--primary);
+    --mdc-slider-hover-handle-color: var(--primary);
+    --mdc-slider-active-track-color: var(--primary);
+    --mdc-slider-inactive-track-color: var(--surface-container);
+}
+
+/* Datepicker in dark mode */
+body.dark-theme .mat-datepicker-content {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-calendar {
+    background-color: var(--surface) !important;
+}
+
+body.dark-theme .mat-calendar-body-cell-content {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+    background-color: var(--surface-container) !important;
+}
+
+/* Stepper in dark mode */
+body.dark-theme .mat-step-header {
+    background-color: var(--surface) !important;
+}
+
+body.dark-theme .mat-step-label {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .mat-step-label.mat-step-label-active {
+    color: var(--primary) !important;
+}
+
+/* Paginator in dark mode */
+body.dark-theme .mat-mdc-paginator {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+/* Sort header in dark mode */
+body.dark-theme .mat-sort-header-arrow {
+    color: var(--on-surface-variant) !important;
+}
+
+/* Tooltip in dark mode */
+body.dark-theme .mat-mdc-tooltip {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface) !important;
+}
+
+/* Badge in dark mode */
+body.dark-theme .mat-badge-content {
+    background-color: var(--error) !important;
+    color: var(--on-error) !important;
+}
+
+/* Divider in dark mode */
+body.dark-theme .mat-divider {
+    border-top-color: var(--outline) !important;
+}
+
+/* ========== CUSTOM COMPONENT FIXES ========== */
+
+/* Page containers */
+body.dark-theme .page-container,
+body.dark-theme .details-container {
+    background-color: var(--background) !important;
+    color: var(--on-background) !important;
+}
+
+/* Modern cards */
+body.dark-theme .modern-card,
+body.dark-theme .section-card {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* KPI cards */
+body.dark-theme .kpi-card {
+    background-color: var(--surface) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+body.dark-theme .kpi-label {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .kpi-value {
+    color: var(--on-surface) !important;
+}
+
+/* Tables */
+body.dark-theme .custom-table,
+body.dark-theme .simple-table {
+    background-color: var(--surface) !important;
+}
+
+body.dark-theme .custom-table th,
+body.dark-theme .simple-table th {
+    color: var(--on-surface-variant) !important;
+    border-bottom-color: var(--outline) !important;
+}
+
+body.dark-theme .custom-table td,
+body.dark-theme .simple-table td {
+    color: var(--on-surface) !important;
+    border-bottom-color: var(--outline-variant) !important;
+}
+
+body.dark-theme .clickable-row:hover {
+    background-color: var(--surface-variant) !important;
+}
+
+/* Search fields */
+body.dark-theme .search-field-wrapper {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .search-field-wrapper input {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .search-field-wrapper input::placeholder {
+    color: var(--on-surface-variant) !important;
+}
+
+/* Question items */
+body.dark-theme .question-item {
+    background-color: var(--surface) !important;
+    border-left-color: var(--outline) !important;
+}
+
+body.dark-theme .question-item:hover {
+    background-color: var(--surface-variant) !important;
+}
+
+body.dark-theme .question-item.non-conforme {
+    border-left-color: var(--error) !important;
+}
+
+body.dark-theme .q-text {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .q-weight {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .q-remarks {
+    background-color: var(--surface-container) !important;
+    color: var(--on-surface-variant) !important;
+}
+
+/* Status badges */
+body.dark-theme .status-badge.status-yes {
+    background-color: var(--success-container) !important;
+    color: var(--success) !important;
+}
+
+body.dark-theme .status-badge.status-no {
+    background-color: var(--error-container) !important;
+    color: var(--error) !important;
+}
+
+body.dark-theme .status-badge.status-na {
+    background-color: var(--warning-container) !important;
+    color: var(--warning) !important;
+}
+
+/* Sidebar */
+body.dark-theme .sidenav {
+    background-color: var(--surface) !important;
+    border-right-color: var(--outline) !important;
+}
+
+body.dark-theme .nav-icon {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .active-link {
+    background-color: var(--primary-container) !important;
+    color: var(--on-primary-container) !important;
+}
+
+body.dark-theme .active-link .nav-icon {
+    color: var(--on-primary-container) !important;
+}
+
+/* Toolbar */
+body.dark-theme .main-toolbar {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+    border-bottom: 1px solid var(--outline) !important;
+}
+
+body.dark-theme .toolbar-title {
+    color: var(--on-surface) !important;
 }

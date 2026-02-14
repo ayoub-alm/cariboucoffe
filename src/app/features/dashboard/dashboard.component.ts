@@ -15,6 +15,12 @@ Chart.register(...registerables);
   imports: [MatCardModule, MatIconModule, CommonModule],
   template: `
     <div class="dashboard-container">
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-container">
+          <mat-icon class="breadcrumb-icon">home</mat-icon>
+          <span class="breadcrumb-text">Admin > Dashboard</span>
+      </div>
+
       <h1 class="dashboard-title">Tableau de Bord Caribou</h1>
       
       <div class="stats-grid">
@@ -128,81 +134,39 @@ Chart.register(...registerables);
     </div>
   `,
   styles: [`
-    .dashboard-container { padding: 24px; }
-    .dashboard-title { color: #3E2723; margin-bottom: 24px; font-weight: 500; font-family: 'Outfit', sans-serif; }
+    .dashboard-container { padding: 24px; background-color: var(--background); min-height: 100vh; }
     
-    .stats-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
-        gap: 24px; 
-        margin-bottom: 16px; 
-    }
+    /* Breadcrumb */
+    .breadcrumb-container { margin-bottom: 24px; display: flex; align-items: center; color: var(--on-surface-variant); }
+    .breadcrumb-icon { font-size: 18px; margin-right: 8px; height: 18px; width: 18px; color: var(--on-surface-variant); }
+    .breadcrumb-text { font-size: 14px; font-weight: 500; }
 
-    .secondary-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 24px;
-        margin-bottom: 24px;
-    }
+    .dashboard-title { color: var(--on-background); margin-bottom: 24px; font-weight: 400; font-family: 'Google Sans', sans-serif; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 24px; }
+    
+    .stat-card { border-radius: 12px; transition: transform 0.2s; box-shadow: var(--shadow-sm); background: var(--surface); color: var(--on-surface); }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    
+    .stat-icon-container { border-radius: 50%; background-color: var(--surface-variant); color: var(--on-surface-variant); display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
+    .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
+    .stat-icon-container.green { background-color: var(--success-container); color: var(--on-success-container); }
+    .stat-icon-container.orange { background-color: var(--warning-container); color: var(--on-warning-container); }
 
-    .mini-stat-card {
-        padding: 16px;
-        border-radius: 8px;
-        background: #f8f9fa;
-    }
+    .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
+    .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
+    
+    .secondary-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 24px; }
+    
+    .mini-stat-card { padding: 16px; border-radius: 8px; background: var(--surface-container); color: var(--on-surface); }
+    .mini-stat-card mat-card-title { margin: 0; font-size: 14px; color: var(--on-surface); }
 
-    .mini-stat-card mat-card-title {
-        margin: 0;
-        font-size: 14px;
-        color: #5d4037;
-    }
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
     
-    .stat-card { 
-        border-radius: 12px;
-        transition: transform 0.2s;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .stat-card:hover { transform: translateY(-2px); }
+    .chart-card { min-height: 350px; border-radius: 24px; box-shadow: var(--shadow-sm); border: none; background: var(--surface); color: var(--on-surface); }
     
-    .stat-icon-container {
-        border-radius: 50%;
-        background-color: #EFEBE9;
-        color: #5D4037;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .stat-icon-container.blue { background-color: #E3F2FD; color: #1976D2; }
-    .stat-icon-container.green { background-color: #E8F5E9; color: #2E7D32; }
-    .stat-icon-container.orange { background-color: #FFF3E0; color: #EF6C00; }
-
-    .stat-label { font-size: 16px; font-weight: 500; }
-    
-    .stat-value { 
-        font-size: 32px; 
-        font-weight: 700; 
-        color: #3E2723; 
-        margin-top: 8px; 
-    }
-    
-    .charts-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
-        gap: 24px; 
-    }
-    
-    .chart-card { min-height: 350px; border-radius: 12px; }
-    
-    .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-        margin-top: 16px;
-    }
-    .pie-container {
-        display: flex;
-        justify-content: center;
-    }
+    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; }
+    .pie-container { display: flex; justify-content: center; }
   `]
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {

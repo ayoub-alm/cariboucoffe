@@ -1,15 +1,63 @@
-<div class="categories-container">
-    <div class="page-header">
-        <h1>Gestion des Catégories d'Audit</h1>
-        <button mat-raised-button color="primary" (click)="openAddDialog()">
-            <mat-icon>add</mat-icon>
-            Nouvelle Catégorie
-        </button>
+<div class="page-container">
+
+    <!-- Header/Breadcrumb -->
+    <div class="breadcrumb-container">
+        <mat-icon class="breadcrumb-icon">settings</mat-icon>
+        <span class="breadcrumb-text">Paramètres > Catégories</span>
     </div>
 
-    <mat-card class="table-card">
-        <div class="table-container">
-            <table mat-table [dataSource]="categories()" class="categories-table">
+    <!-- Stats -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper blue">
+                <mat-icon>category</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Total Catégories</span>
+                <span class="kpi-value">{{ totalCategories }}</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper purple">
+                <mat-icon>help</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Questions</span>
+                <span class="kpi-value">Auto</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper green">
+                <mat-icon>score</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Score Global (Max)</span>
+                <span class="kpi-value">{{ totalGlobalScore }} pts</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card modern-card">
+
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+            <div class="search-field-wrapper">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input type="text" placeholder="Rechercher une catégorie..." #input>
+            </div>
+
+            <div class="actions-wrapper">
+                <button mat-flat-button color="primary" class="new-audit-btn" (click)="openAddDialog()">
+                    <mat-icon>add</mat-icon> Nouvelle
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table mat-table [dataSource]="categories()" class="custom-table">
+
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Nom</th>
@@ -23,6 +71,15 @@
                     <th mat-header-cell *matHeaderCellDef>Description</th>
                     <td mat-cell *matCellDef="let category">{{ category.description || '-' }}</td>
                 </ng-container>
+
+                <!-- Total Score Column -->
+                <ng-container matColumnDef="total_score">
+                    <th mat-header-cell *matHeaderCellDef>Score Total Actions</th>
+                    <td mat-cell *matCellDef="let category">
+                        <span class="score-badge">{{ category.total_score || 0 }} pts</span>
+                    </td>
+                </ng-container>
+
 
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
@@ -49,7 +106,9 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="viewQuestions(row)"
+                    class="clickable-row"></tr>
+
 
                 <!-- No data row -->
                 <tr class="mat-row" *matNoDataRow>
@@ -64,5 +123,5 @@
                 </tr>
             </table>
         </div>
-    </mat-card>
+    </div>
 </div>

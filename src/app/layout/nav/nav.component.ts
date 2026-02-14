@@ -14,6 +14,7 @@ import { Observable } from 'rxjs';
 import { map, shareReplay, filter } from 'rxjs/operators';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
     selector: 'app-nav',
@@ -41,15 +42,13 @@ export class NavComponent {
     private breakpointObserver = inject(BreakpointObserver);
     private router = inject(Router);
     private authService = inject(AuthService);
+    themeService = inject(ThemeService);
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
             map(result => result.matches),
             shareReplay()
         );
-
-    // Dark mode state
-    isDarkMode = signal(false);
 
     // User information
     currentUser = this.authService.currentUser;
@@ -61,13 +60,6 @@ export class NavComponent {
     pageTitle = 'Dashboard';
 
     constructor() {
-        // Load dark mode preference from localStorage
-        const savedDarkMode = localStorage.getItem('darkMode');
-        if (savedDarkMode) {
-            this.isDarkMode.set(savedDarkMode === 'true');
-            this.applyDarkMode(this.isDarkMode());
-        }
-
         // Update page title based on route
         this.router.events.pipe(
             filter(event => event instanceof NavigationEnd)
@@ -77,19 +69,9 @@ export class NavComponent {
     }
 
     toggleDarkMode() {
-        const newMode = !this.isDarkMode();
-        this.isDarkMode.set(newMode);
-        localStorage.setItem('darkMode', newMode.toString());
-        this.applyDarkMode(newMode);
+        this.themeService.toggleTheme();
     }
 
-    private applyDarkMode(isDark: boolean) {
-        if (isDark) {
-            document.body.classList.add('dark-theme');
-        } else {
-            document.body.classList.remove('dark-theme');
-        }
-    }
 
     private updatePageTitle() {
         const url = this.router.url;

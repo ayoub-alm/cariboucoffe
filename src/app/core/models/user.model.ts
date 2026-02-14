@@ -1,3 +1,15 @@
+/**
+ * User Models - User management and authentication
+ */
+
+/** User role enumeration */
+export enum UserRole {
+    ADMIN = 'ADMIN',
+    AUDITOR = 'AUDITOR',
+    VIEWER = 'VIEWER'
+}
+
+/** Main user interface */
 export interface User {
     id: number;
     email: string;
@@ -9,16 +21,84 @@ export interface User {
     coffee?: {
         id: number;
         name: string;
+        location?: string;
     };
 }
 
-export enum UserRole {
-    ADMIN = 'ADMIN',
-    AUDITOR = 'AUDITOR',
-    VIEWER = 'VIEWER'
-}
-
+/** Login response from authentication */
 export interface LoginResponse {
     access_token: string;
     token_type: string;
+}
+
+/** User creation payload */
+export interface UserCreate {
+    email: string;
+    password: string;
+    full_name: string;
+    role: UserRole;
+    coffee_id?: number;
+}
+
+/** User update payload */
+export interface UserUpdate {
+    email?: string;
+    full_name?: string;
+    role?: UserRole;
+    coffee_id?: number;
+    is_active?: boolean;
+}
+
+/**
+ * Helper functions for user models
+ */
+
+/** Get role display name */
+export function getRoleDisplayName(role: UserRole): string {
+    switch (role) {
+        case UserRole.ADMIN:
+            return 'Administrateur';
+        case UserRole.AUDITOR:
+            return 'Auditeur';
+        case UserRole.VIEWER:
+            return 'Visualiseur';
+        default:
+            return role;
+    }
+}
+
+/** Get role color for UI */
+export function getRoleColor(role: UserRole): string {
+    switch (role) {
+        case UserRole.ADMIN:
+            return 'primary';
+        case UserRole.AUDITOR:
+            return 'accent';
+        case UserRole.VIEWER:
+            return 'warn';
+        default:
+            return 'default';
+    }
+}
+
+/** Check if user has admin privileges */
+export function isAdmin(user: User | null): boolean {
+    return user?.role === UserRole.ADMIN;
+}
+
+/** Check if user can create audits */
+export function canCreateAudits(user: User | null): boolean {
+    return user?.role === UserRole.ADMIN || user?.role === UserRole.AUDITOR;
+}
+
+/** Get user initials for avatar */
+export function getUserInitials(user: User): string {
+    if (!user.full_name) {
+        return user.email.substring(0, 2).toUpperCase();
+    }
+    const names = user.full_name.split(' ');
+    if (names.length >= 2) {
+        return (names[0][0] + names[1][0]).toUpperCase();
+    }
+    return user.full_name.substring(0, 2).toUpperCase();
 }

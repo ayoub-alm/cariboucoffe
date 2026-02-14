@@ -1,24 +1,66 @@
 <div class="user-page-container">
 
     <div class="page-header">
-        <mat-icon style="font-size: 18px; margin-right: 8px; height: 18px; width: 18px;">home</mat-icon>
-        <span style="font-size: 14px;">Admin > Utilisateurs</span>
+        <mat-icon class="breadcrumb-icon">home</mat-icon>
+        <span class="breadcrumb-text">Admin > Utilisateurs</span>
     </div>
 
-    <div class="content-card">
-        <div class="table-toolbar">
-            <div class="search-container">
-                <input type="text" placeholder="Recherche" (keyup)="applyFilter($event)" #input>
+    <!-- Stats Grid -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper blue">
+                <mat-icon>group</mat-icon>
             </div>
-
-            <div class="actions-container">
-                <button mat-flat-button color="primary" class="add-btn" (click)="openAddDialog()">
-                    <mat-icon>add</mat-icon> Ajouter
-                </button>
-                <button mat-icon-button class="filter-btn"><mat-icon>filter_list</mat-icon></button>
-                <button mat-icon-button class="more-btn"><mat-icon>more_vert</mat-icon></button>
+            <div class="kpi-content">
+                <span class="kpi-label">Total Utilisateurs</span>
+                <span class="kpi-value">{{ totalUsers }}</span>
             </div>
         </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper green">
+                <mat-icon>how_to_reg</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Actifs</span>
+                <span class="kpi-value">{{ activeUsers }}</span>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon-wrapper purple">
+                <mat-icon>admin_panel_settings</mat-icon>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Rôles</span>
+                <span class="kpi-value">3 Types</span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="content-card modern-card">
+
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+            <div class="search-field-wrapper">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input type="text" placeholder="Rechercher un utilisateur..." (keyup)="applyFilter($event)" #input>
+            </div>
+
+            <div class="actions-wrapper">
+                <button mat-flat-button color="primary" class="new-audit-btn" (click)="openAddDialog()">
+                    <mat-icon>add</mat-icon> Ajouter
+                </button>
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer">
+                    <mat-icon>filter_list</mat-icon>
+                </button>
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Options">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+            </div>
+        </div>
+
 
         <div class="table-responsive">
             <table mat-table [dataSource]="dataSource" matSort class="custom-table">
@@ -49,7 +91,7 @@
                 <!-- Email Column -->
                 <ng-container matColumnDef="email">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-                    <td mat-cell *matCellDef="let row" style="color: #666;"> {{row.email}} </td>
+                    <td mat-cell *matCellDef="let row" class="text-secondary"> {{row.email}} </td>
                 </ng-container>
 
                 <!-- Role Column -->

@@ -61,21 +61,41 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     hasNonConformity(cat: AuditCategory): boolean {
-        return cat.items.some(i => i.status === 'non' || (i.numericValue !== undefined && i.numericValue < 3));
+        return cat.items.some(i => i.status === 'non');
     }
 
+    hasAnyNonConformity(): boolean {
+        if (!this.audit) return false;
+        return this.audit.categories.some(cat => this.hasNonConformity(cat));
+    }
+
+
     getCategoryScore(cat: AuditCategory): { yes: number, total: number, percentage: number } {
-        const scorable = cat.items.filter(i => i.numericValue !== undefined && i.numericValue !== null);
-        const maxScore = scorable.length * 5; // Assuming max score is 5 per question
-        const actualScore = scorable.reduce((sum, i) => sum + (i.numericValue || 0), 0);
+        let obtainedScore = 0;
+        let maxScore = 0;
+
+        cat.items.forEach(item => {
+            const weight = item.weight || 1;
+            maxScore += weight;
+
+            // Calculate obtained score based on choice
+            if (item.status === 'oui') {
+                obtainedScore += weight;
+            } else if (item.status === 'n/a' && item.na_score !== undefined) {
+                obtainedScore += item.na_score;
+            }
+            // 'non' gives 0 points
+        });
+
         return {
-            yes: actualScore,
+            yes: obtainedScore,
             total: maxScore,
-            percentage: maxScore > 0 ? (actualScore / maxScore) * 100 : 100
+            percentage: maxScore > 0 ? (obtainedScore / maxScore) * 100 : 100
         };
     }
 
     getQuestionScoreClass(value: number | undefined): string {
+        // This is no longer used with the new system, but keeping for compatibility
         if (value === undefined || value === null) return 'score-na';
         if (value >= 4) return 'score-excellent';
         if (value >= 3) return 'score-good';
@@ -84,7 +104,30 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     getQuestionScoreLabel(value: number | undefined): string {
+        // This is no longer used with the new system, but keeping for compatibility
         if (value === undefined || value === null) return 'N/A';
         return `${value}/5`;
     }
+
+    getQuestionStatus(item: AuditQuestion): string {
+        if (item.status === 'oui') return 'Oui';
+        if (item.status === 'non') return 'Non';
+        if (item.status === 'n/a') return 'N/A';
+        return '-';
+    }
+
+    getQuestionStatusClass(item: AuditQuestion): string {
+        if (item.status === 'oui') return 'status-yes';
+        if (item.status === 'non') return 'status-no';
+        if (item.status === 'n/a') return 'status-na';
+        return 'status-unknown';
+    }
+
+    getQuestionScore(item: AuditQuestion): number {
+        const weight = item.weight || 1;
+        if (item.status === 'oui') return weight;
+        if (item.status === 'n/a' && item.na_score !== undefined) return item.na_score;
+        return 0;
+    }
 }
+

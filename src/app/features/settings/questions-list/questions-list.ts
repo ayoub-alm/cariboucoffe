@@ -67,12 +67,15 @@ export class QuestionsListComponent implements OnInit {
     }
   }
 
+  totalScore = 0;
+
   loadQuestions() {
     if (this.categoryId) {
       this.isLoading.set(true);
       this.categoryService.getQuestions(this.categoryId).subscribe({
         next: (data) => {
           this.questions.set(data);
+          this.totalScore = data.reduce((acc, curr) => acc + curr.weight, 0);
           this.isLoading.set(false);
         },
         error: (err) => {
@@ -83,6 +86,7 @@ export class QuestionsListComponent implements OnInit {
       });
     }
   }
+
 
   openAddDialog() {
     if (!this.categoryId) return;

@@ -1,80 +1,177 @@
-.categories-container {
+.page-container {
     padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
-    height: calc(100vh - 100px);
+    background-color: var(--background);
+    min-height: 100vh;
+}
+
+/* Breadcrumb */
+.breadcrumb-container {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    color: var(--on-surface-variant);
+}
+
+.breadcrumb-icon {
+    font-size: 18px;
+    margin-right: 8px;
+    height: 18px;
+    width: 18px;
+    color: var(--on-surface-variant);
+}
+
+.breadcrumb-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.kpi-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.kpi-icon-wrapper.blue {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.kpi-icon-wrapper.purple {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.kpi-content {
     display: flex;
     flex-direction: column;
 }
 
-.page-header {
+.kpi-label {
+    font-size: 14px;
+    color: var(--on-surface-variant);
+    font-weight: 500;
+}
+
+.kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--on-surface);
+}
+
+.modern-card {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    border: none;
+}
+
+/* Toolbar */
+.table-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
 }
 
-.page-header h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0;
-}
-
-.table-card {
-    flex: 1;
+.search-field-wrapper {
+    background-color: var(--surface-container);
+    border-radius: 8px;
+    padding: 8px 16px;
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    align-items: center;
+    width: 300px;
 }
 
-.table-container {
-    flex: 1;
-    overflow: auto;
-    position: relative;
+.search-field-wrapper input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    color: #3c4043;
 }
 
-.categories-table {
+.search-icon {
+    color: #5f6368;
+    margin-right: 8px;
+}
+
+.new-audit-btn {
+    border-radius: 20px;
+    padding: 0 24px;
+    height: 40px;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+/* Table */
+.custom-table {
     width: 100%;
 }
 
-.categories-table th {
+.custom-table th.mat-header-cell {
+    font-size: 12px;
     font-weight: 600;
-    background-color: #f5f5f5;
+    color: #5f6368;
+    background-color: white;
+    border-bottom: 1px solid #e0e0e0;
 }
 
-.categories-table td,
-.categories-table th {
-    padding: 16px;
+.custom-table td.mat-cell {
+    font-size: 14px;
+    color: #3c4043;
+    padding: 16px 8px;
+    border-bottom: 1px solid #f1f3f4;
 }
 
-.actions-header {
-    width: 80px;
-    text-align: center;
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.clickable-row:hover {
+    background-color: #f8f9fa;
 }
 
 .actions-cell {
-    text-align: center;
+    text-align: right;
 }
 
-.delete-action {
-    color: #f44336;
+.actions-header {
+    text-align: right;
 }
 
-/* Scrollbar styling */
-.table-container::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+.kpi-icon-wrapper.green {
+    background-color: #e8f5e9;
+    color: #2e7d32;
 }
 
-.table-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.score-badge {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-block;
 }
