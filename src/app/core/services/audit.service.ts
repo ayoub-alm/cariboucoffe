@@ -12,7 +12,7 @@ export class AuditService {
     private http = inject(HttpClient);
 
     getAudits(): Observable<AuditUI[]> {
-        return this.http.get<AuditDTO[]>(`${API_URL}/audits/`).pipe(
+        return this.http.get<AuditDTO[]>(`${API_URL}/audits`).pipe(
             map(dtos => dtos.map(dto => this.mapToUI(dto)))
         );
     }
@@ -25,7 +25,7 @@ export class AuditService {
 
     createAudit(auditUI: AuditUI): Observable<AuditDTO> {
         const payload = this.mapToCreateDTO(auditUI);
-        return this.http.post<AuditDTO>(`${API_URL}/audits/`, payload);
+        return this.http.post<AuditDTO>(`${API_URL}/audits`, payload);
     }
 
     deleteAudit(id: number): Observable<any> {
@@ -42,8 +42,8 @@ export class AuditService {
      */
     getAuditTemplate(): Observable<AuditCategory[]> {
         return forkJoin({
-            categories: this.http.get<Category[]>(`${API_URL}/categories/`),
-            questions: this.http.get<Question[]>(`${API_URL}/questions/`)
+            categories: this.http.get<Category[]>(`${API_URL}/categories`),
+            questions: this.http.get<Question[]>(`${API_URL}/questions`)
         }).pipe(
             map(({ categories, questions }) => {
                 return categories.map(cat => ({
