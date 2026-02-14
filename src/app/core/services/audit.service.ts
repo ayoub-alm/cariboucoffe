@@ -42,8 +42,8 @@ export class AuditService {
      */
     getAuditTemplate(): Observable<AuditCategory[]> {
         return forkJoin({
-            categories: this.http.get<Category[]>(`${API_URL}/categories`),
-            questions: this.http.get<Question[]>(`${API_URL}/questions`)
+            categories: this.http.get<Category[]>(`${API_URL}/categories/`),
+            questions: this.http.get<Question[]>(`${API_URL}/questions/`)
         }).pipe(
             map(({ categories, questions }) => {
                 return categories.map(cat => ({
