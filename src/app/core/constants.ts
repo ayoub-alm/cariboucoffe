@@ -1,1 +1,3 @@
-export const API_URL = 'http://161.97.149.132:8008/api/v1';
+import { environment } from '../../environments/environment';
+
+export const API_URL = environment.apiBaseUrl;
