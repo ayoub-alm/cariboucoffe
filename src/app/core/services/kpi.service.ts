@@ -11,6 +11,6 @@ export class KpiService {
     private http = inject(HttpClient);
 
     getKPI(): Observable<KPIData> {
-        return this.http.get<KPIData>(`${API_URL}/kpi/`);
+        return this.http.get<KPIData>(`${API_URL}/kpi`);
     }
 }
