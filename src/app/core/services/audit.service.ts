@@ -92,7 +92,8 @@ export class AuditService {
                         numericValue: ans.value,
                         weight: ans.question.weight || 1,
                         correct_answer: ans.question.correct_answer,
-                        na_score: ans.question.na_score
+                        na_score: ans.question.na_score,
+                        photoData: ans.photo_url
                     });
 
                 }
@@ -114,7 +115,8 @@ export class AuditService {
             staffPresent: dto.staff_present,
             actionsCorrectives: dto.actions_correctives,
             trainingNeeds: dto.training_needs,
-            purchases: dto.purchases
+            purchases: dto.purchases,
+            photoUrl: dto.photo_url
         };
     }
 
@@ -123,7 +125,8 @@ export class AuditService {
             question_id: number;
             value: number;
             choice: 'oui' | 'non' | 'n/a';
-            comment?: string
+            comment?: string;
+            photo_data?: string;
         }[] = [];
 
         for (const cat of ui.categories) {
@@ -137,7 +140,8 @@ export class AuditService {
                     question_id: item.backendId || 0,
                     value: value,
                     choice: (item.status || 'non') as 'oui' | 'non' | 'n/a',
-                    comment: item.remarks || ''
+                    comment: item.remarks || '',
+                    photo_data: item.photoData
                 });
 
             }
@@ -150,6 +154,7 @@ export class AuditService {
             actions_correctives: ui.actionsCorrectives,
             training_needs: ui.trainingNeeds,
             purchases: ui.purchases,
+            photo_data: ui.photoData,
             answers: answers
         };
     }

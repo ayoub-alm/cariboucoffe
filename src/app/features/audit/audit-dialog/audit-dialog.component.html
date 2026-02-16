@@ -42,11 +42,37 @@
             </mat-select>
         </mat-form-field>
 
+        <!-- New Image Upload Section -->
+        <div class="full-width" style="margin-bottom: 24px;">
+            <label
+                style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--on-surface);">Attacher
+                une photo</label>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button type="button" mat-stroked-button (click)="fileInput.click()">
+                    <mat-icon style="margin-right: 8px;">add_photo_alternate</mat-icon> Choisir une photo
+                </button>
+                <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+                <span *ngIf="selectedFileName" style="font-size: 14px; color: var(--on-surface-variant);">{{
+                    selectedFileName }}</span>
+            </div>
+
+            <div *ngIf="photoPreview" style="margin-top: 16px; position: relative; display: inline-block;">
+                <img [src]="photoPreview" alt="Preview"
+                    style="max-height: 200px; max-width: 100%; border-radius: 8px; border: 1px solid var(--outline);">
+                <button mat-icon-button type="button" (click)="removePhoto()"
+                    style="position: absolute; top: -12px; right: -12px; background: white; border: 1px solid #ccc; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <mat-icon style="font-size: 16px; height: 16px; width: 16px; line-height: 16px;">close</mat-icon>
+                </button>
+            </div>
+            <div *ngIf="isCompressing" style="margin-top: 8px; font-size: 12px; color: var(--primary);">Compression en
+                cours...</div>
+        </div>
+
     </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()">Annuler</button>
-    <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="auditForm.invalid">
+    <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="auditForm.invalid || isCompressing">
         {{ data ? 'Mettre à jour' : 'Créer' }}
     </button>
 </mat-dialog-actions>

@@ -18,6 +18,7 @@ export interface AuditAnswerDTO {
   value: number;
   choice?: 'oui' | 'non' | 'n/a';
   comment?: string;
+  photo_url?: string;
   id?: number;
   question?: {
     id: number;
@@ -47,6 +48,7 @@ export interface AuditDTO {
   actions_correctives?: string;
   training_needs?: string;
   purchases?: string;
+  photo_url?: string;
 }
 
 /** Audit creation payload */
@@ -57,11 +59,13 @@ export interface AuditCreateDTO {
   actions_correctives?: string;
   training_needs?: string;
   purchases?: string;
+  photo_data?: string;
   answers: {
     question_id: number;
     value: number;
     choice: 'oui' | 'non' | 'n/a';
-    comment?: string
+    comment?: string;
+    photo_data?: string;
   }[];
 }
 
@@ -90,6 +94,8 @@ export interface AuditUI {
   actionsCorrectives?: string;
   trainingNeeds?: string;
   purchases?: string;
+  photoUrl?: string;
+  photoData?: string;
 }
 
 /** Audit category grouping questions */
@@ -109,6 +115,7 @@ export interface AuditQuestion {
   numericValue?: number;
   remarks?: string;
   photos?: string[];
+  photoData?: string;
   backendId?: number;
   weight?: number;
   correct_answer?: string;

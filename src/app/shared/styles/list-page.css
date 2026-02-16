@@ -1,0 +1,133 @@
+/* Global list page styles to share */
+.page-container {
+    padding: 24px;
+    background-color: var(--background);
+    min-height: 100vh;
+}
+
+.page-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    color: var(--on-surface-variant);
+}
+
+.breadcrumb-icon {
+    font-size: 18px;
+    margin-right: 8px;
+    height: 18px;
+    width: 18px;
+    color: var(--on-surface-variant);
+}
+
+.breadcrumb-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.content-card.modern-card {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    border: none;
+}
+
+.table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.search-field-wrapper {
+    background-color: var(--surface-container);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    width: 300px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.search-field-wrapper:focus-within {
+    background-color: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.search-icon {
+    color: var(--on-surface-variant);
+    margin-right: 8px;
+}
+
+.search-field-wrapper input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: var(--on-surface);
+}
+
+.search-field-wrapper input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.actions-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.primary-btn,
+.new-audit-btn {
+    border-radius: 20px !important;
+    padding: 0 24px !important;
+    height: 40px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+}
+
+.icon-btn-secondary {
+    color: var(--on-surface-variant);
+}
+
+.custom-table {
+    width: 100%;
+    background-color: transparent;
+}
+
+.custom-table th.mat-header-cell {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    border-bottom: 1px solid var(--outline);
+}
+
+.custom-table td.mat-cell {
+    font-size: 14px;
+    color: var(--on-surface);
+    padding: 16px 8px;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.status-pill {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: var(--success-container);
+    color: var(--on-success-container);
+}
+
+.status-inactive {
+    background-color: var(--error-container);
+    color: var(--on-error-container);
+}

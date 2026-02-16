@@ -8,27 +8,42 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/models/audit.model';
 
 @Component({
-    selector: 'app-audit-summary',
-    standalone: true,
-    imports: [
-        CommonModule,
-        MatCardModule,
-        MatListModule,
-        MatIconModule,
-        MatProgressBarModule
-    ],
-    template: `
+  selector: 'app-audit-summary',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatListModule,
+    MatIconModule,
+    MatProgressBarModule
+  ],
+  template: `
     <div class="summary-container">
       <mat-card class="score-card" [ngClass]="scoreClass()">
         <mat-card-header>
           <mat-card-title class="card-title">Score de Conformité</mat-card-title>
         </mat-card-header>
         <mat-card-content class="score-content">
-          <div class="score-value">{{ score() | number:'1.0-0' }}%</div>
+          <div class="score-value">{{ score() | number:'1.0-1' }}%</div>
           <mat-progress-bar mode="determinate" [value]="score()" class="score-bar"></mat-progress-bar>
           <p class="score-label">{{ scoreStatus() }}</p>
         </mat-card-content>
       </mat-card>
+
+      <!-- Category Breakdown -->
+      <div class="category-scores" *ngIf="categoryScores().length > 0">
+        <h3 class="section-heading">Détails par catégorie</h3>
+        <div class="category-grid">
+            <div *ngFor="let cat of categoryScores()" class="cat-score-card">
+                <div class="cat-header">
+                    <span class="cat-name">{{ cat.name }}</span>
+                    <span class="cat-percent" [class]="cat.textClass">{{ cat.percentage | number:'1.0-0' }}%</span>
+                </div>
+                <mat-progress-bar mode="determinate" [value]="cat.percentage" [class]="cat.class"></mat-progress-bar>
+                <div class="cat-details">{{ cat.score }} / {{ cat.total }} pts</div>
+            </div>
+        </div>
+      </div>
 
       <h3 class="section-heading error-text" *ngIf="nonConformities().length > 0">
         <mat-icon class="heading-icon">warning</mat-icon> Non-Conformités ({{ nonConformities().length }})
@@ -42,6 +57,10 @@ import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/model
             <div class="nc-actions">
               <strong>Action requise:</strong> {{ item.remarks || 'Aucune remarque saisie' }}
             </div>
+             <!-- Show photo indicator if present -->
+            <div *ngIf="item.photo" class="nc-photo-indicator">
+                <mat-icon inline>photo_camera</mat-icon> Photo jointe
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -53,7 +72,7 @@ import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/model
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .summary-container { padding: 16px; }
     
     /* Score Card */
@@ -83,6 +102,38 @@ import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/model
     .score-warning { background-color: #fff8e1; border: 1px solid #ffe082; color: #ff6f00; }
     .score-danger { background-color: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
 
+    /* Category Scores */
+    .category-scores { margin-top: 24px; margin-bottom: 32px; }
+    .category-grid { 
+      display: grid; 
+      gap: 16px; 
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    .cat-score-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .cat-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #424242;
+    }
+    .cat-percent { font-weight: 700; }
+    .cat-details {
+        margin-top: 8px;
+        font-size: 0.8rem;
+        color: #757575;
+        text-align: right;
+    }
+    .text-success { color: #2e7d32; }
+    .text-warning { color: #f57c00; }
+    .text-danger { color: #c62828; }
+
     /* Non Conformities */
     .section-heading {
       font-size: 1.25rem;
@@ -108,6 +159,15 @@ import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/model
       color: #b71c1c;
       border: 1px solid #ffcdd2;
     }
+    .nc-photo-indicator {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #1976d2;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
 
     /* Success Message */
     .success-message {
@@ -123,55 +183,134 @@ import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/model
   `]
 })
 export class AuditSummaryComponent {
-    auditForm = input.required<FormGroup>();
+  auditForm = input.required<FormGroup>();
 
-    allQuestionsWithAnswers = computed(() => {
-        const categoriesFormArray = this.auditForm().get('categories')?.value;
-        if (!categoriesFormArray || !Array.isArray(categoriesFormArray)) return [];
+  allQuestionsWithAnswers = computed(() => {
+    const categoriesFormArray = this.auditForm().get('categories')?.value;
+    if (!categoriesFormArray || !Array.isArray(categoriesFormArray)) return [];
 
-        const results: any[] = [];
-        AUDIT_CATEGORIES_TEMPLATE.forEach((tplCat, catIndex) => {
-            const formCat = categoriesFormArray[catIndex];
-            if (!formCat || !formCat.items) return;
+    const results: any[] = [];
+    AUDIT_CATEGORIES_TEMPLATE.forEach((tplCat, catIndex) => {
+      const formCat = categoriesFormArray[catIndex];
+      if (!formCat || !formCat.items) return;
 
-            tplCat.items.forEach((tplItem, itemIndex) => {
-                const formItem = formCat.items[itemIndex];
-                if (formItem) {
-                    results.push({
-                        ...tplItem,
-                        status: formItem.status,
-                        remarks: formItem.remarks,
-                        categoryName: tplCat.name
-                    });
-                }
-            });
-        });
-        return results;
+      tplCat.items.forEach((tplItem, itemIndex) => {
+        const formItem = formCat.items[itemIndex];
+        if (formItem) {
+          results.push({
+            ...tplItem,
+            status: formItem.status,
+            remarks: formItem.remarks,
+            photo: formItem.photoData,
+            categoryName: tplCat.name
+          });
+        }
+      });
+    });
+    return results;
+  });
+
+  // Score global weighted
+  score = computed(() => {
+    const items = this.allQuestionsWithAnswers();
+    let totalScore = 0;
+    let totalMax = 0;
+
+    items.forEach(item => {
+      const status = item.status;
+      // Assuming we calculate score even if some are unanswered (treating as 0?) or we assume all required are answered.
+      // If stepper validation works, all are answered.
+      // But let's check nulls.
+      if (!status) return;
+
+      const weight = item.weight || 1;
+      const correct = item.correct_answer || 'oui';
+      const naScore = item.na_score || 0;
+
+      totalMax += weight; // Denominator always increases
+
+      if (status === correct) {
+        totalScore += weight;
+      } else if (status === 'n/a') {
+        totalScore += naScore;
+      }
     });
 
-    score = computed(() => {
-        const items = this.allQuestionsWithAnswers();
-        const scorable = items.filter(i => i.status === 'oui' || i.status === 'non');
-        if (scorable.length === 0) return 100;
-        const yesCount = scorable.filter(i => i.status === 'oui').length;
-        return (yesCount / scorable.length) * 100;
-    });
+    if (totalMax === 0) return 100;
+    return (totalScore / totalMax) * 100;
+  });
 
-    nonConformities = computed(() => {
-        return this.allQuestionsWithAnswers().filter(i => i.status === 'non');
-    });
+  categoryScores = computed(() => {
+    const categoriesFormArray = this.auditForm().get('categories')?.value;
+    if (!categoriesFormArray || !Array.isArray(categoriesFormArray)) return [];
 
-    scoreStatus = computed(() => {
-        const s = this.score();
-        if (s >= 85) return 'Conforme (Excellent)';
-        if (s >= 70) return 'Conforme (Moyen)';
-        return 'Non-conforme';
-    });
+    return AUDIT_CATEGORIES_TEMPLATE.map((tplCat, index) => {
+      const formCat = categoriesFormArray[index];
+      const items = formCat?.items || [];
 
-    scoreClass = computed(() => {
-        const s = this.score();
-        if (s >= 85) return 'score-success';
-        if (s >= 70) return 'score-warning';
-        return 'score-danger';
+      let currentScore = 0;
+      let currentTotal = 0;
+
+      tplCat.items.forEach((tplItem, itemIndex) => {
+        const formItem = items[itemIndex];
+        const status = formItem?.status;
+
+        const weight = tplItem.weight || 1;
+        const correct = tplItem.correct_answer || 'oui';
+        const naScore = tplItem.na_score || 0;
+
+        currentTotal += weight;
+
+        if (status === correct) {
+          currentScore += weight;
+        } else if (status === 'n/a') {
+          currentScore += naScore;
+        }
+      });
+
+      const percentage = currentTotal > 0 ? (currentScore / currentTotal) * 100 : 0;
+
+      let cssClass = 'score-danger';
+      let textClass = 'text-danger';
+
+      if (percentage >= 85) {
+        cssClass = 'score-success';
+        textClass = 'text-success';
+      } else if (percentage >= 70) {
+        cssClass = 'score-warning';
+        textClass = 'text-warning';
+      }
+
+      return {
+        name: tplCat.name,
+        score: currentScore,
+        total: currentTotal,
+        percentage,
+        class: cssClass,
+        textClass
+      };
     });
+  });
+
+  nonConformities = computed(() => {
+    return this.allQuestionsWithAnswers().filter(i => {
+      // Non-conform if status != correct AND status != n/a
+      const correct = i.correct_answer || 'oui';
+      return i.status !== correct && i.status !== 'n/a';
+    });
+  });
+
+  scoreStatus = computed(() => {
+    const s = this.score();
+    if (s >= 85) return 'Conforme (Excellent)';
+    if (s >= 70) return 'Conforme (Moyen)';
+    return 'Non-conforme';
+  });
+
+  scoreClass = computed(() => {
+    const s = this.score();
+    if (s >= 85) return 'score-success';
+    if (s >= 70) return 'score-warning';
+    return 'score-danger';
+  });
 }

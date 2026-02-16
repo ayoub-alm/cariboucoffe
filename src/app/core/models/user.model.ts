@@ -23,6 +23,9 @@ export interface User {
         name: string;
         location?: string;
     };
+    receive_daily_report?: boolean;
+    receive_weekly_report?: boolean;
+    receive_monthly_report?: boolean;
 }
 
 /** Login response from authentication */
@@ -47,6 +50,9 @@ export interface UserUpdate {
     role?: UserRole;
     coffee_id?: number;
     is_active?: boolean;
+    receive_daily_report?: boolean;
+    receive_weekly_report?: boolean;
+    receive_monthly_report?: boolean;
 }
 
 /**

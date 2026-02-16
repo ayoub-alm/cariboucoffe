@@ -43,11 +43,17 @@ export class AuditStepperComponent {
     private coffeeService = inject(CoffeeService);
     private router = inject(Router);
 
-    auditForm: FormGroup;
+    auditForm!: FormGroup;
     auditCategories: AuditCategory[] = [];
     isLoadingCategories = true;
 
     coffees$ = this.coffeeService.getCoffees();
+
+    // Photo handling
+    selectedFileName: string | null = null;
+    photoPreview: string | null = null;
+    photoData: string | null = null;
+    isCompressing = false;
 
     constructor() {
         this.auditForm = this.fb.group({
@@ -120,7 +126,8 @@ export class AuditStepperComponent {
                 const itemGroup = this.fb.group({
                     id: [item.id],
                     status: [null, Validators.required],
-                    remarks: ['']
+                    remarks: [''],
+                    photoData: [null]
                 });
 
                 itemGroup.get('status')?.valueChanges.subscribe(val => {
@@ -140,8 +147,65 @@ export class AuditStepperComponent {
         });
     }
 
+    onFileSelected(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file) {
+            this.selectedFileName = file.name;
+            this.processFile(file);
+        }
+    }
+
+    processFile(file: File) {
+        this.isCompressing = true;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Strategy: Max dimension 1024px for good balance of quality and size
+                const MAX_WIDTH = 1024;
+                const MAX_HEIGHT = 1024;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                // Strategy: JPEG with 0.7 quality - significant size reduction
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                this.photoPreview = dataUrl;
+                this.photoData = dataUrl;
+                this.isCompressing = false;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    removePhoto() {
+        this.selectedFileName = null;
+        this.photoPreview = null;
+        this.photoData = null;
+    }
+
     submitAudit() {
-        if (this.auditForm.invalid) {
+        if (this.auditForm.invalid || this.isCompressing) {
             this.auditForm.markAllAsTouched();
             return;
         }
@@ -150,8 +214,8 @@ export class AuditStepperComponent {
 
         const auditData: Audit = {
             date: formVal.info.date,
-            coffeeShop: '', // Not needed for create DTO, will be ignored/handled by mapToCreateDTO using coffeeId
-            coffeeId: formVal.info.coffeeShop, // This comes from MatSelect which binds to ID
+            coffeeShop: '',
+            coffeeId: formVal.info.coffeeShop,
             auditorName: formVal.info.auditor,
             score: 0,
             shift: formVal.info.shift,
@@ -159,12 +223,14 @@ export class AuditStepperComponent {
             actionsCorrectives: formVal.conclusion.actionsCorrectives,
             trainingNeeds: formVal.conclusion.trainingNeeds,
             purchases: formVal.conclusion.purchases,
+            photoData: this.photoData || undefined, // Include the photo data
             categories: this.auditCategories.map((cat, i) => ({
                 ...cat,
                 items: cat.items.map((item, j) => ({
                     ...item,
                     status: formVal.categories[i].items[j].status,
-                    remarks: formVal.categories[i].items[j].remarks
+                    remarks: formVal.categories[i].items[j].remarks,
+                    photoData: formVal.categories[i].items[j].photoData
                 }))
             }))
         };

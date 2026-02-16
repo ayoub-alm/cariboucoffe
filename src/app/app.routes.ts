@@ -18,6 +18,8 @@ export const routes: Routes = [
             { path: 'audits', loadComponent: () => import('./features/audit/audit-list/audit-list.component').then(m => m.AuditListComponent) },
             { path: 'users/:id', loadComponent: () => import('./features/users/user-details/user-details.component').then(m => m.UserDetailsComponent) },
             { path: 'users', loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent) },
+            { path: 'coffees', loadComponent: () => import('./features/coffees/coffee-list/coffee-list.component').then(m => m.CoffeeListComponent) },
+            { path: 'notifications', loadComponent: () => import('./features/notifications/notification-manager/notification-manager.component').then(m => m.NotificationManagerComponent) },
             { path: 'kpi', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
             { path: 'settings/categories', loadComponent: () => import('./features/settings/categories-list/categories-list').then(m => m.CategoriesListComponent) },
             { path: 'settings/questions/:id', loadComponent: () => import('./features/settings/questions-list/questions-list').then(m => m.QuestionsListComponent) },

@@ -1,0 +1,5 @@
+/* Inherit common list styles form list-page.css */
+/* Specific overrides for notification manager can go here */
+.search-input {
+    min-width: 300px;
+}

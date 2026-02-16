@@ -1,0 +1,77 @@
+<div class="page-container">
+    <div class="page-header">
+        <mat-icon class="breadcrumb-icon">store</mat-icon>
+        <span class="breadcrumb-text">Admin > Cafés</span>
+    </div>
+
+    <div class="content-card modern-card">
+        <div class="table-toolbar">
+            <div class="search-field-wrapper">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input type="text" placeholder="Rechercher des cafés..." (keyup)="applyFilter($event)" #input>
+            </div>
+
+            <div class="actions-wrapper">
+                <button mat-flat-button color="primary" class="primary-btn" (click)="openDialog()">
+                    <mat-icon>add</mat-icon> Ajouter un Café
+                </button>
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer">
+                    <mat-icon>filter_list</mat-icon>
+                </button>
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Options">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
+                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Nom </th>
+                <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            </ng-container>
+
+            <!-- Location Column -->
+            <ng-container matColumnDef="location">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Emplacement </th>
+                <td mat-cell *matCellDef="let element"> {{element.location}} </td>
+            </ng-container>
+
+            <!-- Active Column -->
+            <ng-container matColumnDef="active">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="status-pill" [class.status-active]="element.active"
+                        [class.status-inactive]="!element.active">
+                        {{element.active ? 'Actif' : 'Inactif'}}
+                    </span>
+                </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> </th>
+                <td mat-cell *matCellDef="let element" style="text-align: right;">
+                    <button mat-icon-button color="primary" (click)="openDialog(element)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteCoffee(element)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons aria-label="Select page"></mat-paginator>
+    </div>
+</div>

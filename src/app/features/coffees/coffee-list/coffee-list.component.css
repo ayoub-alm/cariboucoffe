@@ -1,0 +1,6 @@
+/* Inherit common list styles from list-page.css */
+/* Specific overrides for coffee list can go here */
+.status-badge {
+    /* Example override */
+    font-weight: 600;
+}

@@ -196,24 +196,203 @@
 
 .status-active {
     background-color: var(--success-container);
-    color: var(--on-success-container);
-    /* Use proper contrast color variable if available, else hardcode or add to theme */
-}
-
-/* Define on-success-container if not present in styles.css, or fallback */
-.status-active {
-    background-color: var(--success-container);
-    color: #003a12;
-    /* Fallback or var */
-}
-
-/* Better to use variables we defined */
-.status-active {
-    background-color: var(--success-container);
     color: var(--on-success-container, #003a12);
 }
 
 .status-inactive {
     background-color: var(--error-container);
     color: var(--on-error-container);
+}
+
+/* View Toggle */
+.view-toggle {
+    margin-right: 16px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--outline-variant);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.view-toggle mat-button-toggle {
+    line-height: 40px;
+    border: none;
+    background: transparent;
+    padding: 0 12px;
+}
+
+.view-toggle mat-button-toggle-checked {
+    background-color: var(--secondary-container);
+    color: var(--on-secondary-container);
+}
+
+/* Calendar Styles */
+.calendar-view {
+    padding: 16px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.current-month-label {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 24px;
+    min-width: 200px;
+    text-align: center;
+    color: var(--on-surface);
+}
+
+.calendar-grid {
+    border: 1px solid var(--outline-variant);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.calendar-week-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--surface-container-low);
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.week-day {
+    padding: 16px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--outline-variant);
+    /* helper for borders */
+    gap: 1px;
+    /* border grid effect */
+}
+
+.calendar-day {
+    min-height: 120px;
+    background: var(--surface);
+    padding: 8px;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.calendar-day:hover {
+    background-color: var(--surface-container-highest);
+}
+
+.calendar-day.other-month {
+    background: var(--surface-container-low);
+    color: var(--outline);
+}
+
+.calendar-day.has-events {
+    background-color: var(--surface);
+}
+
+.day-number {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--on-surface);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.is-today .day-number {
+    background-color: var(--primary);
+    color: var(--on-primary);
+}
+
+.day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.audit-event-pill {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.audit-event-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.status-active.audit-event-pill {
+    background-color: var(--success);
+    /* Green */
+    color: #fff;
+    border-left: 3px solid #1b5e20;
+}
+
+.status-inactive.audit-event-pill {
+    background-color: var(--error);
+    /* Red */
+    color: #fff;
+    border-left: 3px solid #b71c1c;
+}
+
+.event-time {
+    font-size: 0.7em;
+    opacity: 0.9;
+    min-width: 24px;
+}
+
+.event-title {
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-score {
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 0.7em;
 }

@@ -61,8 +61,44 @@
                         </mat-form-field>
                     </div>
 
+                    <!-- Photo Upload Section -->
+                    <div
+                        style="margin-top: 24px; padding: 16px; background: var(--surface-container-low, #f5f5f5); border-radius: 12px; border: 1px dashed var(--outline-variant, #ccc);">
+                        <label
+                            style="display: block; margin-bottom: 12px; font-weight: 500; font-size: 15px; color: var(--on-surface);">Photo
+                            de l'audit (Optionnel)</label>
+                        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" mat-stroked-button (click)="fileInput.click()"
+                                [disabled]="isCompressing" class="action-btn">
+                                <mat-icon style="margin-right: 8px;">add_photo_alternate</mat-icon>
+                                {{ photoPreview ? 'Changer la photo' : 'Choisir une photo' }}
+                            </button>
+                            <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*"
+                                style="display: none;">
+                            <span *ngIf="selectedFileName" style="font-size: 14px; color: var(--on-surface-variant);">{{
+                                selectedFileName }}</span>
+                        </div>
+
+                        <div *ngIf="photoPreview" style="margin-top: 16px; position: relative; display: inline-block;">
+                            <img [src]="photoPreview" alt="Preview"
+                                style="max-height: 250px; max-width: 100%; border-radius: 8px; border: 1px solid var(--outline);">
+                            <button mat-icon-button type="button" (click)="removePhoto()"
+                                style="position: absolute; top: -12px; right: -12px; background: white; border: 1px solid #ccc; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                                <mat-icon
+                                    style="font-size: 18px; height: 18px; width: 18px; line-height: 18px;">close</mat-icon>
+                            </button>
+                        </div>
+                        <div *ngIf="isCompressing"
+                            style="margin-top: 8px; font-size: 13px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                            <mat-icon class="spin-icon"
+                                style="font-size: 16px; width: 16px; height: 16px;">sync</mat-icon>
+                            Optimisation de l'image en cours...
+                        </div>
+                    </div>
+
                     <div class="actions-footer">
-                        <button mat-raised-button color="primary" matStepperNext>Suivant</button>
+                        <button mat-raised-button color="primary" matStepperNext
+                            [disabled]="isCompressing">Suivant</button>
                     </div>
                 </div>
             </mat-step>
