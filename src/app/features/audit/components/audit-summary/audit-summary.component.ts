@@ -223,16 +223,15 @@ export class AuditSummaryComponent {
       // But let's check nulls.
       if (!status) return;
 
+      if (status === 'n/a') return; // Skip N/A
+
       const weight = item.weight || 1;
       const correct = item.correct_answer || 'oui';
-      const naScore = item.na_score || 0;
 
-      totalMax += weight; // Denominator always increases
+      totalMax += weight;
 
       if (status === correct) {
         totalScore += weight;
-      } else if (status === 'n/a') {
-        totalScore += naScore;
       }
     });
 
@@ -255,16 +254,15 @@ export class AuditSummaryComponent {
         const formItem = items[itemIndex];
         const status = formItem?.status;
 
+        if (status === 'n/a') return;
+
         const weight = tplItem.weight || 1;
         const correct = tplItem.correct_answer || 'oui';
-        const naScore = tplItem.na_score || 0;
 
         currentTotal += weight;
 
         if (status === correct) {
           currentScore += weight;
-        } else if (status === 'n/a') {
-          currentScore += naScore;
         }
       });
 

@@ -34,6 +34,9 @@
 
         <div class="header-score-badge" [ngClass]="getScoreClass(audit.score)">
             <span class="score-number">{{ audit.score }}%</span>
+            <span class="total-points-label" *ngIf="getTotalPoints() as points">
+                ({{ points.obtained }} / {{ points.total }} pts)
+            </span>
             <span class="score-label">{{ audit.status }}</span>
         </div>
     </div>

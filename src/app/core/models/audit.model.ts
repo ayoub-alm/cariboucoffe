@@ -151,17 +151,17 @@ export function calculateCategoryScore(category: AuditCategory): number {
   let earnedPoints = 0;
 
   category.items.forEach(item => {
+    if (item.status === 'n/a') return;
+
     const weight = item.weight || 1;
     totalWeight += weight;
 
     if (item.status === 'oui') {
       earnedPoints += weight;
-    } else if (item.status === 'n/a' && item.na_score !== undefined) {
-      earnedPoints += item.na_score;
     }
   });
 
-  return totalWeight > 0 ? Math.round((earnedPoints / totalWeight) * 100) : 0;
+  return totalWeight > 0 ? Math.round((earnedPoints / totalWeight) * 100) : 100;
 }
 
 /** Template for new audits */

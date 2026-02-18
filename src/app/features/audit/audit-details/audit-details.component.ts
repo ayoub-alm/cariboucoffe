@@ -60,6 +60,21 @@ export class AuditDetailsComponent implements OnInit {
         return 'score-danger';
     }
 
+    getTotalPoints(): { obtained: number, total: number } {
+        if (!this.audit) return { obtained: 0, total: 0 };
+
+        let obtained = 0;
+        let total = 0;
+
+        this.audit.categories.forEach(cat => {
+            const catScore = this.getCategoryScore(cat);
+            obtained += catScore.yes;
+            total += catScore.total;
+        });
+
+        return { obtained, total };
+    }
+
     hasNonConformity(cat: AuditCategory): boolean {
         return cat.items.some(i => i.status === 'non');
     }
@@ -75,14 +90,16 @@ export class AuditDetailsComponent implements OnInit {
         let maxScore = 0;
 
         cat.items.forEach(item => {
+            if (item.status === 'n/a') {
+                return; // Skip N/A entirely
+            }
+
             const weight = item.weight || 1;
             maxScore += weight;
 
             // Calculate obtained score based on choice
             if (item.status === 'oui') {
                 obtainedScore += weight;
-            } else if (item.status === 'n/a' && item.na_score !== undefined) {
-                obtainedScore += item.na_score;
             }
             // 'non' gives 0 points
         });

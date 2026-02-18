@@ -75,6 +75,14 @@
     margin-top: 2px;
 }
 
+.total-points-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
 .score-success {
     color: var(--success);
 }
