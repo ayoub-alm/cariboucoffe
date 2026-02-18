@@ -37,12 +37,7 @@ export class AuthService {
 
     loginAndFetchUser(data: FormData): Observable<User> {
         return this.login(data).pipe(
-            tap(() => {
-                // Token is now set
-            }),
             // Switch to fetching current user
-            tap(() => this.fetchCurrentUser().subscribe()),
-            // Wait for user to be fetched
             switchMap(() => this.fetchCurrentUser()),
             catchError(this.handleError)
         );
