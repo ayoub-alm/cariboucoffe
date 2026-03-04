@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, forkJoin } from 'rxjs';
-import { API_URL } from '../constants';
+import { API_URL, STATIC_URL } from '../constants';
 import { AuditDTO, AuditCreateDTO, AuditUI, AuditCategory } from '../models/audit.model';
 import { Category, Question } from '../models/category.model';
 
@@ -13,13 +13,14 @@ export class AuditService {
 
     getAudits(): Observable<AuditUI[]> {
         return this.http.get<AuditDTO[]>(`${API_URL}/audits`).pipe(
-            map(dtos => dtos.map(dto => this.mapToUI(dto)))
+            // Pass includeImages=false for list view – avoids loading large blobs for all audits
+            map(dtos => dtos.map(dto => this.mapToUI(dto, false)))
         );
     }
 
     getAudit(id: number): Observable<AuditUI> {
         return this.http.get<AuditDTO>(`${API_URL}/audits/${id}`).pipe(
-            map(dto => this.mapToUI(dto))
+            map(dto => this.mapToUI(dto, true))
         );
     }
 
@@ -66,7 +67,33 @@ export class AuditService {
         );
     }
 
-    private mapToUI(dto: AuditDTO): AuditUI {
+    /**
+     * Converts a stored photo_url to a fully-qualified URL that the browser can load.
+     *
+     * The backend saves images as relative paths: /static/uploads/<uuid>.jpg
+     * We prefix them with the backend static base URL.
+     *
+     * Legacy audits may have stored raw base64 data URIs directly in photo_url.
+     * In list mode we skip those to avoid freezing the browser.
+     */
+    private resolveImageUrl(photoUrl: string | undefined | null, includeImages: boolean): string | undefined {
+        if (!photoUrl) return undefined;
+
+        // Already a data URI (base64) — only use in detail view
+        if (photoUrl.startsWith('data:')) {
+            return includeImages ? photoUrl : undefined;
+        }
+
+        // Relative path from backend (e.g. /static/uploads/xyz.jpg)
+        if (photoUrl.startsWith('/')) {
+            return `${STATIC_URL}${photoUrl}`;
+        }
+
+        // Already an absolute URL
+        return photoUrl;
+    }
+
+    private mapToUI(dto: AuditDTO, includeImages = true): AuditUI {
         // Build categories from backend data if answers exist
         const categories: AuditCategory[] = [];
 
@@ -93,7 +120,7 @@ export class AuditService {
                         weight: ans.question.weight || 1,
                         correct_answer: ans.question.correct_answer,
                         na_score: ans.question.na_score,
-                        photoData: ans.photo_url
+                        photoData: this.resolveImageUrl(ans.photo_url, includeImages)
                     });
 
                 }
@@ -116,7 +143,7 @@ export class AuditService {
             actionsCorrectives: dto.actions_correctives,
             trainingNeeds: dto.training_needs,
             purchases: dto.purchases,
-            photoUrl: dto.photo_url
+            photoUrl: this.resolveImageUrl(dto.photo_url, includeImages)
         };
     }
 

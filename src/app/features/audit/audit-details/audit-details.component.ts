@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +13,7 @@ import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/mo
 
 @Component({
     selector: 'app-audit-details',
-    standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         CommonModule,
         MatButtonModule,
@@ -31,15 +31,30 @@ export class AuditDetailsComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private auditService = inject(AuditService);
+    private cdr = inject(ChangeDetectorRef);
 
-    audit: Audit | undefined;
+    audit = signal<Audit | undefined>(undefined);
+
+    /** Currently open lightbox image URL (null = closed) */
+    lightboxImage: string | null = null;
+
+    openLightbox(imageUrl: string) {
+        this.lightboxImage = imageUrl;
+        this.cdr.markForCheck();
+    }
+
+    closeLightbox() {
+        this.lightboxImage = null;
+        this.cdr.markForCheck();
+    }
 
     ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.auditService.getAudit(+id).subscribe({
                 next: (data) => {
-                    this.audit = data;
+                    this.audit.set(data);
+                    this.cdr.markForCheck();
                     console.log('Audit loaded:', data);
                 },
                 error: (err) => {
@@ -61,12 +76,13 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     getTotalPoints(): { obtained: number, total: number } {
-        if (!this.audit) return { obtained: 0, total: 0 };
+        const audit = this.audit();
+        if (!audit) return { obtained: 0, total: 0 };
 
         let obtained = 0;
         let total = 0;
 
-        this.audit.categories.forEach(cat => {
+        audit.categories.forEach((cat: AuditCategory) => {
             const catScore = this.getCategoryScore(cat);
             obtained += catScore.yes;
             total += catScore.total;
@@ -80,8 +96,9 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     hasAnyNonConformity(): boolean {
-        if (!this.audit) return false;
-        return this.audit.categories.some(cat => this.hasNonConformity(cat));
+        const audit = this.audit();
+        if (!audit) return false;
+        return audit.categories.some((cat: AuditCategory) => this.hasNonConformity(cat));
     }
 
 
@@ -145,6 +162,10 @@ export class AuditDetailsComponent implements OnInit {
         if (item.status === 'oui') return weight;
         if (item.status === 'n/a' && item.na_score !== undefined) return item.na_score;
         return 0;
+    }
+
+    getNaCount(cat: AuditCategory): number {
+        return cat.items.filter(i => i.status === 'n/a').length;
     }
 }
 

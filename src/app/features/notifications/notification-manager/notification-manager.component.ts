@@ -11,6 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user.model';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { API_URL } from '../../../core/constants';
 
 @Component({
   selector: 'app-notification-manager',
@@ -33,9 +35,11 @@ import { FormsModule } from '@angular/forms';
 export class NotificationManagerComponent implements OnInit, AfterViewInit {
   private userService = inject(UserService);
   private snackBar = inject(MatSnackBar);
+  private http = inject(HttpClient);
 
   dataSource = new MatTableDataSource<User>([]);
   displayedColumns: string[] = ['name', 'email', 'daily', 'weekly', 'monthly'];
+  isSending = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -85,6 +89,22 @@ export class NotificationManagerComponent implements OnInit, AfterViewInit {
         console.error(err);
         // Revert checkbox in UI would require more complex state management or reloading
         user[field] = !checked;
+      }
+    });
+  }
+
+  sendEmailNow() {
+    this.isSending.set(true);
+    this.http.post<{ success: boolean; message: string }>(`${API_URL}/notifications/send-now`, {}).subscribe({
+      next: (res) => {
+        this.snackBar.open(`✅ ${res.message}`, 'OK', { duration: 4000 });
+        this.isSending.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        const detail = err?.error?.detail ?? "Erreur lors de l'envoi de l'e-mail";
+        this.snackBar.open(`❌ ${detail}`, 'Fermer', { duration: 6000 });
+        this.isSending.set(false);
       }
     });
   }

@@ -12,6 +12,12 @@
             </div>
 
             <div class="actions-wrapper">
+                <button mat-flat-button color="primary" (click)="sendEmailNow()" [disabled]="isSending()"
+                    style="margin-right: 12px; border-radius: 8px;">
+                    <mat-icon *ngIf="!isSending()">send</mat-icon>
+                    <mat-icon *ngIf="isSending()">hourglass_empty</mat-icon>
+                    {{ isSending() ? 'Envoi en cours...' : 'Envoyer rapports maintenant' }}
+                </button>
                 <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer">
                     <mat-icon>filter_list</mat-icon>
                 </button>

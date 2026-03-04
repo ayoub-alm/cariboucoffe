@@ -7,13 +7,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
     selector: 'app-login',
-    standalone: true,
     imports: [
         MatCardModule,
         MatInputModule,
@@ -32,6 +31,7 @@ export class LoginComponent {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
 
     hidePassword = true;
     isLoading = false;
@@ -52,11 +52,11 @@ export class LoginComponent {
             formData.append('password', this.loginForm.value.password || '');
 
             this.authService.loginAndFetchUser(formData).subscribe({
-                next: (user) => {
+                next: () => {
                     this.isLoading = false;
-                    console.log('Login successful, user:', user);
-                    // Navigate to dashboard after user is fetched
-                    this.router.navigate(['/dashboard']);
+                    // Redirect user to the page they originally requested, or /dashboard
+                    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+                    this.router.navigateByUrl(returnUrl);
                 },
                 error: (err) => {
                     this.isLoading = false;

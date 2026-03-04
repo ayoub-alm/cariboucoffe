@@ -1,314 +1,452 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, ChangeDetectionStrategy, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { AUDIT_CATEGORIES_TEMPLATE, AuditQuestion } from '../../../../core/models/audit.model';
+import { MatChipsModule } from '@angular/material/chips';
+import { AuditCategory } from '../../../../core/models/audit.model';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { switchMap, startWith } from 'rxjs';
+
+interface ReviewQuestion {
+  label: string;
+  status: 'oui' | 'non' | 'n/a' | null;
+  remarks: string;
+  photo: string | null;
+  weight: number;
+  correct_answer: string;
+  categoryName: string;
+  isNonConform: boolean;
+}
+
+interface ReviewCategory {
+  name: string;
+  questions: ReviewQuestion[];
+  score: number;
+  total: number;
+  percentage: number;
+  naCount: number;
+}
 
 @Component({
   selector: 'app-audit-summary',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatListModule,
     MatIconModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatChipsModule
   ],
   template: `
-    <div class="summary-container">
-      <mat-card class="score-card" [ngClass]="scoreClass()">
-        <mat-card-header>
-          <mat-card-title class="card-title">Score de Conformité</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="score-content">
-          <div class="score-value">{{ score() | number:'1.0-1' }}%</div>
-          <mat-progress-bar mode="determinate" [value]="score()" class="score-bar"></mat-progress-bar>
-          <p class="score-label">{{ scoreStatus() }}</p>
-        </mat-card-content>
-      </mat-card>
+    <div class="review-container">
 
-      <!-- Category Breakdown -->
-      <div class="category-scores" *ngIf="categoryScores().length > 0">
-        <h3 class="section-heading">Détails par catégorie</h3>
-        <div class="category-grid">
-            <div *ngFor="let cat of categoryScores()" class="cat-score-card">
-                <div class="cat-header">
-                    <span class="cat-name">{{ cat.name }}</span>
-                    <span class="cat-percent" [class]="cat.textClass">{{ cat.percentage | number:'1.0-0' }}%</span>
-                </div>
-                <mat-progress-bar mode="determinate" [value]="cat.percentage" [class]="cat.class"></mat-progress-bar>
-                <div class="cat-details">{{ cat.score }} / {{ cat.total }} pts</div>
-            </div>
+      <!-- ── Score Hero ───────────────────────────── -->
+      <div class="score-hero" [class]="scoreClass()">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-width="12"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="12"
+              stroke-linecap="round"
+              stroke-dasharray="327"
+              [attr.stroke-dashoffset]="327 - (327 * score() / 100)"/>
+          </svg>
+          <div class="score-inner">
+            <span class="score-pct">{{ score() | number:'1.0-0' }}%</span>
+            <span class="score-lbl">{{ scoreStatus() }}</span>
+          </div>
+        </div>
+
+        <div class="score-stats">
+          <div class="stat-item">
+            <mat-icon class="stat-icon ok">check_circle</mat-icon>
+            <span class="stat-num">{{ conformCount() }}</span>
+            <span class="stat-lbl">Conformes</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon class="stat-icon nok">cancel</mat-icon>
+            <span class="stat-num">{{ nonConformCount() }}</span>
+            <span class="stat-lbl">Non-conformes</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon class="stat-icon na">not_interested</mat-icon>
+            <span class="stat-num">{{ naCount() }}</span>
+            <span class="stat-lbl">N/A</span>
+          </div>
         </div>
       </div>
 
-      <h3 class="section-heading error-text" *ngIf="nonConformities().length > 0">
-        <mat-icon class="heading-icon">warning</mat-icon> Non-Conformités ({{ nonConformities().length }})
-      </h3>
-
-      <div class="non-conformity-list">
-        <mat-card *ngFor="let item of nonConformities()" class="nc-card">
-          <mat-card-content>
-            <h4 class="nc-title">{{ item.label }}</h4>
-            <p class="nc-category">Catégorie: {{ item.categoryName }}</p>
-            <div class="nc-actions">
-              <strong>Action requise:</strong> {{ item.remarks || 'Aucune remarque saisie' }}
+      <!-- ── Category bars ────────────────────────── -->
+      <div class="cats-section">
+        <h3 class="section-title">
+          <mat-icon>bar_chart</mat-icon> Scores par catégorie
+        </h3>
+        <div class="cat-bars">
+          @for (cat of reviewCategories(); track cat.name) {
+            <div class="cat-bar-item">
+              <div class="cat-bar-header">
+                <span class="cat-bar-name">{{ cat.name }}</span>
+                <div class="cat-bar-badges">
+                  @if (cat.naCount > 0) {
+                    <span class="badge-na">{{ cat.naCount }} N/A</span>
+                  }
+                  <span class="cat-bar-pct" [class]="cat.percentage >= 85 ? 'pct-ok' : cat.percentage >= 70 ? 'pct-warn' : 'pct-bad'">
+                    {{ cat.percentage | number:'1.0-0' }}%
+                  </span>
+                </div>
+              </div>
+              <div class="cat-bar-track">
+                <div class="cat-bar-fill"
+                  [style.width.%]="cat.percentage"
+                  [class]="cat.percentage >= 85 ? 'fill-ok' : cat.percentage >= 70 ? 'fill-warn' : 'fill-bad'">
+                </div>
+              </div>
+              <div class="cat-bar-sub">{{ cat.score }} / {{ cat.total }} pts évalués</div>
             </div>
-             <!-- Show photo indicator if present -->
-            <div *ngIf="item.photo" class="nc-photo-indicator">
-                <mat-icon inline>photo_camera</mat-icon> Photo jointe
-            </div>
-          </mat-card-content>
-        </mat-card>
+          }
+        </div>
       </div>
 
-      <div *ngIf="nonConformities().length === 0" class="success-message">
-        <mat-icon class="success-icon">verified</mat-icon>
-        <h3 class="success-title">Excellent !</h3>
-        <p>Aucune non-conformité détectée.</p>
+      <!-- ── Full question breakdown ───────────────── -->
+      <div class="breakdown-section">
+        <h3 class="section-title">
+          <mat-icon>list_alt</mat-icon> Détail complet des réponses
+        </h3>
+
+        @for (cat of reviewCategories(); track cat.name) {
+          <div class="cat-block">
+            <div class="cat-block-header">
+              <span class="cat-block-name">{{ cat.name }}</span>
+              <span class="cat-block-score"
+                [class]="cat.percentage >= 85 ? 'pct-ok' : cat.percentage >= 70 ? 'pct-warn' : 'pct-bad'">
+                {{ cat.score }}/{{ cat.total }} pts · {{ cat.percentage | number:'1.0-0' }}%
+              </span>
+            </div>
+
+            @for (q of cat.questions; track q.label) {
+              <div class="q-row" [class.q-nc]="q.isNonConform" [class.q-na]="q.status === 'n/a'">
+                <div class="q-row-main">
+                  <span class="q-label">{{ q.label }}</span>
+                  <div class="q-row-right">
+                    <span class="q-pts">{{ q.weight }} pt{{ q.weight > 1 ? 's' : '' }}</span>
+                    <span class="q-badge"
+                      [class.badge-oui]="q.status === 'oui'"
+                      [class.badge-non]="q.status === 'non'"
+                      [class.badge-na]="q.status === 'n/a'"
+                      [class.badge-null]="!q.status">
+                      @if (q.status === 'oui') { <mat-icon class="badge-icon">check</mat-icon> Oui }
+                      @else if (q.status === 'non') { <mat-icon class="badge-icon">close</mat-icon> Non }
+                      @else if (q.status === 'n/a') { <mat-icon class="badge-icon">remove</mat-icon> N/A }
+                      @else { — }
+                    </span>
+                  </div>
+                </div>
+                @if (q.remarks) {
+                  <div class="q-remark">
+                    <mat-icon class="remark-icon">comment</mat-icon> {{ q.remarks }}
+                  </div>
+                }
+                @if (q.photo) {
+                  <div class="q-photo-row">
+                    <img [src]="q.photo" class="q-thumb" alt="photo">
+                    <span class="q-photo-lbl"><mat-icon>photo_camera</mat-icon> Photo jointe</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
       </div>
+
+      <!-- ── Non-conformities alert ────────────────── -->
+      @if (nonConformList().length > 0) {
+        <div class="nc-alert-section">
+          <h3 class="section-title nc-title">
+            <mat-icon>warning</mat-icon> {{ nonConformList().length }} Non-conformité(s) à corriger
+          </h3>
+          @for (nc of nonConformList(); track nc.label) {
+            <div class="nc-card">
+              <div class="nc-card-header">
+                <mat-icon class="nc-icon">error_outline</mat-icon>
+                <div>
+                  <div class="nc-label">{{ nc.label }}</div>
+                  <div class="nc-cat">{{ nc.categoryName }} · {{ nc.weight }} pt(s)</div>
+                </div>
+              </div>
+              @if (nc.remarks) {
+                <div class="nc-remark">
+                  <strong>Action corrective :</strong> {{ nc.remarks }}
+                </div>
+              } @else {
+                <div class="nc-remark nc-remark-missing">
+                  <mat-icon style="font-size:14px;width:14px;height:14px;">warning_amber</mat-icon>
+                  Aucune remarque saisie — pensez à décrire l'action corrective
+                </div>
+              }
+              @if (nc.photo) {
+                <img [src]="nc.photo" class="nc-thumb" alt="photo nc">
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="all-ok-banner">
+          <mat-icon class="ok-icon">verified</mat-icon>
+          <div>
+            <div class="ok-title">Excellent !</div>
+            <div class="ok-sub">Aucune non-conformité détectée sur cet audit.</div>
+          </div>
+        </div>
+      }
+
     </div>
   `,
   styles: [`
-    .summary-container { padding: 16px; }
-    
-    /* Score Card */
-    .score-card { 
-      border-radius: 12px; 
-      margin-bottom: 24px;
-    }
-    .score-content { 
-      text-align: center; 
-      padding: 24px 0; 
-    }
-    .card-title { font-size: 1.5rem; }
-    .score-value { 
-      font-size: 3rem; 
-      font-weight: 700; 
-      margin-bottom: 8px; 
-    }
-    .score-bar { 
-      height: 1rem; 
-      border-radius: 4px; 
-      margin-bottom: 8px;
-    }
-    .score-label { font-size: 1.125rem; font-weight: 500; }
+    .review-container { display: flex; flex-direction: column; gap: 28px; padding: 8px 0; }
 
-    /* Score Variants */
-    .score-success { background-color: #f1f8e9; border: 1px solid #c5e1a5; color: #33691e; }
-    .score-warning { background-color: #fff8e1; border: 1px solid #ffe082; color: #ff6f00; }
-    .score-danger { background-color: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
+    /* ── Score Hero ── */
+    .score-hero {
+      display: flex; align-items: center; gap: 32px; flex-wrap: wrap;
+      padding: 28px 32px; border-radius: 16px;
+    }
+    .score-hero.score-ok   { background: linear-gradient(135deg,#e8f5e9,#f1f8e9); color:#2e7d32; border:1px solid #a5d6a7; }
+    .score-hero.score-warn { background: linear-gradient(135deg,#fff8e1,#fffde7); color:#e65100; border:1px solid #ffe082; }
+    .score-hero.score-bad  { background: linear-gradient(135deg,#ffebee,#fce4ec); color:#c62828; border:1px solid #ef9a9a; }
 
-    /* Category Scores */
-    .category-scores { margin-top: 24px; margin-bottom: 32px; }
-    .category-grid { 
-      display: grid; 
-      gap: 16px; 
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    .score-ring-wrap { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+    .score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .cat-score-card {
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .cat-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #424242;
-    }
-    .cat-percent { font-weight: 700; }
-    .cat-details {
-        margin-top: 8px;
-        font-size: 0.8rem;
-        color: #757575;
-        text-align: right;
-    }
-    .text-success { color: #2e7d32; }
-    .text-warning { color: #f57c00; }
-    .text-danger { color: #c62828; }
+    .score-pct { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .score-lbl { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
 
-    /* Non Conformities */
-    .section-heading {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
+    .score-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .stat-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .stat-icon { font-size: 28px; width: 28px; height: 28px; }
+    .stat-icon.ok  { color: #2e7d32; }
+    .stat-icon.nok { color: #c62828; }
+    .stat-icon.na  { color: #f57c00; }
+    .stat-num { font-size: 1.6rem; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: .5px; opacity: .75; }
+
+    /* ── Shared ── */
+    .section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 1rem; font-weight: 700; color: #424242;
+      margin: 0 0 16px;
     }
-    .heading-icon { margin-right: 8px; }
-    .error-text { color: #c62828; }
-    
-    .non-conformity-list { display: grid; gap: 16px; }
-    
+    .section-title mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
+    /* ── Category bars ── */
+    .cats-section {}
+    .cat-bars { display: flex; flex-direction: column; gap: 14px; }
+    .cat-bar-item {}
+    .cat-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cat-bar-name { font-size: 13px; font-weight: 600; color: #424242; }
+    .cat-bar-badges { display: flex; align-items: center; gap: 8px; }
+    .badge-na {
+      font-size: 11px; font-weight: 600; padding: 1px 7px;
+      background: #fff3e0; color: #e65100; border-radius: 4px;
+    }
+    .cat-bar-pct { font-size: 13px; font-weight: 700; }
+    .pct-ok   { color: #2e7d32; }
+    .pct-warn { color: #e65100; }
+    .pct-bad  { color: #c62828; }
+    .cat-bar-track { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+    .cat-bar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+    .fill-ok   { background: #4caf50; }
+    .fill-warn { background: #ff9800; }
+    .fill-bad  { background: #f44336; }
+    .cat-bar-sub { font-size: 11px; color: #9e9e9e; margin-top: 4px; text-align: right; }
+
+    /* ── Breakdown ── */
+    .breakdown-section {}
+    .cat-block { border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .cat-block-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      background: #f5f5f5; border-bottom: 1px solid #e0e0e0;
+      font-weight: 700; font-size: 13px;
+    }
+    .cat-block-name { color: #424242; }
+    .cat-block-score { font-size: 12px; }
+
+    .q-row {
+      padding: 11px 16px; border-bottom: 1px solid #f0f0f0;
+      background: #fff; transition: background .15s;
+    }
+    .q-row:last-child { border-bottom: none; }
+    .q-row.q-nc { background: #fff8f8; border-left: 3px solid #f44336; }
+    .q-row.q-na { opacity: .75; }
+
+    .q-row-main { display: flex; align-items: center; gap: 12px; }
+    .q-label { flex: 1; font-size: 13px; color: #424242; line-height: 1.4; }
+    .q-row-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .q-pts { font-size: 11px; color: #9e9e9e; }
+
+    .q-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 3px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;
+    }
+    .badge-icon { font-size: 14px; width: 14px; height: 14px; }
+    .badge-oui  { background: #e8f5e9; color: #2e7d32; }
+    .badge-non  { background: #ffebee; color: #c62828; }
+    .badge-na   { background: #fff3e0; color: #e65100; }
+    .badge-null { background: #f5f5f5; color: #9e9e9e; }
+
+    .q-remark {
+      display: flex; align-items: flex-start; gap: 6px;
+      margin-top: 8px; padding: 8px 10px;
+      background: #fafafa; border-radius: 5px;
+      font-size: 12px; color: #616161; line-height: 1.5;
+    }
+    .remark-icon { font-size: 14px; width: 14px; height: 14px; margin-top: 1px; color:#9e9e9e; }
+
+    .q-photo-row {
+      display: flex; align-items: center; gap: 10px; margin-top: 8px;
+    }
+    .q-thumb {
+      width: 72px; height: 50px; object-fit: cover; border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    .q-photo-lbl { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #1976d2; font-weight: 500; }
+    .q-photo-lbl mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+    /* ── NC section ── */
+    .nc-alert-section {}
+    .nc-title { color: #c62828; }
     .nc-card {
-      border-left: 4px solid #f44336;
+      border: 1px solid #ffcdd2; border-left: 4px solid #f44336;
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+      background: #fff;
     }
-    .nc-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
-    .nc-category { font-size: 0.875rem; color: #666; margin-bottom: 8px; }
-    .nc-actions {
-      background-color: #ffebee;
-      padding: 12px;
-      border-radius: 4px;
-      color: #b71c1c;
-      border: 1px solid #ffcdd2;
+    .nc-card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .nc-icon { color: #f44336; font-size: 22px; width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+    .nc-label { font-size: 14px; font-weight: 700; color: #424242; }
+    .nc-cat { font-size: 12px; color: #757575; margin-top: 2px; }
+    .nc-remark {
+      padding: 10px 12px; border-radius: 6px;
+      background: #fff8f8; border: 1px solid #ffcdd2;
+      font-size: 13px; color: #b71c1c; line-height: 1.5;
     }
-    .nc-photo-indicator {
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        color: #1976d2;
-        font-size: 0.9rem;
-        font-weight: 500;
+    .nc-remark-missing {
+      display: flex; align-items: center; gap: 6px;
+      background: #fffde7; border-color: #ffe082; color: #e65100;
+    }
+    .nc-thumb {
+      display: block; margin-top: 10px;
+      max-height: 120px; border-radius: 6px; border: 1px solid #ddd;
     }
 
-    /* Success Message */
-    .success-message {
-      text-align: center;
-      padding: 32px;
-      color: #2e7d32;
-      background-color: #e8f5e9;
-      border-radius: 8px;
-      border: 1px solid #c8e6c9;
+    /* ── All OK ── */
+    .all-ok-banner {
+      display: flex; align-items: center; gap: 20px;
+      padding: 24px 28px; border-radius: 12px;
+      background: linear-gradient(135deg,#e8f5e9,#f1f8e9);
+      border: 1px solid #a5d6a7; color: #2e7d32;
     }
-    .success-icon { font-size: 3rem; width: 3rem; height: 3rem; margin-bottom: 8px; }
-    .success-title { font-size: 1.25rem; font-weight: 700; }
+    .ok-icon { font-size: 48px; width: 48px; height: 48px; }
+    .ok-title { font-size: 1.2rem; font-weight: 700; }
+    .ok-sub { font-size: 14px; opacity: .8; margin-top: 4px; }
   `]
 })
 export class AuditSummaryComponent {
   auditForm = input.required<FormGroup>();
+  /** Real categories loaded from backend — passed from the stepper */
+  auditCategories = input<AuditCategory[]>([]);
 
-  allQuestionsWithAnswers = computed(() => {
-    const categoriesFormArray = this.auditForm().get('categories')?.value;
-    if (!categoriesFormArray || !Array.isArray(categoriesFormArray)) return [];
+  /**
+   * A signal that emits the RAW form value every time any control changes.
+   * This is what makes computed() reactive — without it, computed() only
+   * runs once because the FormGroup reference never changes.
+   */
+  private formSnapshot = toSignal(
+    toObservable(this.auditForm).pipe(
+      switchMap(form => form.valueChanges.pipe(startWith(form.getRawValue())))
+    )
+  );
 
-    const results: any[] = [];
-    AUDIT_CATEGORIES_TEMPLATE.forEach((tplCat, catIndex) => {
-      const formCat = categoriesFormArray[catIndex];
-      if (!formCat || !formCat.items) return;
+  /** Build a rich review structure from form values + category metadata */
+  reviewCategories = computed<ReviewCategory[]>(() => {
+    this.formSnapshot(); // subscribe so computed re-runs on every change
+    const cats = this.auditCategories();
+    const form = this.auditForm();
+    const formCatsValue = form.getRawValue()?.categories as any[];
+    if (!cats.length || !formCatsValue?.length) return [];
 
-      tplCat.items.forEach((tplItem, itemIndex) => {
-        const formItem = formCat.items[itemIndex];
-        if (formItem) {
-          results.push({
-            ...tplItem,
-            status: formItem.status,
-            remarks: formItem.remarks,
-            photo: formItem.photoData,
-            categoryName: tplCat.name
-          });
+    return cats.map((cat, catIdx) => {
+      const formCat = formCatsValue[catIdx];
+      const formItems: any[] = formCat?.items ?? [];
+
+      let score = 0;
+      let total = 0;
+      let naCount = 0;
+
+      const questions: ReviewQuestion[] = cat.items.map((item, itemIdx) => {
+        const formItem = formItems[itemIdx] ?? {};
+        const status: 'oui' | 'non' | 'n/a' | null = formItem.status ?? null;
+        const weight = item.weight ?? 1;
+        const correct = item.correct_answer ?? 'oui';
+        const isNonConform = !!status && status !== 'n/a' && status !== correct;
+
+        if (status === 'n/a') {
+          naCount++;
+        } else if (status) {
+          total += weight;
+          if (status === correct) score += weight;
         }
+
+        return {
+          label: item.label,
+          status,
+          remarks: formItem.remarks ?? '',
+          photo: formItem.photoData ?? null,
+          weight,
+          correct_answer: correct,
+          categoryName: cat.name,
+          isNonConform
+        };
       });
+
+      const percentage = total > 0 ? (score / total) * 100 : 100;
+
+      return { name: cat.name, questions, score, total, percentage, naCount };
     });
-    return results;
   });
 
-  // Score global weighted
   score = computed(() => {
-    const items = this.allQuestionsWithAnswers();
-    let totalScore = 0;
-    let totalMax = 0;
-
-    items.forEach(item => {
-      const status = item.status;
-      // Assuming we calculate score even if some are unanswered (treating as 0?) or we assume all required are answered.
-      // If stepper validation works, all are answered.
-      // But let's check nulls.
-      if (!status) return;
-
-      if (status === 'n/a') return; // Skip N/A
-
-      const weight = item.weight || 1;
-      const correct = item.correct_answer || 'oui';
-
-      totalMax += weight;
-
-      if (status === correct) {
-        totalScore += weight;
-      }
-    });
-
-    if (totalMax === 0) return 100;
-    return (totalScore / totalMax) * 100;
+    const cats = this.reviewCategories();
+    let s = 0, t = 0;
+    cats.forEach(c => { s += c.score; t += c.total; });
+    return t > 0 ? (s / t) * 100 : 100;
   });
 
-  categoryScores = computed(() => {
-    const categoriesFormArray = this.auditForm().get('categories')?.value;
-    if (!categoriesFormArray || !Array.isArray(categoriesFormArray)) return [];
+  conformCount = computed(() =>
+    this.reviewCategories().flatMap(c => c.questions).filter(q => q.status !== 'n/a' && !q.isNonConform && q.status).length
+  );
 
-    return AUDIT_CATEGORIES_TEMPLATE.map((tplCat, index) => {
-      const formCat = categoriesFormArray[index];
-      const items = formCat?.items || [];
+  nonConformCount = computed(() => this.nonConformList().length);
 
-      let currentScore = 0;
-      let currentTotal = 0;
+  naCount = computed(() =>
+    this.reviewCategories().flatMap(c => c.questions).filter(q => q.status === 'n/a').length
+  );
 
-      tplCat.items.forEach((tplItem, itemIndex) => {
-        const formItem = items[itemIndex];
-        const status = formItem?.status;
-
-        if (status === 'n/a') return;
-
-        const weight = tplItem.weight || 1;
-        const correct = tplItem.correct_answer || 'oui';
-
-        currentTotal += weight;
-
-        if (status === correct) {
-          currentScore += weight;
-        }
-      });
-
-      const percentage = currentTotal > 0 ? (currentScore / currentTotal) * 100 : 0;
-
-      let cssClass = 'score-danger';
-      let textClass = 'text-danger';
-
-      if (percentage >= 85) {
-        cssClass = 'score-success';
-        textClass = 'text-success';
-      } else if (percentage >= 70) {
-        cssClass = 'score-warning';
-        textClass = 'text-warning';
-      }
-
-      return {
-        name: tplCat.name,
-        score: currentScore,
-        total: currentTotal,
-        percentage,
-        class: cssClass,
-        textClass
-      };
-    });
-  });
-
-  nonConformities = computed(() => {
-    return this.allQuestionsWithAnswers().filter(i => {
-      // Non-conform if status != correct AND status != n/a
-      const correct = i.correct_answer || 'oui';
-      return i.status !== correct && i.status !== 'n/a';
-    });
-  });
+  nonConformList = computed(() =>
+    this.reviewCategories().flatMap(c => c.questions).filter(q => q.isNonConform)
+  );
 
   scoreStatus = computed(() => {
     const s = this.score();
-    if (s >= 85) return 'Conforme (Excellent)';
-    if (s >= 70) return 'Conforme (Moyen)';
+    if (s >= 85) return 'Conforme';
+    if (s >= 70) return 'Partiel';
     return 'Non-conforme';
   });
 
   scoreClass = computed(() => {
     const s = this.score();
-    if (s >= 85) return 'score-success';
-    if (s >= 70) return 'score-warning';
-    return 'score-danger';
+    if (s >= 85) return 'score-ok';
+    if (s >= 70) return 'score-warn';
+    return 'score-bad';
   });
 }

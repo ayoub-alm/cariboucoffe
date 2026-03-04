@@ -210,6 +210,22 @@
     border-left: 3px solid #ea4335;
 }
 
+.question-item.is-na {
+    opacity: .65;
+    border-left: 3px dashed #bdbdbd;
+    background: #fafafa;
+}
+
+.na-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #fff3e0;
+    color: #e65100;
+}
+
+
 .q-main {
     display: flex;
     justify-content: space-between;
@@ -325,4 +341,265 @@
     font-size: 14px;
     color: var(--on-surface-variant);
     line-height: 1.6;
+}
+
+/* ============================================================
+   INFO BAR
+   ============================================================ */
+.info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--outline-variant);
+}
+
+.info-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--surface-container-low, #f8f8f8);
+    border-radius: 8px;
+    flex: 1 1 180px;
+}
+
+.info-bar-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: var(--primary, #5c6bc0);
+    flex-shrink: 0;
+}
+
+.info-bar-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--on-surface-variant);
+}
+
+.info-bar-value {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--on-surface);
+    margin-top: 1px;
+}
+
+/* ============================================================
+   SECTION HEADER ICON
+   ============================================================ */
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--primary, #5c6bc0);
+}
+
+/* ============================================================
+   AUDIT MAIN PHOTO CARD
+   ============================================================ */
+.photo-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.photo-card .section-header {
+    padding: 16px 20px 12px;
+}
+
+.audit-photo-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    cursor: pointer;
+    background: #000;
+    max-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.audit-photo {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.audit-photo-container:hover .audit-photo {
+    transform: scale(1.03);
+    opacity: 0.8;
+}
+
+.audit-photo-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    cursor: pointer;
+}
+
+.audit-photo-overlay mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.audit-photo-container:hover .audit-photo-overlay {
+    opacity: 1;
+}
+
+.photo-meta {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid var(--outline-variant);
+}
+
+/* ============================================================
+   PER-QUESTION PHOTO THUMBNAIL
+   ============================================================ */
+.q-photo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--outline-variant);
+}
+
+.q-photo-thumb {
+    width: 80px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--outline);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+}
+
+.q-photo-thumb:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.q-photo-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--primary, #1976d2);
+    font-weight: 500;
+}
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+    padding: 16px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 92vw;
+    max-height: 92vh;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+    animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lightbox-img {
+    display: block;
+    max-width: 92vw;
+    max-height: 90vh;
+    object-fit: contain;
+    background: #000;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    z-index: 10000;
+    transition: background 0.2s;
+}
+
+.lightbox-close:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox-close mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
 }

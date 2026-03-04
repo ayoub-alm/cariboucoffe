@@ -15,6 +15,7 @@ import { QuestionItemComponent } from '../components/question-item/question-item
 import { AuditSummaryComponent } from '../components/audit-summary/audit-summary.component';
 import { AuditService } from '../../../core/services/audit.service';
 import { CoffeeService } from '../../../core/services/coffee.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
     selector: 'app-audit-stepper',
@@ -41,6 +42,7 @@ export class AuditStepperComponent {
     private fb = inject(FormBuilder);
     private auditService = inject(AuditService);
     private coffeeService = inject(CoffeeService);
+    private authService = inject(AuthService);
     private router = inject(Router);
 
     auditForm!: FormGroup;
@@ -56,10 +58,13 @@ export class AuditStepperComponent {
     isCompressing = false;
 
     constructor() {
+        const currentUser = this.authService.currentUser();
+        const auditorName = currentUser?.full_name || currentUser?.email || '';
+
         this.auditForm = this.fb.group({
             info: this.fb.group({
-                auditor: ['', Validators.required],
-                coffeeShop: [null, Validators.required], // Holds ID
+                auditor: [{ value: auditorName, disabled: true }, Validators.required],
+                coffeeShop: [null, Validators.required],
                 shift: ['AM', Validators.required],
                 date: [new Date(), Validators.required],
                 staffPresent: ['', Validators.required]

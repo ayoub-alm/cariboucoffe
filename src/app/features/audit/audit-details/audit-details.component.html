@@ -1,4 +1,14 @@
-<div class="details-container" *ngIf="audit; else loading">
+﻿<div class="details-container" *ngIf="audit() as a; else loading">
+
+    <!-- Image Lightbox Modal -->
+    <div class="lightbox-overlay" *ngIf="lightboxImage" (click)="closeLightbox()">
+        <div class="lightbox-content" (click)="$event.stopPropagation()">
+            <button class="lightbox-close" (click)="closeLightbox()">
+                <mat-icon>close</mat-icon>
+            </button>
+            <img [src]="lightboxImage" class="lightbox-img" alt="Photo audit">
+        </div>
+    </div>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">
@@ -13,31 +23,63 @@
                 <button mat-icon-button (click)="goBack()">
                     <mat-icon>arrow_back</mat-icon>
                 </button>
-                <h1>{{ audit.coffeeShop }}</h1>
+                <h1>{{ a.coffeeShop }}</h1>
             </div>
 
             <div class="audit-meta">
                 <div class="meta-item">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">calendar_today</mat-icon>
-                    {{ audit.date | date:'dd MMM yyyy, HH:mm' }}
+                    {{ a.date | date:'dd MMM yyyy, HH:mm' }}
                 </div>
                 <div class="meta-item">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">person</mat-icon>
-                    {{ audit.auditorName }}
+                    {{ a.auditorName }}
                 </div>
-                <div class="meta-item" *ngIf="audit.shift">
+                <div class="meta-item" *ngIf="a.shift">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
-                    Shift {{ audit.shift }}
+                    Shift {{ a.shift }}
                 </div>
             </div>
         </div>
 
-        <div class="header-score-badge" [ngClass]="getScoreClass(audit.score)">
-            <span class="score-number">{{ audit.score }}%</span>
+        <div class="header-score-badge" [ngClass]="getScoreClass(a.score)">
+            <span class="score-number">{{ a.score }}%</span>
             <span class="total-points-label" *ngIf="getTotalPoints() as points">
                 ({{ points.obtained }} / {{ points.total }} pts)
             </span>
-            <span class="score-label">{{ audit.status }}</span>
+            <span class="score-label">{{ a.status }}</span>
+        </div>
+    </div>
+
+    <!-- General Info Bar -->
+    <div class="info-bar" *ngIf="a.staffPresent || a.shift">
+        <div class="info-bar-item" *ngIf="a.shift">
+            <mat-icon class="info-bar-icon">schedule</mat-icon>
+            <div>
+                <span class="info-bar-label">Shift</span>
+                <span class="info-bar-value">{{ a.shift }}</span>
+            </div>
+        </div>
+        <div class="info-bar-item" *ngIf="a.staffPresent">
+            <mat-icon class="info-bar-icon">group</mat-icon>
+            <div>
+                <span class="info-bar-label">Personnel présent</span>
+                <span class="info-bar-value">{{ a.staffPresent }}</span>
+            </div>
+        </div>
+        <div class="info-bar-item">
+            <mat-icon class="info-bar-icon">person_outline</mat-icon>
+            <div>
+                <span class="info-bar-label">Auditeur</span>
+                <span class="info-bar-value">{{ a.auditorName }}</span>
+            </div>
+        </div>
+        <div class="info-bar-item">
+            <mat-icon class="info-bar-icon">store</mat-icon>
+            <div>
+                <span class="info-bar-label">Établissement</span>
+                <span class="info-bar-value">{{ a.coffeeShop }}</span>
+            </div>
         </div>
     </div>
 
@@ -45,8 +87,8 @@
         <!-- Main Column: Questions Breakdown -->
         <div class="main-column">
 
-            <!-- Summary Table of Category Scores (Requested Feature) -->
-            <section class="section-card modern-card mb-4" *ngIf="audit.categories && audit.categories.length > 0">
+            <!-- Summary Table of Category Scores -->
+            <section class="section-card modern-card mb-4" *ngIf="a.categories && a.categories.length > 0">
                 <div class="section-header">
                     <h2>Détail des Scores par Catégorie</h2>
                 </div>
@@ -62,7 +104,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let cat of audit.categories">
+                            <tr *ngFor="let cat of a.categories">
                                 <td>{{ cat.name }}</td>
                                 <ng-container *ngIf="getCategoryScore(cat) as meta">
                                     <td>{{ meta.yes }} pts</td>
@@ -90,24 +132,27 @@
 
             <!-- Regular Accordion for Questions -->
             <mat-accordion multi class="modern-accordion">
-                <mat-expansion-panel *ngFor="let cat of audit.categories" [expanded]="hasNonConformity(cat)"
+                <mat-expansion-panel *ngFor="let cat of a.categories" [expanded]="hasNonConformity(cat)"
                     class="mb-4 modern-panel">
 
                     <mat-expansion-panel-header>
                         <mat-panel-title style="font-weight: 500;">
                             {{ cat.name }}
                         </mat-panel-title>
-                        <mat-panel-description style="justify-content: flex-end;">
-                            <span *ngIf="getCategoryScore(cat) as catMeta"
-                                [style.color]="catMeta.percentage < 100 ? '#e65100' : '#2e7d32'">
-                                {{ catMeta.yes }}/{{ catMeta.total }} conforme(s)
-                            </span>
+                        <mat-panel-description
+                            style="justify-content: flex-end; display:flex; align-items:center; gap:10px;">
+                            <ng-container *ngIf="getCategoryScore(cat) as catMeta">
+                                <span class="na-pill" *ngIf="getNaCount(cat) as naQty">{{ naQty }} N/A</span>
+                                <span [style.color]="catMeta.percentage < 100 ? '#e65100' : '#2e7d32'">
+                                    {{ catMeta.yes }}/{{ catMeta.total }} conforme(s)
+                                </span>
+                            </ng-container>
                         </mat-panel-description>
                     </mat-expansion-panel-header>
 
                     <div class="questions-list">
                         <div *ngFor="let item of cat.items" class="question-item"
-                            [ngClass]="{'non-conforme': item.status === 'non'}">
+                            [ngClass]="{'non-conforme': item.status === 'non', 'is-na': item.status === 'n/a'}">
                             <div class="q-main">
                                 <div class="q-content">
                                     <span class="q-text">{{ item.label }}</span>
@@ -117,11 +162,28 @@
                                     <span class="status-badge" [ngClass]="getQuestionStatusClass(item)">
                                         {{ getQuestionStatus(item) }}
                                     </span>
-                                    <span class="score-text">{{ getQuestionScore(item) }}/{{ item.weight || 1 }}</span>
+                                    <span class="score-text" *ngIf="item.status !== 'n/a'">
+                                        {{ getQuestionScore(item) }}/{{ item.weight || 1 }}
+                                    </span>
+                                    <span class="score-text" style="font-style:italic;color:#bbb;"
+                                        *ngIf="item.status === 'n/a'">
+                                        Non évalué
+                                    </span>
                                 </div>
                             </div>
                             <div *ngIf="item.remarks" class="q-remarks">
+                                <mat-icon
+                                    style="font-size:14px;width:14px;height:14px;vertical-align:middle;">comment</mat-icon>
                                 {{ item.remarks }}
+                            </div>
+                            <!-- Per-question photo -->
+                            <div *ngIf="item.photoData" class="q-photo">
+                                <img [src]="item.photoData" class="q-photo-thumb" alt="Photo preuve"
+                                    (click)="openLightbox(item.photoData!)">
+                                <span class="q-photo-label">
+                                    <mat-icon style="font-size:13px;width:13px;height:13px;">photo_camera</mat-icon>
+                                    Photo jointe
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -133,33 +195,59 @@
         <!-- Right Column: Summary & Actions -->
         <div class="side-column">
 
+            <!-- Audit Main Photo Card -->
+            <section class="section-card photo-card" *ngIf="a.photoUrl">
+                <div class="section-header">
+                    <h2>
+                        <mat-icon class="section-header-icon">photo_camera</mat-icon>
+                        Photo de l'Audit
+                    </h2>
+                </div>
+                <div class="audit-photo-container">
+                    <img [src]="a.photoUrl" class="audit-photo" alt="Photo de l'audit"
+                        (click)="openLightbox(a.photoUrl!)">
+                    <div class="audit-photo-overlay" (click)="openLightbox(a.photoUrl!)">
+                        <mat-icon>zoom_in</mat-icon>
+                        <span>Voir en plein écran</span>
+                    </div>
+                </div>
+                <div class="photo-meta">
+                    <mat-icon style="font-size:14px;width:14px;height:14px;">calendar_today</mat-icon>
+                    {{ a.date | date:'dd/MM/yyyy' }} &bull; {{ a.coffeeShop }}
+                </div>
+            </section>
+
             <!-- Conclusion / Actions -->
             <section class="section-card">
                 <div class="section-header">
-                    <h2>Conclusion & Actions</h2>
+                    <h2>
+                        <mat-icon class="section-header-icon">assignment</mat-icon>
+                        Conclusion &amp; Actions
+                    </h2>
                 </div>
                 <div class="section-content conclusion-box">
 
-                    <div class="conclusion-item" *ngIf="audit.actionsCorrectives">
+                    <div class="conclusion-item" *ngIf="a.actionsCorrectives">
                         <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">build</mat-icon> Actions
                             Correctives</h3>
-                        <div class="conclusion-text">{{ audit.actionsCorrectives }}</div>
+                        <div class="conclusion-text">{{ a.actionsCorrectives }}</div>
                     </div>
 
-                    <div class="conclusion-item" *ngIf="audit.trainingNeeds">
+                    <div class="conclusion-item" *ngIf="a.trainingNeeds">
                         <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">school</mat-icon> Formation
                         </h3>
-                        <div class="conclusion-text">{{ audit.trainingNeeds }}</div>
+                        <div class="conclusion-text">{{ a.trainingNeeds }}</div>
                     </div>
 
-                    <div class="conclusion-item" *ngIf="audit.purchases">
+                    <div class="conclusion-item" *ngIf="a.purchases">
                         <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">shopping_cart</mat-icon>
                             Achats</h3>
-                        <div class="conclusion-text">{{ audit.purchases }}</div>
+                        <div class="conclusion-text">{{ a.purchases }}</div>
                     </div>
 
-                    <div *ngIf="!audit.actionsCorrectives && !audit.trainingNeeds && !audit.purchases"
-                        style="color: #888; font-style: italic; text-align: center;">
+                    <div *ngIf="!a.actionsCorrectives && !a.trainingNeeds && !a.purchases"
+                        style="color: #888; font-style: italic; text-align: center; padding: 16px 0;">
+                        <mat-icon style="display:block;margin:0 auto 8px;">check_circle_outline</mat-icon>
                         Aucune remarque de conclusion.
                     </div>
 
@@ -169,11 +257,11 @@
             <!-- Non Conformity Summary Widget -->
             <section class="section-card">
                 <div class="section-header">
-                    <h2 class="text-red-700" style="color: #c62828;">Points Critiques</h2>
+                    <h2 style="color: #c62828;">Points Critiques</h2>
                 </div>
                 <div class="section-content" style="padding: 0;">
                     <mat-list>
-                        <ng-container *ngFor="let cat of audit.categories">
+                        <ng-container *ngFor="let cat of a.categories">
                             <ng-container *ngFor="let item of cat.items">
                                 <mat-list-item *ngIf="item.status === 'non'" lines="3">
                                     <mat-icon matListItemIcon style="color: #c62828;">warning</mat-icon>
