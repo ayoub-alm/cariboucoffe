@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatMenuModule } from '@angular/material/menu';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { Coffee } from '../../../core/models/coffee.model';
 import { CoffeeDialogComponent } from '../coffee-dialog/coffee-dialog.component';
@@ -24,7 +25,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatSnackBarModule,
     MatPaginatorModule,
     MatSortModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatMenuModule
   ],
   templateUrl: './coffee-list.component.html',
   styleUrl: './coffee-list.component.css'
@@ -35,7 +37,7 @@ export class CoffeeListComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
 
   dataSource = new MatTableDataSource<Coffee>([]);
-  displayedColumns: string[] = ['id', 'name', 'location', 'active', 'actions'];
+  displayedColumns: string[] = ['ref', 'name', 'location', 'active', 'actions'];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;

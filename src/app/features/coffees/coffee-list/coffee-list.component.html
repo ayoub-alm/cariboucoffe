@@ -18,18 +18,21 @@
                 <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer">
                     <mat-icon>filter_list</mat-icon>
                 </button>
-                <button mat-icon-button class="icon-btn-secondary" matTooltip="Options">
-                    <mat-icon>more_vert</mat-icon>
-                </button>
             </div>
         </div>
 
         <table mat-table [dataSource]="dataSource" matSort class="custom-table">
 
-            <!-- ID Column -->
-            <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-                <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+            <!-- Ref Column -->
+            <ng-container matColumnDef="ref">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Réf. </th>
+                <td mat-cell *matCellDef="let element">
+                    <span style="font-family:monospace;font-weight:600;
+                                 color:#006241;background:#e8f5e9;
+                                 padding:2px 8px;border-radius:4px;font-size:12px;">
+                        {{ element.ref || '—' }}
+                    </span>
+                </td>
             </ng-container>
 
             <!-- Name Column -->
@@ -55,16 +58,23 @@
                 </td>
             </ng-container>
 
-            <!-- Actions Column -->
+            <!-- Actions Column — 3-dots menu -->
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef> </th>
-                <td mat-cell *matCellDef="let element" style="text-align: right;">
-                    <button mat-icon-button color="primary" (click)="openDialog(element)">
-                        <mat-icon>edit</mat-icon>
+                <td mat-cell *matCellDef="let element" style="text-align:right;width:48px;">
+                    <button mat-icon-button [matMenuTriggerFor]="rowMenu" style="color:#9e9e9e;" matTooltip="Actions">
+                        <mat-icon>more_vert</mat-icon>
                     </button>
-                    <button mat-icon-button color="warn" (click)="deleteCoffee(element)">
-                        <mat-icon>delete</mat-icon>
-                    </button>
+                    <mat-menu #rowMenu="matMenu">
+                        <button mat-menu-item (click)="openDialog(element)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Modifier</span>
+                        </button>
+                        <button mat-menu-item (click)="deleteCoffee(element)" style="color:#c62828;">
+                            <mat-icon style="color:#c62828;">delete</mat-icon>
+                            <span>Supprimer</span>
+                        </button>
+                    </mat-menu>
                 </td>
             </ng-container>
 
