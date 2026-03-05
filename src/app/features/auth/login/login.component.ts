@@ -38,8 +38,8 @@ export class LoginComponent {
     error: string | null = null;
 
     loginForm = this.fb.group({
-        email: ['admin@caribou.ma', [Validators.required, Validators.email]],
-        password: ['admin', [Validators.required]]
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required]]
     });
 
     onSubmit() {
