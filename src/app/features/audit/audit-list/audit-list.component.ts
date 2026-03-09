@@ -15,7 +15,7 @@ import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
-import { canCreateAudits } from '../../../core/models/user.model';
+import { canCreateAudits, isAdmin } from '../../../core/models/user.model';
 import { Router, RouterModule } from '@angular/router';
 import { AuditDialogComponent } from '../audit-dialog/audit-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
@@ -48,6 +48,10 @@ export class AuditListComponent {
 
     canCreate() {
         return canCreateAudits(this.authService.currentUser());
+    }
+
+    isAdmin() {
+        return isAdmin(this.authService.currentUser());
     }
 
     // Use setters for ViewChild to handle *ngIf re-creation

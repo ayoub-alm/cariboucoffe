@@ -160,7 +160,7 @@
                                 <button mat-menu-item (click)="viewDetails(row)">
                                     <mat-icon>visibility</mat-icon> Voir Détails
                                 </button>
-                                <button mat-menu-item (click)="openEditDialog(row)">
+                                <button mat-menu-item *ngIf="isAdmin()" (click)="continueAudit(row)">
                                     <mat-icon>edit</mat-icon> Modifier
                                 </button>
                                 <button mat-menu-item (click)="deleteAudit(row)">

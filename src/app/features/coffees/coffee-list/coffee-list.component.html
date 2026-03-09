@@ -21,66 +21,69 @@
             </div>
         </div>
 
-        <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+        <div class="table-responsive">
+            <table mat-table [dataSource]="dataSource" matSort class="custom-table">
 
-            <!-- Ref Column -->
-            <ng-container matColumnDef="ref">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> Réf. </th>
-                <td mat-cell *matCellDef="let element">
-                    <span style="font-family:monospace;font-weight:600;
+                <!-- Ref Column -->
+                <ng-container matColumnDef="ref">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Réf. </th>
+                    <td mat-cell *matCellDef="let element">
+                        <span style="font-family:monospace;font-weight:600;
                                  color:#006241;background:#e8f5e9;
                                  padding:2px 8px;border-radius:4px;font-size:12px;">
-                        {{ element.ref || '—' }}
-                    </span>
-                </td>
-            </ng-container>
+                            {{ element.ref || '—' }}
+                        </span>
+                    </td>
+                </ng-container>
 
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> Nom </th>
-                <td mat-cell *matCellDef="let element"> {{element.name}} </td>
-            </ng-container>
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Nom </th>
+                    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                </ng-container>
 
-            <!-- Location Column -->
-            <ng-container matColumnDef="location">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> Emplacement </th>
-                <td mat-cell *matCellDef="let element"> {{element.location}} </td>
-            </ng-container>
+                <!-- Location Column -->
+                <ng-container matColumnDef="location">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Emplacement </th>
+                    <td mat-cell *matCellDef="let element"> {{element.location}} </td>
+                </ng-container>
 
-            <!-- Active Column -->
-            <ng-container matColumnDef="active">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
-                <td mat-cell *matCellDef="let element">
-                    <span class="status-pill" [class.status-active]="element.active"
-                        [class.status-inactive]="!element.active">
-                        {{element.active ? 'Actif' : 'Inactif'}}
-                    </span>
-                </td>
-            </ng-container>
+                <!-- Active Column -->
+                <ng-container matColumnDef="active">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+                    <td mat-cell *matCellDef="let element">
+                        <span class="status-pill" [class.status-active]="element.active"
+                            [class.status-inactive]="!element.active">
+                            {{element.active ? 'Actif' : 'Inactif'}}
+                        </span>
+                    </td>
+                </ng-container>
 
-            <!-- Actions Column — 3-dots menu -->
-            <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef> </th>
-                <td mat-cell *matCellDef="let element" style="text-align:right;width:48px;">
-                    <button mat-icon-button [matMenuTriggerFor]="rowMenu" style="color:#9e9e9e;" matTooltip="Actions">
-                        <mat-icon>more_vert</mat-icon>
-                    </button>
-                    <mat-menu #rowMenu="matMenu">
-                        <button mat-menu-item (click)="openDialog(element)">
-                            <mat-icon>edit</mat-icon>
-                            <span>Modifier</span>
+                <!-- Actions Column — 3-dots menu -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef> </th>
+                    <td mat-cell *matCellDef="let element" style="text-align:right;width:48px;">
+                        <button mat-icon-button [matMenuTriggerFor]="rowMenu" style="color:#9e9e9e;"
+                            matTooltip="Actions">
+                            <mat-icon>more_vert</mat-icon>
                         </button>
-                        <button mat-menu-item (click)="deleteCoffee(element)" style="color:#c62828;">
-                            <mat-icon style="color:#c62828;">delete</mat-icon>
-                            <span>Supprimer</span>
-                        </button>
-                    </mat-menu>
-                </td>
-            </ng-container>
+                        <mat-menu #rowMenu="matMenu">
+                            <button mat-menu-item (click)="openDialog(element)">
+                                <mat-icon>edit</mat-icon>
+                                <span>Modifier</span>
+                            </button>
+                            <button mat-menu-item (click)="deleteCoffee(element)" style="color:#c62828;">
+                                <mat-icon style="color:#c62828;">delete</mat-icon>
+                                <span>Supprimer</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </div>
 
         <mat-paginator [pageSizeOptions]="[25, 50, 100, 1000]" showFirstLastButtons
             aria-label="Select page"></mat-paginator>

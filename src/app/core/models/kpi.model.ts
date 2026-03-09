@@ -7,11 +7,13 @@ export interface KPIData {
     total_audits: number;
     average_score: number;
     top_performer: string | null;
+    worst_performer: string | null;
     recent_trend: number[];
     compliance_rate: number;
     total_coffee_shops: number;
     audits_this_month: number;
     average_score_this_month: number;
+    scores_per_category: { [key: string]: number };
 }
 
 /** KPI card for UI display */

@@ -62,8 +62,11 @@ Chart.register(...registerables);
         </div>
 
         <div class="secondary-stats">
-            <mat-card class="mini-stat">
+            <mat-card class="mini-stat" style="border-left: 4px solid #4CAF50;">
                 <mat-card-title>Top Performer: <strong>{{ topPerformer }}</strong></mat-card-title>
+            </mat-card>
+            <mat-card class="mini-stat" style="border-left: 4px solid #F44336;">
+                <mat-card-title>Worst Performer: <strong>{{ worstPerformer }}</strong></mat-card-title>
             </mat-card>
             <mat-card class="mini-stat">
                 <mat-card-title>Score Moyen (Mois): <strong>{{ avgScoreMonth | number:'1.1-1' }}%</strong></mat-card-title>
@@ -79,6 +82,11 @@ Chart.register(...registerables);
             <mat-card class="chart-card">
                 <mat-card-header><mat-card-title>Conformité</mat-card-title></mat-card-header>
                 <mat-card-content><div class="chart-container pie-container"><canvas #pieChart></canvas></div></mat-card-content>
+            </mat-card>
+
+            <mat-card class="chart-card">
+                <mat-card-header><mat-card-title>Scores par Catégorie</mat-card-title></mat-card-header>
+                <mat-card-content><div class="chart-container"><canvas #radarChart></canvas></div></mat-card-content>
             </mat-card>
         </div>
 
@@ -169,8 +177,12 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
     @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
     @ViewChild('pieChart') pieChartRef!: ElementRef<HTMLCanvasElement>;
+    @ViewChild('radarChart') radarChartRef!: ElementRef<HTMLCanvasElement>;
     private barChart: Chart | undefined;
     private pieChart: Chart | undefined;
+    private radarChart: Chart | undefined;
+
+    categoryScores: { [key: string]: number } = {};
 
     audits: Audit[] = [];
     recentAudits: Audit[] = [];
@@ -180,6 +192,7 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     complianceRate = 0;
     auditsThisMonth = 0;
     topPerformer = 'N/A';
+    worstPerformer = 'N/A';
     avgScoreMonth = 0;
 
     ngOnInit() {
@@ -193,6 +206,7 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     ngOnDestroy() {
         if (this.barChart) this.barChart.destroy();
         if (this.pieChart) this.pieChart.destroy();
+        if (this.radarChart) this.radarChart.destroy();
     }
 
     loadData() {
@@ -202,7 +216,10 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
             this.complianceRate = kpi.compliance_rate;
             this.auditsThisMonth = kpi.audits_this_month;
             this.topPerformer = kpi.top_performer || 'N/A';
+            this.worstPerformer = kpi.worst_performer || 'N/A';
             this.avgScoreMonth = kpi.average_score_this_month;
+            this.categoryScores = kpi.scores_per_category || {};
+            setTimeout(() => this.initRadarChart(), 0);
         });
 
         this.auditService.getAudits().subscribe(data => {
@@ -244,6 +261,46 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
                 datasets: [{ data: [conforming, nonConforming], backgroundColor: ['#00637F', '#5D4037'], borderWidth: 0, hoverOffset: 4 }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
+        });
+    }
+
+    initRadarChart() {
+        if (!this.radarChartRef) return;
+
+        const labels = Object.keys(this.categoryScores);
+        const data = Object.values(this.categoryScores);
+
+        // Don't draw if no data yet to avoid empty chart glitch
+        if (labels.length === 0) return;
+
+        this.radarChart = new Chart(this.radarChartRef.nativeElement, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Score Moyen (%)',
+                    data: data,
+                    backgroundColor: 'rgba(0, 99, 127, 0.2)',
+                    borderColor: '#00637F',
+                    pointBackgroundColor: '#00637F',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#00637F'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { stepSize: 20 }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
         });
     }
 
