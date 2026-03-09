@@ -6,6 +6,8 @@
 export enum UserRole {
     ADMIN = 'ADMIN',
     AUDITOR = 'AUDITOR',
+    MANAGER = 'MANAGER',
+    BOSS = 'BOSS',
     VIEWER = 'VIEWER'
 }
 
@@ -17,6 +19,7 @@ export interface User {
     is_active: boolean;
     role: UserRole;
     coffee_id?: number;
+    managed_coffee_ids?: number[];
     createdAt?: string;
     coffee?: {
         id: number;
@@ -41,6 +44,7 @@ export interface UserCreate {
     full_name: string;
     role: UserRole;
     coffee_id?: number;
+    managed_coffee_ids?: number[];
 }
 
 /** User update payload */
@@ -49,6 +53,7 @@ export interface UserUpdate {
     full_name?: string;
     role?: UserRole;
     coffee_id?: number;
+    managed_coffee_ids?: number[];
     is_active?: boolean;
     receive_daily_report?: boolean;
     receive_weekly_report?: boolean;
@@ -66,6 +71,10 @@ export function getRoleDisplayName(role: UserRole): string {
             return 'Administrateur';
         case UserRole.AUDITOR:
             return 'Auditeur';
+        case UserRole.MANAGER:
+            return 'Manager';
+        case UserRole.BOSS:
+            return 'Directeur';
         case UserRole.VIEWER:
             return 'Visualiseur';
         default:
@@ -80,6 +89,10 @@ export function getRoleColor(role: UserRole): string {
             return 'primary';
         case UserRole.AUDITOR:
             return 'accent';
+        case UserRole.MANAGER:
+            return 'primary';
+        case UserRole.BOSS:
+            return 'accent';
         case UserRole.VIEWER:
             return 'warn';
         default:
@@ -87,14 +100,20 @@ export function getRoleColor(role: UserRole): string {
     }
 }
 
-/** Check if user has admin privileges */
 export function isAdmin(user: User | null): boolean {
     return user?.role === UserRole.ADMIN;
 }
 
-/** Check if user can create audits */
 export function canCreateAudits(user: User | null): boolean {
     return user?.role === UserRole.ADMIN || user?.role === UserRole.AUDITOR;
+}
+
+export function canSeeDashboard(user: User | null): boolean {
+    return !!user;
+}
+
+export function canSeeAllAudits(user: User | null): boolean {
+    return !!user && [UserRole.ADMIN, UserRole.BOSS].includes(user.role);
 }
 
 /** Get user initials for avatar */

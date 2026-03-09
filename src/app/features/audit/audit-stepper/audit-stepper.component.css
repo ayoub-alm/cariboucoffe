@@ -1,9 +1,6 @@
-/* Base Colors */
 :host {
     --primary-brown: var(--primary);
-    /* Use theme primary */
     --accent-green: var(--success);
-    /* Use theme success */
     --error-red: var(--error);
     --bg-light: var(--background);
     --card-bg: var(--surface);
@@ -17,7 +14,6 @@
     min-height: 100vh;
 }
 
-/* Breadcrumb */
 .breadcrumb-container {
     margin-bottom: 24px;
     display: flex;
@@ -38,23 +34,70 @@
     font-weight: 500;
 }
 
-/* Header */
 .page-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .page-title {
     color: var(--on-background);
     font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .page-subtitle {
     color: var(--on-surface-variant);
+    margin: 0;
 }
 
-/* Stepper Customization */
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.save-draft-btn {
+    border-radius: 20px;
+}
+
+/* Progress */
+.progress-section {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--on-surface);
+}
+
+.progress-value {
+    font-size: 13px;
+    color: var(--on-surface-variant);
+    font-weight: 500;
+}
+
+::ng-deep .audit-progress-bar .mdc-linear-progress__bar-inner {
+    border-color: var(--primary) !important;
+}
+
+/* Stepper */
 ::ng-deep .mat-step-header .mat-step-icon-selected {
     background-color: var(--primary) !important;
     color: var(--on-primary) !important;
@@ -75,8 +118,6 @@
     padding: 24px;
     box-shadow: var(--shadow-sm);
     margin-top: 16px;
-    border: none;
-    /* Removed border as shadow provides depth */
 }
 
 .step-title {
@@ -86,6 +127,45 @@
     margin-bottom: 24px;
     border-bottom: 2px solid var(--primary-container);
     padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-title-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+}
+
+.step-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: var(--surface-variant);
+    color: var(--on-surface-variant);
+    margin-left: auto;
+}
+
+.step-badge.done {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.step-counter {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--surface-variant);
+    color: var(--on-surface-variant);
+    margin-left: 8px;
+}
+
+.step-counter.complete {
+    background: #e8f5e9;
+    color: #2e7d32;
 }
 
 /* Info Grid */
@@ -99,14 +179,88 @@
     grid-column: 1 / -1;
 }
 
-/* Form Fields */
 .full-width {
     width: 100%;
     margin-bottom: 16px;
     display: block;
 }
 
-/* Actions Footer */
+/* Photo */
+.photo-upload-section {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--surface-container-low, #f5f5f5);
+    border-radius: 12px;
+    border: 1px dashed var(--outline-variant, #ccc);
+}
+
+.photo-label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--on-surface);
+}
+
+.photo-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.file-name {
+    font-size: 14px;
+    color: var(--on-surface-variant);
+}
+
+.photo-preview-wrapper {
+    margin-top: 16px;
+    position: relative;
+    display: inline-block;
+}
+
+.photo-preview-img {
+    max-height: 250px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--outline);
+}
+
+.remove-photo-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: white;
+    border: 1px solid #ccc;
+    width: 32px;
+    height: 32px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.remove-photo-btn mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    line-height: 18px;
+}
+
+.compress-indicator {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.compress-indicator mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Actions */
 .actions-footer {
     display: flex;
     justify-content: flex-end;
@@ -116,12 +270,53 @@
     border-top: 1px solid var(--outline-variant);
 }
 
+.final-actions {
+    flex-wrap: wrap;
+}
+
 .btn-primary {
     background-color: var(--primary) !important;
     color: var(--on-primary) !important;
 }
 
-/* Section Dividers */
+/* Validation status */
+.validation-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-top: 24px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.validation-status.ready {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.validation-status.not-ready {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.validation-status mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+}
+
+/* Spin animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+
 .conclusion-section {
     margin-top: 32px;
     padding-top: 16px;
@@ -133,4 +328,55 @@
     color: var(--primary);
     font-size: 1.2rem;
     font-weight: 500;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .audit-container {
+        padding: 12px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .save-draft-btn {
+        width: 100%;
+    }
+
+    .step-card {
+        padding: 16px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions-footer button {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .final-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .final-actions button {
+        margin-left: 0;
+        margin-bottom: 8px;
+        width: 100%;
+    }
 }

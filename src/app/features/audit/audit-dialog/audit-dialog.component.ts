@@ -9,7 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { CoffeeService } from '../../../core/services/coffee.service';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 
 import { MatIconModule } from '@angular/material/icon';
 
@@ -25,7 +25,6 @@ import { MatIconModule } from '@angular/material/icon';
         MatSelectModule,
         MatDatepickerModule,
         MatIconModule,
-        NgIf,
         AsyncPipe
     ],
     providers: [provideNativeDateAdapter()],

@@ -1,10 +1,10 @@
 <mat-sidenav-container class="sidenav-container">
-    <!-- Sidebar -->
-    <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-        [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
+    <mat-sidenav #drawer class="sidenav" fixedInViewport [class.hidden-sidebar]="!showSidebar()"
+        [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+        [mode]="showSidebar() ? ((isHandset$ | async) ? 'over' : 'side') : 'over'"
+        [opened]="showSidebar() && (isHandset$ | async) === false">
 
         <div class="logo-container">
-            <!-- Hamburger inside sidebar top left -->
             <button mat-icon-button (click)="drawer.toggle()" *ngIf="!(isHandset$ | async)">
                 <mat-icon>menu</mat-icon>
             </button>
@@ -14,54 +14,54 @@
         </div>
 
         <div class="nav-content">
-            <mat-nav-list>
-
+            <!-- ADMIN sidebar -->
+            <mat-nav-list *ngIf="sidebarMode() === 'ADMIN'">
                 <div class="nav-group-title">Entreprises</div>
 
-                <!-- Dashboard Item -->
                 <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">space_dashboard</mat-icon>
                     <div matListItemTitle>Dashboard</div>
                 </a>
 
-                <!-- Coffees Item -->
                 <a mat-list-item routerLink="/coffees" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">store</mat-icon>
                     <div matListItemTitle>Cafés</div>
                 </a>
 
-                <!-- Users Item (Audit for now) -->
                 <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
                     <div matListItemTitle>Audits</div>
                 </a>
 
-                <!-- Users Management Item -->
                 <a mat-list-item routerLink="/users" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">people</mat-icon>
                     <div matListItemTitle>Utilisateurs</div>
                 </a>
 
-                <!-- Notifications Item -->
-                <a mat-list-item routerLink="/notifications" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">notifications</mat-icon>
-                    <div matListItemTitle>Notifications Email</div>
-                </a>
-                
-                <!-- Settings Item -->
                 <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">settings</mat-icon>
-                    <div matListItemTitle>Paramètres</div>
+                    <div matListItemTitle>Grille d'Audit</div>
                 </a>
-
             </mat-nav-list>
 
-            <!-- Lighthouse Illustration area at bottom -->
+            <!-- VIEWER sidebar -->
+            <mat-nav-list *ngIf="sidebarMode() === 'VIEWER'">
+                <div class="nav-group-title">{{ currentUser()?.coffee?.name || 'Mon Café' }}</div>
+
+                <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon class="nav-icon">space_dashboard</mat-icon>
+                    <div matListItemTitle>Tableau de Bord</div>
+                </a>
+
+                <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
+                    <div matListItemTitle>Audits</div>
+                </a>
+            </mat-nav-list>
+
             <div class="sidebar-footer-illustration">
-                <!-- Placeholder for the lighthouse svg/img -->
                 <img src="assets/lighthouse-illustration.svg" alt="" class="illustration-img"
                     onerror="this.style.display='none'">
-                <!-- Using CSS shape as fallback if image missing -->
                 <div class="illustration-fallback"></div>
             </div>
         </div>
@@ -69,47 +69,33 @@
 
     <!-- Main Content -->
     <mat-sidenav-content>
-        <!-- Top Toolbar -->
         <mat-toolbar class="main-toolbar">
-            <!-- Hamburger Menu for Desktop -->
-            <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.toggle()">
+            <!-- Hamburger for sidebar roles -->
+            <button *ngIf="showSidebar()" type="button" aria-label="Toggle sidenav" mat-icon-button
+                (click)="drawer.toggle()">
                 <mat-icon>menu</mat-icon>
             </button>
 
-            <!-- Page Title / Breadcrumb -->
+            <!-- Logo for non-sidebar users -->
+            <img *ngIf="!showSidebar()" src="/logo.png" alt="Caribou Coffee" class="toolbar-logo">
+
             <span class="toolbar-title">{{ pageTitle }}</span>
+
+            <!-- Global back button placed in the yellow place -->
+            <button type="button" aria-label="Go back" mat-icon-button (click)="goBack()" class="global-back-btn">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
 
             <span class="spacer"></span>
 
-            <!-- Right Actions -->
-            <!-- Dark Mode Toggle -->
+            <span class="role-badge" *ngIf="roleDisplay()">{{ roleDisplay() }}</span>
+
             <button mat-icon-button (click)="toggleDarkMode()"
                 [matTooltip]="themeService.isDarkMode() ? 'Mode Clair' : 'Mode Sombre'">
                 <mat-icon>{{ themeService.isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
             </button>
 
-            <!-- Notifications -->
-            <!-- <button mat-icon-button [matMenuTriggerFor]="notifMenu" matTooltip="Notifications">
-                <mat-icon [matBadge]="notificationCount" matBadgeColor="warn"
-                    [matBadgeHidden]="notificationCount === 0">notifications</mat-icon>
-            </button>
-            <mat-menu #notifMenu="matMenu">
-                <div class="notification-header">Notifications</div>
-                <button mat-menu-item>
-                    <mat-icon>assignment</mat-icon>
-                    <span>Nouvel audit disponible</span>
-                </button>
-                <button mat-menu-item>
-                    <mat-icon>people</mat-icon>
-                    <span>Nouvel utilisateur ajouté</span>
-                </button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item class="view-all-btn">Voir tout</button>
-            </mat-menu> -->
-
-            <!-- User Profile Menu -->
             <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
-
                 <span class="user-name">{{ currentUser()?.full_name }}</span>
                 <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
             </button>
@@ -121,13 +107,14 @@
                     </div>
                 </div>
                 <mat-divider></mat-divider>
-                <button mat-menu-item routerLink="/profile">
-                    <mat-icon>account_circle</mat-icon>
-                    <span>Mon Profil</span>
+                <button mat-menu-item routerLink="/dashboard">
+                    <mat-icon>space_dashboard</mat-icon>
+                    <span>Mon Tableau de Bord</span>
                 </button>
-                <button mat-menu-item routerLink="/settings">
-                    <mat-icon>settings</mat-icon>
-                    <span>Paramètres</span>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="openChangePasswordDialog()">
+                    <mat-icon>lock</mat-icon>
+                    <span>Changer le mot de passe</span>
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item (click)="logout()" class="logout-btn">
@@ -135,13 +122,10 @@
                     <span>Déconnexion</span>
                 </button>
             </mat-menu>
-
         </mat-toolbar>
 
-        <!-- Router Content -->
         <div class="main-body">
             <router-outlet></router-outlet>
         </div>
-
     </mat-sidenav-content>
 </mat-sidenav-container>

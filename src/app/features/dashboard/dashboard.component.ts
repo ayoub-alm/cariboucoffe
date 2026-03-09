@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AuditService } from '../../core/services/audit.service';
+import { RouterModule } from '@angular/router';
 import { KpiService } from '../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../core/models/audit.model';
 
@@ -12,13 +13,16 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatCardModule, MatIconModule, CommonModule],
+  imports: [MatCardModule, MatIconModule, CommonModule, RouterModule],
   template: `
     <div class="dashboard-container">
-      <!-- Breadcrumb -->
       <div class="breadcrumb-container">
           <mat-icon class="breadcrumb-icon">home</mat-icon>
-          <span class="breadcrumb-text">Admin > Dashboard</span>
+          <div class="breadcrumb-text">
+            <a routerLink="/" class="breadcrumb-link">Admin</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Dashboard</span>
+          </div>
       </div>
 
       <h1 class="dashboard-title">Tableau de Bord Caribou</h1>
@@ -26,7 +30,7 @@ Chart.register(...registerables);
       <div class="stats-grid">
         <mat-card class="stat-card">
           <mat-card-header>
-            <div mat-card-avatar class="stat-icon-container">
+            <div mat-card-avatar class="stat-icon-container blue">
                 <mat-icon>assignment</mat-icon>
             </div>
             <mat-card-title class="stat-label">Total Audits</mat-card-title>
@@ -39,7 +43,7 @@ Chart.register(...registerables);
 
         <mat-card class="stat-card">
           <mat-card-header>
-            <div mat-card-avatar class="stat-icon-container blue">
+            <div mat-card-avatar class="stat-icon-container gold">
                 <mat-icon>trending_up</mat-icon>
             </div>
             <mat-card-title class="stat-label">Score Moyen</mat-card-title>
@@ -52,7 +56,7 @@ Chart.register(...registerables);
 
         <mat-card class="stat-card">
           <mat-card-header>
-            <div mat-card-avatar class="stat-icon-container green">
+            <div mat-card-avatar class="stat-icon-container blue">
                 <mat-icon>check_circle</mat-icon>
             </div>
             <mat-card-title class="stat-label">Conformité</mat-card-title>
@@ -65,7 +69,7 @@ Chart.register(...registerables);
 
         <mat-card class="stat-card">
           <mat-card-header>
-             <div mat-card-avatar class="stat-icon-container orange">
+             <div mat-card-avatar class="stat-icon-container brown">
                 <mat-icon>event</mat-icon>
             </div>
             <mat-card-title class="stat-label">Audits (Mois)</mat-card-title>
@@ -139,7 +143,11 @@ Chart.register(...registerables);
     /* Breadcrumb */
     .breadcrumb-container { margin-bottom: 24px; display: flex; align-items: center; color: var(--on-surface-variant); }
     .breadcrumb-icon { font-size: 18px; margin-right: 8px; height: 18px; width: 18px; color: var(--on-surface-variant); }
-    .breadcrumb-text { font-size: 14px; font-weight: 500; }
+    .breadcrumb-text { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .breadcrumb-link { color: var(--on-surface-variant); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb-link:hover { color: var(--primary); text-decoration: underline; }
+    .breadcrumb-separator { color: var(--outline); font-size: 12px; }
+    .breadcrumb-current { color: var(--on-surface); font-weight: 600; }
 
     .dashboard-title { color: var(--on-background); margin-bottom: 24px; font-weight: 400; font-family: 'Google Sans', sans-serif; }
     
@@ -148,10 +156,10 @@ Chart.register(...registerables);
     .stat-card { border-radius: 12px; transition: transform 0.2s; box-shadow: var(--shadow-sm); background: var(--surface); color: var(--on-surface); }
     .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     
-    .stat-icon-container { border-radius: 50%; background-color: var(--surface-variant); color: var(--on-surface-variant); display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
-    .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
-    .stat-icon-container.green { background-color: var(--success-container); color: var(--on-success-container); }
-    .stat-icon-container.orange { background-color: var(--warning-container); color: var(--on-warning-container); }
+    .stat-icon-container { border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
+    .stat-icon-container.blue { background-color: #e5eff2; color: #00637F; }
+    .stat-icon-container.gold { background-color: #faf6eb; color: #cda252; }
+    .stat-icon-container.brown { background-color: #efeceb; color: #5D4037; }
 
     .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
     .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
@@ -238,7 +246,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Score Moyen (%)',
           data: shopScores,
-          backgroundColor: '#326295',
+          backgroundColor: '#00637F',
           borderRadius: 4,
           barThickness: 40
         }]
@@ -263,7 +271,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         labels: ['Conforme', 'Non-conforme'],
         datasets: [{
           data: [conforming, nonConforming],
-          backgroundColor: ['#4CAF50', '#F44336'],
+          backgroundColor: ['#00637F', '#5D4037'],
           borderWidth: 0,
           hoverOffset: 4
         }]
@@ -303,7 +311,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     const labels = Array.from(categoryMap.keys());
     const data = labels.map(label => {
       const stats = categoryMap.get(label)!;
-      return (stats.compliant / stats.total) * 100;
+      return stats.total > 0 ? (stats.compliant / stats.total) * 100 : 0;
     });
 
     this.categoryChart = new Chart(this.categoryCanvas.nativeElement, {
@@ -313,7 +321,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Conformité (%)',
           data: data,
-          backgroundColor: '#4CAF50',
+          backgroundColor: '#00637F',
           borderRadius: 4
         }]
       },
@@ -346,7 +354,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           label: 'Conformité (%)',
           data: cafeCompliance,
           backgroundColor: cafeCompliance.map(rate =>
-            rate >= 85 ? '#4CAF50' : rate >= 70 ? '#FF9800' : '#F44336'
+            rate >= 85 ? '#00637F' : rate >= 70 ? '#5D4037' : '#E57373'
           ),
           borderRadius: 4,
           barThickness: 40

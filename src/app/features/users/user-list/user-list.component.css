@@ -203,9 +203,18 @@
     color: var(--on-warning-container);
 }
 
+.role-manager {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.role-boss {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
 .role-viewer {
     background-color: #f3e5f5;
-    /* Add variable if needed */
     color: #7b1fa2;
 }
 

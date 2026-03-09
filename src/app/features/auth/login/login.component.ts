@@ -54,7 +54,6 @@ export class LoginComponent {
             this.authService.loginAndFetchUser(formData).subscribe({
                 next: () => {
                     this.isLoading = false;
-                    // Redirect user to the page they originally requested, or /dashboard
                     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
                     this.router.navigateByUrl(returnUrl);
                 },

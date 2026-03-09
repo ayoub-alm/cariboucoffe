@@ -13,8 +13,9 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
-import { User } from '../../../core/models/user.model';
+import { User, getRoleDisplayName } from '../../../core/models/user.model';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
+import { ResetPasswordDialogComponent } from '../reset-password-dialog/reset-password-dialog.component';
 
 @Component({
     selector: 'app-user-list',
@@ -52,6 +53,7 @@ export class UserListComponent implements AfterViewInit {
         this.loadUsers();
     }
 
+    getRoleDisplayName = getRoleDisplayName;
     totalUsers = 0;
     activeUsers = 0;
 
@@ -164,5 +166,14 @@ export class UserListComponent implements AfterViewInit {
                 error: (err) => console.error(err)
             });
         }
+    }
+
+    resetPassword(user: User) {
+        this.dialog.open(ResetPasswordDialogComponent, {
+            width: '400px',
+            data: user
+        }).afterClosed().subscribe(ok => {
+            if (ok) this.loadUsers();
+        });
     }
 }

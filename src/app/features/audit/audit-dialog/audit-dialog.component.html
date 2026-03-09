@@ -5,11 +5,20 @@
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Café</mat-label>
             <mat-select formControlName="coffeeId" placeholder="Sélectionner...">
-                <mat-option *ngFor="let coffee of coffees$ | async" [value]="coffee.id">
+                @if (coffees$ | async; as coffees) {
+                @for (coffee of coffees; track coffee.id) {
+                <mat-option [value]="coffee.id">
+                    @if (coffee.ref) {
+                    {{ coffee.ref }} -
+                    }
                     {{ coffee.name }}
                 </mat-option>
+                }
+                }
             </mat-select>
-            <mat-error *ngIf="auditForm.get('coffeeId')?.hasError('required')">Requis</mat-error>
+            @if (auditForm.get('coffeeId')?.hasError('required')) {
+            <mat-error>Requis</mat-error>
+            }
         </mat-form-field>
 
         <div style="display: flex; gap: 16px;">
@@ -52,11 +61,13 @@
                     <mat-icon style="margin-right: 8px;">add_photo_alternate</mat-icon> Choisir une photo
                 </button>
                 <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-                <span *ngIf="selectedFileName" style="font-size: 14px; color: var(--on-surface-variant);">{{
-                    selectedFileName }}</span>
+                @if (selectedFileName) {
+                <span style="font-size: 14px; color: var(--on-surface-variant);">{{ selectedFileName }}</span>
+                }
             </div>
 
-            <div *ngIf="photoPreview" style="margin-top: 16px; position: relative; display: inline-block;">
+            @if (photoPreview) {
+            <div style="margin-top: 16px; position: relative; display: inline-block;">
                 <img [src]="photoPreview" alt="Preview"
                     style="max-height: 200px; max-width: 100%; border-radius: 8px; border: 1px solid var(--outline);">
                 <button mat-icon-button type="button" (click)="removePhoto()"
@@ -64,8 +75,11 @@
                     <mat-icon style="font-size: 16px; height: 16px; width: 16px; line-height: 16px;">close</mat-icon>
                 </button>
             </div>
-            <div *ngIf="isCompressing" style="margin-top: 8px; font-size: 12px; color: var(--primary);">Compression en
+            }
+            @if (isCompressing) {
+            <div style="margin-top: 8px; font-size: 12px; color: var(--primary);">Compression en
                 cours...</div>
+            }
         </div>
 
     </form>

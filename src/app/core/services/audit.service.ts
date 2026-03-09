@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, forkJoin } from 'rxjs';
 import { API_URL, STATIC_URL } from '../constants';
-import { AuditDTO, AuditCreateDTO, AuditUI, AuditCategory } from '../models/audit.model';
+import { AuditDTO, AuditCreateDTO, AuditUI, AuditCategory, AuditWorkflowStatus } from '../models/audit.model';
 import { Category, Question } from '../models/category.model';
 
 @Injectable({
@@ -49,6 +49,7 @@ export class AuditService {
             map(({ categories, questions }) => {
                 return categories.map(cat => ({
                     name: cat.name,
+                    icon: cat.icon,
                     items: questions
                         .filter(q => q.category_id === cat.id)
                         .map(q => ({
@@ -113,7 +114,7 @@ export class AuditService {
 
                     categoryMap.get(catId).items.push({
                         label: ans.question.text,
-                        status: (ans.choice as any) || (ans.value >= 3 ? 'oui' : 'non'),
+                        status: (ans.choice === null || ans.choice === undefined) ? null : ans.choice,
                         remarks: ans.comment || '',
                         backendId: ans.question_id,
                         numericValue: ans.value,
@@ -137,7 +138,8 @@ export class AuditService {
             auditorName: dto.auditor.full_name || dto.auditor.email,
             score: dto.score,
             categories: categories,
-            status: dto.score >= 80 ? 'Conforme' : 'Non-conforme',
+            workflowStatus: (dto.status as AuditWorkflowStatus) || 'IN_PROGRESS',
+            status: dto.status === 'IN_PROGRESS' ? 'Partiel' : (dto.score >= 80 ? 'Conforme' : 'Non-conforme'),
             shift: dto.shift,
             staffPresent: dto.staff_present,
             actionsCorrectives: dto.actions_correctives,
@@ -166,7 +168,7 @@ export class AuditService {
                 answers.push({
                     question_id: item.backendId || 0,
                     value: value,
-                    choice: (item.status || 'non') as 'oui' | 'non' | 'n/a',
+                    choice: item.status ? item.status : undefined as any,
                     comment: item.remarks || '',
                     photo_data: item.photoData
                 });
@@ -176,6 +178,7 @@ export class AuditService {
 
         return {
             coffee_id: ui.coffeeId || 1,
+            status: ui.workflowStatus || 'IN_PROGRESS',
             shift: ui.shift,
             staff_present: ui.staffPresent,
             actions_correctives: ui.actionsCorrectives,

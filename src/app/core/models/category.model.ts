@@ -7,6 +7,7 @@ export interface Category {
     id: number;
     name: string;
     description?: string;
+    icon?: string;
     total_score?: number;
 }
 
@@ -14,12 +15,14 @@ export interface Category {
 export interface CategoryCreate {
     name: string;
     description?: string;
+    icon?: string;
 }
 
 /** Category update payload */
 export interface CategoryUpdate {
     name?: string;
     description?: string;
+    icon?: string;
 }
 
 /** Audit question */

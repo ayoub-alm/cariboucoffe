@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf, Location } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -15,6 +15,9 @@ import { map, shareReplay, filter } from 'rxjs/operators';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { UserRole, getRoleDisplayName } from '../../core/models/user.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ChangePasswordDialogComponent } from '../../features/users/change-password-dialog/change-password-dialog.component';
 
 @Component({
     selector: 'app-nav',
@@ -43,6 +46,8 @@ export class NavComponent {
     private router = inject(Router);
     private authService = inject(AuthService);
     themeService = inject(ThemeService);
+    private dialog = inject(MatDialog);
+    private location = inject(Location);
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
@@ -50,17 +55,24 @@ export class NavComponent {
             shareReplay()
         );
 
-    // User information
     currentUser = this.authService.currentUser;
+    isAdmin = this.authService.isAdmin;
 
-    // Notifications
-    notificationCount = 2;
+    showSidebar = computed(() => {
+        const role = this.currentUser()?.role;
+        return role === UserRole.ADMIN || role === UserRole.VIEWER;
+    });
 
-    // Page title
+    sidebarMode = computed(() => this.currentUser()?.role ?? null);
+
+    roleDisplay = computed(() => {
+        const user = this.currentUser();
+        return user ? getRoleDisplayName(user.role) : '';
+    });
+
     pageTitle = 'Dashboard';
 
     constructor() {
-        // Update page title based on route
         this.router.events.pipe(
             filter(event => event instanceof NavigationEnd)
         ).subscribe(() => {
@@ -72,17 +84,21 @@ export class NavComponent {
         this.themeService.toggleTheme();
     }
 
-
     private updatePageTitle() {
         const url = this.router.url;
+        const path = url.split('?')[0];
+
+
         if (url.includes('/dashboard')) {
             this.pageTitle = 'Dashboard';
         } else if (url.includes('/audits')) {
             this.pageTitle = 'Audits';
         } else if (url.includes('/users')) {
             this.pageTitle = 'Utilisateurs';
+        } else if (url.includes('/coffees')) {
+            this.pageTitle = 'Cafés';
         } else if (url.includes('/settings')) {
-            this.pageTitle = 'Paramètres';
+            this.pageTitle = "Grille d'Audit";
         } else {
             this.pageTitle = 'Caribou Coffee';
         }
@@ -90,5 +106,13 @@ export class NavComponent {
 
     logout() {
         this.authService.logout();
+    }
+
+    openChangePasswordDialog() {
+        this.dialog.open(ChangePasswordDialogComponent, { width: '400px' });
+    }
+
+    goBack() {
+        this.location.back();
     }
 }

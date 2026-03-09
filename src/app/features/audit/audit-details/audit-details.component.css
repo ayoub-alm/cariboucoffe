@@ -23,6 +23,30 @@
 .breadcrumb-text {
     font-size: 14px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-link {
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--outline);
+    font-size: 12px;
+}
+
+.breadcrumb-current {
+    color: var(--on-surface);
+    font-weight: 600;
 }
 
 .page-header {
@@ -125,7 +149,14 @@
 
 .simple-table {
     width: 100%;
+    min-width: 600px;
     border-collapse: collapse;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .simple-table th {
@@ -178,6 +209,41 @@
 .status-pill-mini.warning {
     background: #fce8e6;
     color: #c5221f;
+}
+
+.status-chip {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.status-chip.en-cours {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.status-chip.termine {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-chip.conforme {
+    background: #e6f4ea;
+    color: #137333;
+}
+
+.status-chip.non-conforme {
+    background: #fce8e6;
+    color: #c5221f;
+}
+
+.status-chip.partiel {
+    background: #fff8e1;
+    color: #ff8f00;
 }
 
 .modern-accordion .mat-expansion-panel {
@@ -602,4 +668,25 @@
     width: 20px;
     height: 20px;
     line-height: 20px;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .header-score-badge {
+        text-align: center;
+    }
+
+    .title-section h1 {
+        font-size: 24px;
+    }
+
+    .audit-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
 }

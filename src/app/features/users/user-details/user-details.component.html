@@ -16,7 +16,7 @@
             </h1>
 
             <div class="user-meta">
-                <span>{{ user.role }}</span>
+                <span>{{ getRoleDisplayName(user.role) }}</span>
                 <span *ngIf="user.coffee_id">• Café ID: {{ user.coffee_id }}</span>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 </div>
                 <div class="detail-item">
                     <label>Rôle</label>
-                    <p>{{ user.role }}</p>
+                    <p>{{ getRoleDisplayName(user.role) }}</p>
                 </div>
                 <div class="detail-item">
                     <label>Statut</label>
@@ -55,6 +55,47 @@
                 <div class="detail-item" *ngIf="user.coffee_id">
                     <label>Café Assigné (ID)</label>
                     <p>{{ user.coffee_id }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notification Preferences Section -->
+    <section class="section-card">
+        <div class="section-header">
+            <h2>Préférences de Notification</h2>
+        </div>
+        <div class="section-content">
+            <div class="details-grid">
+                <div class="detail-item">
+                    <label>Rapport Quotidien</label>
+                    <div style="margin-top: 8px;">
+                        <mat-checkbox [checked]="!!user.receive_daily_report"
+                            (change)="updateNotificationPreference('receive_daily_report', $event.checked)"
+                            color="primary">
+                            {{ user.receive_daily_report ? 'Actif' : 'Inactif' }}
+                        </mat-checkbox>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label>Rapport Hebdomadaire</label>
+                    <div style="margin-top: 8px;">
+                        <mat-checkbox [checked]="!!user.receive_weekly_report"
+                            (change)="updateNotificationPreference('receive_weekly_report', $event.checked)"
+                            color="primary">
+                            {{ user.receive_weekly_report ? 'Actif' : 'Inactif' }}
+                        </mat-checkbox>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <label>Rapport Mensuel</label>
+                    <div style="margin-top: 8px;">
+                        <mat-checkbox [checked]="!!user.receive_monthly_report"
+                            (change)="updateNotificationPreference('receive_monthly_report', $event.checked)"
+                            color="primary">
+                            {{ user.receive_monthly_report ? 'Actif' : 'Inactif' }}
+                        </mat-checkbox>
+                    </div>
                 </div>
             </div>
         </div>

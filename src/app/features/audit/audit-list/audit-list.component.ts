@@ -13,7 +13,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SelectionModel } from '@angular/cdk/collections';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { canCreateAudits } from '../../../core/models/user.model';
 import { Router, RouterModule } from '@angular/router';
 import { AuditDialogComponent } from '../audit-dialog/audit-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
@@ -40,8 +42,13 @@ export class AuditListComponent {
     selection = new SelectionModel<Audit>(true, []);
 
     private auditService = inject(AuditService);
+    private authService = inject(AuthService);
     private dialog = inject(MatDialog);
     private router = inject(Router);
+
+    canCreate() {
+        return canCreateAudits(this.authService.currentUser());
+    }
 
     // Use setters for ViewChild to handle *ngIf re-creation
     @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
@@ -118,6 +125,10 @@ export class AuditListComponent {
 
     viewDetails(audit: Audit) {
         this.router.navigate(['/audits', audit.id]);
+    }
+
+    continueAudit(audit: Audit) {
+        this.router.navigate(['/audits', audit.id, 'edit']);
     }
 
     openEditDialog(audit: Audit) {

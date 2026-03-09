@@ -16,20 +16,35 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width" *ngIf="!data || userForm.get('password')?.value">
-            <mat-label>Mot de passe</mat-label>
-            <input matInput formControlName="password" type="password" placeholder="******">
+            <mat-label>{{ data ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe' }}</mat-label>
+            <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="******">
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" tabindex="-1">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
             <mat-error *ngIf="userForm.get('password')?.hasError('required')">Requis pour création</mat-error>
             <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">Min 6 caractères</mat-error>
             <mat-hint *ngIf="data">Laisser vide pour ne pas changer</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width" *ngIf="(!data || userForm.get('password')?.value) && userForm.get('password')">
+            <mat-label>{{ data ? 'Confirmer le nouveau mot de passe' : 'Confirmer le mot de passe' }}</mat-label>
+            <input matInput formControlName="confirm_password" [type]="hideConfirm ? 'password' : 'text'" placeholder="******">
+            <button mat-icon-button matSuffix type="button" (click)="hideConfirm = !hideConfirm" tabindex="-1">
+                <mat-icon>{{ hideConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('confirm_password')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="userForm.hasError('mismatch') && userForm.get('confirm_password')?.touched">Les mots de passe ne correspondent pas</mat-error>
         </mat-form-field>
 
         <div class="form-row">
             <mat-form-field appearance="outline">
                 <mat-label>Rôle</mat-label>
                 <mat-select formControlName="role">
-                    <mat-option value="ADMIN">Admin</mat-option>
+                    <mat-option value="ADMIN">Administrateur</mat-option>
                     <mat-option value="AUDITOR">Auditeur</mat-option>
-                    <mat-option value="VIEWER">Viewer</mat-option>
+                    <mat-option value="MANAGER">Manager</mat-option>
+                    <mat-option value="BOSS">Directeur</mat-option>
+                    <mat-option value="VIEWER">Visualiseur</mat-option>
                 </mat-select>
                 <mat-error *ngIf="userForm.get('role')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
@@ -44,7 +59,8 @@
             </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="full-width">
+        <!-- Single coffee for Viewer -->
+        <mat-form-field appearance="outline" class="full-width" *ngIf="selectedRole === 'VIEWER'">
             <mat-label>Café Assigné</mat-label>
             <mat-select formControlName="coffee_id">
                 <mat-option [value]="null">— Aucun café —</mat-option>
@@ -63,7 +79,29 @@
                 </mat-option>
                 }
             </mat-select>
-            <mat-hint>Optionnel — uniquement pour les Viewers</mat-hint>
+            <mat-hint>Café dont le visualiseur voit les audits</mat-hint>
+        </mat-form-field>
+
+        <!-- Multiple coffees for Manager -->
+        <mat-form-field appearance="outline" class="full-width" *ngIf="selectedRole === 'MANAGER'">
+            <mat-label>Cafés Gérés</mat-label>
+            <mat-select formControlName="managed_coffee_ids" multiple>
+                @if (loadingCoffees()) {
+                <mat-option disabled>
+                    <mat-spinner diameter="18" style="display:inline-block;margin-right:8px;"></mat-spinner>
+                    Chargement...
+                </mat-option>
+                }
+                @for (coffee of coffees(); track coffee.id) {
+                <mat-option [value]="coffee.id">
+                    {{ coffee.name }}
+                    @if (coffee.location) {
+                    <span style="color:#9e9e9e;font-size:12px;"> — {{ coffee.location }}</span>
+                    }
+                </mat-option>
+                }
+            </mat-select>
+            <mat-hint>Sélectionnez un ou plusieurs cafés</mat-hint>
         </mat-form-field>
 
     </form>

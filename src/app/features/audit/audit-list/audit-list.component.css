@@ -23,6 +23,30 @@
 .breadcrumb-text {
     font-size: 14px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-link {
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--outline);
+    font-size: 12px;
+}
+
+.breadcrumb-current {
+    color: var(--on-surface);
+    font-weight: 600;
 }
 
 .text-secondary {
@@ -156,8 +180,16 @@
 }
 
 /* Table Styling */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+}
+
 .custom-table {
     width: 100%;
+    min-width: 800px;
     background-color: var(--surface);
 }
 
@@ -202,6 +234,11 @@
 .status-inactive {
     background-color: var(--error-container);
     color: var(--on-error-container);
+}
+
+.status-draft {
+    background-color: #fff3e0;
+    color: #e65100;
 }
 
 /* View Toggle */
@@ -371,9 +408,14 @@
 
 .status-inactive.audit-event-pill {
     background-color: var(--error);
-    /* Red */
     color: #fff;
     border-left: 3px solid #b71c1c;
+}
+
+.status-draft.audit-event-pill {
+    background-color: #ff9800;
+    color: #fff;
+    border-left: 3px solid #e65100;
 }
 
 .event-time {

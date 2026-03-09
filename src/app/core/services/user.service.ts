@@ -28,6 +28,21 @@ export class UserService {
         return this.http.put<User>(`${API_URL}/users/${id}`, user);
     }
 
+    /** Change the current user's password. */
+    updateMyPassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+        return this.http.patch<{ message: string }>(`${API_URL}/users/me/password`, {
+            current_password: currentPassword,
+            new_password: newPassword
+        });
+    }
+
+    /** Admin: set a user's password (reset without current password). */
+    resetUserPassword(userId: number, newPassword: string): Observable<{ message: string }> {
+        return this.http.patch<{ message: string }>(`${API_URL}/users/${userId}/password`, {
+            new_password: newPassword
+        });
+    }
+
     deleteUser(id: number): Observable<any> {
         return this.http.delete(`${API_URL}/users/${id}`);
     }

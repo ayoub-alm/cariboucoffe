@@ -29,15 +29,15 @@ import { Subscription } from 'rxjs';
         <div class="question-content">
           <p class="question-label">{{ item().label }}</p>
           
-          <mat-button-toggle-group formControlName="status" class="status-toggle">
-            <mat-button-toggle value="oui" class="toggle-success">
-              <mat-icon class="icon-spacer">check_circle</mat-icon> Oui
+          <mat-button-toggle-group formControlName="status" class="status-toggle custom-toggle-group" hideSingleSelectionIndicator="true">
+            <mat-button-toggle value="oui" class="custom-toggle custom-success">
+              <mat-icon class="icon-spacer toggle-active-icon">check_circle</mat-icon> Oui
             </mat-button-toggle>
-            <mat-button-toggle value="non" class="toggle-error">
-              <mat-icon class="icon-spacer">cancel</mat-icon> Non
+            <mat-button-toggle value="non" class="custom-toggle custom-error">
+              <mat-icon class="icon-spacer toggle-active-icon">cancel</mat-icon> Non
             </mat-button-toggle>
-            <mat-button-toggle value="n/a">
-              <mat-icon class="icon-spacer">not_interested</mat-icon> N/A
+            <mat-button-toggle value="n/a" class="custom-toggle custom-na">
+              <mat-icon class="icon-spacer toggle-active-icon">not_interested</mat-icon> N/A
             </mat-button-toggle>
           </mat-button-toggle-group>
         </div>
@@ -112,14 +112,39 @@ import { Subscription } from 'rxjs';
     }
     
     /* Toggle Colors */
-    .toggle-success.mat-button-toggle-checked {
+    .custom-toggle-group {
+      border: none !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 8px;
+    }
+    .custom-toggle {
+      border: none !important;
+      padding: 0 16px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .toggle-active-icon {
+        opacity: 0.5;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+    
+    .custom-success.mat-button-toggle-checked {
       background-color: #e8f5e9 !important;
       color: #2e7d32 !important;
     }
-    .toggle-error.mat-button-toggle-checked {
+    .custom-success.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
+    
+    .custom-error.mat-button-toggle-checked {
       background-color: #ffebee !important;
       color: #c62828 !important;
     }
+    .custom-error.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
+    
+    .custom-na.mat-button-toggle-checked {
+      background-color: #f5f5f5 !important;
+      color: #616161 !important;
+    }
+    .custom-na.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
 
     /* Accordion */
     .remarks-accordion {
@@ -171,6 +196,23 @@ import { Subscription } from 'rxjs';
         color: #666;
         margin-top: 4px;
     }
+
+    @media (max-width: 600px) {
+      .header-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .custom-toggle-group {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .custom-toggle {
+        width: 100%;
+        text-align: center;
+        padding: 12px 0;
+      }
+    }
   `]
 })
 export class QuestionItemComponent implements OnInit, OnDestroy {
@@ -200,7 +242,7 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
   }
 
   private checkConformity(val: string | null | undefined) {
-    if (!val) {
+    if (!val || val === 'null' || val === 'undefined') {
       this.showDetails.set(false);
       this.isNonConform.set(false);
       return;

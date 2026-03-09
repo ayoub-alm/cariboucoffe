@@ -40,6 +40,7 @@ export interface AuditDTO {
   id: number;
   created_at: string;
   score: number;
+  status?: string;
   coffee: Coffee;
   auditor: User;
   answers: AuditAnswerDTO[];
@@ -54,6 +55,7 @@ export interface AuditDTO {
 /** Audit creation payload */
 export interface AuditCreateDTO {
   coffee_id: number;
+  status?: AuditWorkflowStatus;
   shift?: string;
   staff_present?: string;
   actions_correctives?: string;
@@ -76,7 +78,10 @@ export interface AuditCreateDTO {
 /** Audit response types */
 export type AuditResponse = 'oui' | 'non' | 'n/a' | null;
 
-/** Audit status derived from score */
+/** Backend audit workflow status */
+export type AuditWorkflowStatus = 'IN_PROGRESS' | 'COMPLETED';
+
+/** Audit display status derived from score */
 export type AuditStatus = 'Conforme' | 'Non-conforme' | 'Partiel';
 
 /** Main audit UI model */
@@ -89,6 +94,7 @@ export interface AuditUI {
   score: number;
   categories: AuditCategory[];
   status?: AuditStatus;
+  workflowStatus?: AuditWorkflowStatus;
   shift?: string;
   staffPresent?: string;
   actionsCorrectives?: string;
@@ -102,6 +108,7 @@ export interface AuditUI {
 export interface AuditCategory {
   id?: string;
   name: string;
+  icon?: string;
   items: AuditQuestion[];
   backendId?: number;
   description?: string;
@@ -164,21 +171,3 @@ export function calculateCategoryScore(category: AuditCategory): number {
   return totalWeight > 0 ? Math.round((earnedPoints / totalWeight) * 100) : 100;
 }
 
-/** Template for new audits */
-export const AUDIT_CATEGORIES_TEMPLATE: AuditCategory[] = [
-  {
-    id: 'hygiene',
-    name: 'Hygiène & Sécurité',
-    items: [
-      { id: 'h1', label: 'La zone de préparation est-elle propre et désinfectée ?', status: null, numericValue: 0, backendId: 1 },
-      { id: 'h2', label: 'Les plans de travail sont-ils nettoyés entre chaque usage ?', status: null, numericValue: 0, backendId: 2 },
-      { id: 'h3', label: 'La technique et la fréquence du lavage de mains sont-elles respectées ?', status: null, numericValue: 0, backendId: 3 },
-      { id: 'h4', label: 'Les produits alimentaires sont-ils stockés à la bonne température ?', status: null, numericValue: 0, backendId: 4 },
-      { id: 'h5', label: 'Les frigos et congélateurs sont-ils propres, organisés avec thermomètre visible ?', status: null, numericValue: 0, backendId: 5 },
-      { id: 'h6', label: 'Absence de produits périmés en stock ou en zone de préparation ?', status: null, numericValue: 0, backendId: 6 },
-      { id: 'h7', label: 'Tous les produits sont-ils bien emballés et stockés ?', status: null, numericValue: 0, backendId: 7 },
-      { id: 'h8', label: 'Les poubelles sont-elles fermées, propres et vidées ?', status: null, numericValue: 0, backendId: 8 },
-      { id: 'h9', label: 'Le principe du FIFO (First In, First Out) est-il bien appliqué ?', status: null, numericValue: 0, backendId: 9 }
-    ]
-  }
-];

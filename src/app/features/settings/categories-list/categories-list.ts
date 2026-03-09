@@ -38,7 +38,7 @@ export class CategoriesListComponent implements OnInit {
   categories = signal<Category[]>([]);
   totalCategories = 0;
   totalGlobalScore = 0;
-  displayedColumns = ['name', 'description', 'total_score', 'actions'];
+  displayedColumns = ['icon', 'name', 'description', 'total_score', 'actions'];
   isLoading = signal(false);
 
   ngOnInit() {

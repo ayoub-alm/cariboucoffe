@@ -11,7 +11,13 @@
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-  /* Consider finding a var for this or keep as subtle shadow */
+}
+
+.hidden-sidebar {
+  width: 0 !important;
+  min-width: 0 !important;
+  visibility: hidden !important;
+  overflow: hidden !important;
 }
 
 /* Logo Area */
@@ -90,6 +96,10 @@
   font-weight: 600;
   margin-left: 16px;
   color: var(--on-surface);
+}
+
+.global-back-btn {
+  margin-left: 8px;
 }
 
 .spacer {
@@ -197,6 +207,27 @@
 
 .logout-btn mat-icon {
   color: var(--error);
+}
+
+/* Toolbar logo for non-admin */
+.toolbar-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  margin-right: 8px;
+}
+
+/* Role badge */
+.role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+  margin-right: 8px;
 }
 
 /* Notifications */

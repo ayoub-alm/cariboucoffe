@@ -9,7 +9,7 @@ body {
 }
 
 body {
-    font-family: 'Google Sans', 'Roboto', 'Helvetica Neue', sans-serif;
+    font-family: 'Poppins', 'Google Sans', 'Roboto', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -141,7 +141,7 @@ h3,
 h4,
 h5,
 h6 {
-    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-family: 'Poppins', 'Google Sans', 'Roboto', sans-serif;
     font-weight: 400;
     color: var(--on-background);
 }

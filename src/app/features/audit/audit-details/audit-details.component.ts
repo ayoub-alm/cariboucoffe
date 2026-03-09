@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -16,6 +16,7 @@ import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/mo
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         CommonModule,
+        RouterModule,
         MatButtonModule,
         MatIconModule,
         MatExpansionModule,
@@ -166,6 +167,14 @@ export class AuditDetailsComponent implements OnInit {
 
     getNaCount(cat: AuditCategory): number {
         return cat.items.filter(i => i.status === 'n/a').length;
+    }
+
+    getAnsweredCount(cat: AuditCategory): number {
+        return cat.items.filter(i => !!i.status).length;
+    }
+
+    getCategoryTotal(cat: AuditCategory): number {
+        return cat.items.length;
     }
 }
 

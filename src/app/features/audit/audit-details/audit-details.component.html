@@ -13,7 +13,13 @@
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">
         <mat-icon class="breadcrumb-icon">home</mat-icon>
-        <span class="breadcrumb-text">Admin > Audits > Détails</span>
+        <div class="breadcrumb-text">
+            <a routerLink="/" class="breadcrumb-link">Admin</a>
+            <span class="breadcrumb-separator">/</span>
+            <a routerLink="/audits" class="breadcrumb-link">Audits</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Détails</span>
+        </div>
     </div>
 
     <!-- Header -->
@@ -29,15 +35,15 @@
             <div class="audit-meta">
                 <div class="meta-item">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">calendar_today</mat-icon>
-                    {{ a.date | date:'dd MMM yyyy, HH:mm' }}
+                    <span>{{ a.date | date:'dd MMM yyyy, HH:mm' }}</span>
                 </div>
                 <div class="meta-item">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">person</mat-icon>
-                    {{ a.auditorName }}
+                    <span>{{ a.auditorName }}</span>
                 </div>
                 <div class="meta-item" *ngIf="a.shift">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
-                    Shift {{ a.shift }}
+                    <span>Shift {{ a.shift }}</span>
                 </div>
             </div>
         </div>
@@ -47,7 +53,15 @@
             <span class="total-points-label" *ngIf="getTotalPoints() as points">
                 ({{ points.obtained }} / {{ points.total }} pts)
             </span>
-            <span class="score-label">{{ a.status }}</span>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; align-items: flex-end;">
+                <span *ngIf="a.workflowStatus === 'IN_PROGRESS'" class="status-chip en-cours">Audit en cours</span>
+                <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
+
+                <span class="status-chip"
+                    [ngClass]="a.status === 'Conforme' ? 'conforme' : (a.status === 'Partiel' ? 'partiel' : 'non-conforme')">
+                    État: {{ a.status }}
+                </span>
+            </div>
         </div>
     </div>
 
@@ -120,7 +134,7 @@
                                     <td>
                                         <span class="status-pill-mini"
                                             [ngClass]="{'success': meta.percentage === 100, 'warning': meta.percentage < 100}">
-                                            {{ meta.percentage === 100 ? 'OK' : 'NC Detected' }}
+                                            {{ meta.percentage === 100 ? 'Conforme' : 'Non-conforme' }}
                                         </span>
                                     </td>
                                 </ng-container>
@@ -143,6 +157,9 @@
                             style="justify-content: flex-end; display:flex; align-items:center; gap:10px;">
                             <ng-container *ngIf="getCategoryScore(cat) as catMeta">
                                 <span class="na-pill" *ngIf="getNaCount(cat) as naQty">{{ naQty }} N/A</span>
+                                <span class="status-pill-mini" style="background:#e3f2fd; color:#1565c0;">
+                                    Progression: {{ getAnsweredCount(cat) }}/{{ getCategoryTotal(cat) }}
+                                </span>
                                 <span [style.color]="catMeta.percentage < 100 ? '#e65100' : '#2e7d32'">
                                     {{ catMeta.yes }}/{{ catMeta.total }} conforme(s)
                                 </span>
@@ -162,12 +179,15 @@
                                     <span class="status-badge" [ngClass]="getQuestionStatusClass(item)">
                                         {{ getQuestionStatus(item) }}
                                     </span>
-                                    <span class="score-text" *ngIf="item.status !== 'n/a'">
+                                    <span class="score-text" *ngIf="item.status && item.status !== 'n/a'">
                                         {{ getQuestionScore(item) }}/{{ item.weight || 1 }}
                                     </span>
                                     <span class="score-text" style="font-style:italic;color:#bbb;"
                                         *ngIf="item.status === 'n/a'">
                                         Non évalué
+                                    </span>
+                                    <span class="score-text" style="font-style:italic;color:#bbb;" *ngIf="!item.status">
+                                        Sans réponse
                                     </span>
                                 </div>
                             </div>
