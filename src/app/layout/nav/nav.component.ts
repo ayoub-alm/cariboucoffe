@@ -23,7 +23,6 @@ import { ChangePasswordDialogComponent } from '../../features/users/change-passw
     selector: 'app-nav',
     templateUrl: './nav.component.html',
     styleUrls: ['./nav.component.css'],
-    standalone: true,
     imports: [
         MatToolbarModule,
         MatButtonModule,
@@ -58,12 +57,26 @@ export class NavComponent {
     currentUser = this.authService.currentUser;
     isAdmin = this.authService.isAdmin;
 
-    showSidebar = computed(() => {
-        const role = this.currentUser()?.role;
-        return role === UserRole.ADMIN || role === UserRole.VIEWER;
-    });
+    /** Sidebar is shown for ALL authenticated users */
+    showSidebar = computed(() => !!this.currentUser());
 
     sidebarMode = computed(() => this.currentUser()?.role ?? null);
+
+    /** True for ADMIN role */
+    isAdminRole = computed(() => this.currentUser()?.role === UserRole.ADMIN);
+
+    /** Cafés visible if admin OR has coffees.read permission */
+    canSeeCoffees = computed(() => {
+        if (this.isAdmin()) return true;
+        return !!this.currentUser()?.permissions?.coffees?.read;
+    });
+
+    /** Grille d'Audit visible if admin OR has categories/questions read permission */
+    canSeeSettings = computed(() => {
+        if (this.isAdmin()) return true;
+        const p = this.currentUser()?.permissions;
+        return !!(p?.categories?.read || p?.questions?.read);
+    });
 
     roleDisplay = computed(() => {
         const user = this.currentUser();
@@ -86,8 +99,6 @@ export class NavComponent {
 
     private updatePageTitle() {
         const url = this.router.url;
-        const path = url.split('?')[0];
-
 
         if (url.includes('/dashboard')) {
             this.pageTitle = 'Dashboard';
@@ -113,6 +124,12 @@ export class NavComponent {
     }
 
     goBack() {
-        this.location.back();
+        // If the previous URL was login (or there is no previous URL), go to dashboard
+        const state = this.location.getState() as { navigationId?: number };
+        if (state?.navigationId && state.navigationId <= 1) {
+            this.router.navigate(['/dashboard']);
+        } else {
+            this.location.back();
+        }
     }
 }

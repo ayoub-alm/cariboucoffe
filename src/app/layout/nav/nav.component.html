@@ -14,48 +14,42 @@
         </div>
 
         <div class="nav-content">
-            <!-- ADMIN sidebar -->
-            <mat-nav-list *ngIf="sidebarMode() === 'ADMIN'">
-                <div class="nav-group-title">Entreprises</div>
+
+            <!-- ===== MAIN nav — visible to everyone ===== -->
+            <mat-nav-list>
+                <div class="nav-group-title">Principal</div>
 
                 <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">space_dashboard</mat-icon>
                     <div matListItemTitle>Dashboard</div>
                 </a>
 
-                <a mat-list-item routerLink="/coffees" routerLinkActive="active-link">
+                <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
+                    <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
+                    <div matListItemTitle>Audits</div>
+                </a>
+
+                <!-- Cafés: admin OR coffees.read permission -->
+                <a mat-list-item routerLink="/coffees" routerLinkActive="active-link" *ngIf="canSeeCoffees()">
                     <mat-icon matListItemIcon class="nav-icon">store</mat-icon>
                     <div matListItemTitle>Cafés</div>
                 </a>
 
-                <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
-                    <div matListItemTitle>Audits</div>
+                <!-- Grille d'Audit: admin OR categories/questions read permission -->
+                <a mat-list-item routerLink="/settings" routerLinkActive="active-link" *ngIf="canSeeSettings()">
+                    <mat-icon matListItemIcon class="nav-icon">settings</mat-icon>
+                    <div matListItemTitle>Grille d'Audit</div>
                 </a>
+
+            </mat-nav-list>
+
+            <!-- ===== ADMIN-only section ===== -->
+            <mat-nav-list *ngIf="isAdmin()">
+                <div class="nav-group-title nav-group-admin">Administration</div>
 
                 <a mat-list-item routerLink="/users" routerLinkActive="active-link">
                     <mat-icon matListItemIcon class="nav-icon">people</mat-icon>
                     <div matListItemTitle>Utilisateurs</div>
-                </a>
-
-                <a mat-list-item routerLink="/settings" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">settings</mat-icon>
-                    <div matListItemTitle>Grille d'Audit</div>
-                </a>
-            </mat-nav-list>
-
-            <!-- VIEWER sidebar -->
-            <mat-nav-list *ngIf="sidebarMode() === 'VIEWER'">
-                <div class="nav-group-title">{{ currentUser()?.coffee?.name || 'Mon Café' }}</div>
-
-                <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">space_dashboard</mat-icon>
-                    <div matListItemTitle>Tableau de Bord</div>
-                </a>
-
-                <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
-                    <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
-                    <div matListItemTitle>Audits</div>
                 </a>
             </mat-nav-list>
 
@@ -70,18 +64,15 @@
     <!-- Main Content -->
     <mat-sidenav-content>
         <mat-toolbar class="main-toolbar">
-            <!-- Hamburger for sidebar roles -->
             <button *ngIf="showSidebar()" type="button" aria-label="Toggle sidenav" mat-icon-button
                 (click)="drawer.toggle()">
                 <mat-icon>menu</mat-icon>
             </button>
 
-            <!-- Logo for non-sidebar users -->
             <img *ngIf="!showSidebar()" src="/logo.png" alt="Caribou Coffee" class="toolbar-logo">
 
             <span class="toolbar-title">{{ pageTitle }}</span>
 
-            <!-- Global back button placed in the yellow place -->
             <button type="button" aria-label="Go back" mat-icon-button (click)="goBack()" class="global-back-btn">
                 <mat-icon>arrow_back</mat-icon>
             </button>
@@ -128,4 +119,5 @@
             <router-outlet></router-outlet>
         </div>
     </mat-sidenav-content>
+
 </mat-sidenav-container>

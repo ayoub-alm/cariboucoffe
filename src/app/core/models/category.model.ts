@@ -9,6 +9,7 @@ export interface Category {
     description?: string;
     icon?: string;
     total_score?: number;
+    display_order: number;
 }
 
 /** Category creation payload */
@@ -16,6 +17,7 @@ export interface CategoryCreate {
     name: string;
     description?: string;
     icon?: string;
+    display_order?: number;
 }
 
 /** Category update payload */
@@ -34,6 +36,7 @@ export interface Question {
     category?: Category;
     correct_answer: 'oui' | 'non';
     na_score: number;
+    display_order: number;
 }
 
 /** Question creation payload */
@@ -43,6 +46,7 @@ export interface QuestionCreate {
     category_id: number;
     correct_answer: 'oui' | 'non';
     na_score: number;
+    display_order?: number;
 }
 
 /** Question update payload */

@@ -31,6 +31,10 @@ export class CategoryService {
         return this.http.delete(`${API_URL}/categories/${id}`);
     }
 
+    reorderCategories(items: { id: number; display_order: number }[]): Observable<any> {
+        return this.http.patch(`${API_URL}/categories/reorder`, { items });
+    }
+
     // Questions
     getQuestions(categoryId?: number): Observable<Question[]> {
         const url = categoryId
@@ -53,5 +57,9 @@ export class CategoryService {
 
     deleteQuestion(id: number): Observable<any> {
         return this.http.delete(`${API_URL}/questions/${id}`);
+    }
+
+    reorderQuestions(items: { id: number; display_order: number }[]): Observable<any> {
+        return this.http.patch(`${API_URL}/questions/reorder`, { items });
     }
 }

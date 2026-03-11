@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/models/audit.model';
 
@@ -23,7 +25,9 @@ import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/mo
         MatCardModule,
         MatChipsModule,
         MatListModule,
-        MatProgressBarModule
+        MatProgressBarModule,
+        MatTooltipModule,
+        MatSnackBarModule
     ],
     templateUrl: './audit-details.component.html',
     styleUrls: ['./audit-details.component.css']
@@ -33,8 +37,12 @@ export class AuditDetailsComponent implements OnInit {
     private router = inject(Router);
     private auditService = inject(AuditService);
     private cdr = inject(ChangeDetectorRef);
+    private snackBar = inject(MatSnackBar);
+
+    @ViewChild('auditContent') auditContent!: ElementRef;
 
     audit = signal<Audit | undefined>(undefined);
+    exportingPdf = signal(false);
 
     /** Currently open lightbox image URL (null = closed) */
     lightboxImage: string | null = null;
@@ -68,6 +76,65 @@ export class AuditDetailsComponent implements OnInit {
 
     goBack() {
         this.router.navigate(['/audits']);
+    }
+
+    async exportPdf() {
+        const audit = this.audit();
+        if (!audit) return;
+
+        this.exportingPdf.set(true);
+        this.cdr.markForCheck();
+        this.snackBar.open('Génération du PDF en cours...', undefined, { duration: 3000 });
+
+        try {
+            const html2canvas = (await import('html2canvas')).default;
+            const jsPDF = (await import('jspdf')).default;
+
+            const element = this.auditContent?.nativeElement;
+            if (!element) return;
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+
+            const filename = `audit-${audit.coffeeShop}-${new Date().toISOString().slice(0, 10)}.pdf`;
+            pdf.save(filename);
+            this.snackBar.open('PDF exporté avec succès !', 'Fermer', { duration: 3000 });
+        } catch (err) {
+            console.error('PDF export failed', err);
+            this.snackBar.open('Erreur lors de la génération du PDF', 'Fermer', { duration: 4000, panelClass: ['error-snackbar'] });
+        } finally {
+            this.exportingPdf.set(false);
+            this.cdr.markForCheck();
+        }
     }
 
     getScoreClass(score: number): string {
@@ -130,7 +197,6 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     getQuestionScoreClass(value: number | undefined): string {
-        // This is no longer used with the new system, but keeping for compatibility
         if (value === undefined || value === null) return 'score-na';
         if (value >= 4) return 'score-excellent';
         if (value >= 3) return 'score-good';
@@ -139,7 +205,6 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     getQuestionScoreLabel(value: number | undefined): string {
-        // This is no longer used with the new system, but keeping for compatibility
         if (value === undefined || value === null) return 'N/A';
         return `${value}/5`;
     }
@@ -177,4 +242,3 @@ export class AuditDetailsComponent implements OnInit {
         return cat.items.length;
     }
 }
-

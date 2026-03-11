@@ -1,113 +1,117 @@
-<div class="page-container">
+<div class="container">
 
-    <!-- Breadcrumb -->
-    <div class="breadcrumb-container">
-        <mat-icon class="breadcrumb-icon">settings</mat-icon>
-        <span class="breadcrumb-text">Grille d'Audit > Catégories > Questions</span>
+    <div class="page-header">
+        <div class="header-left">
+            <button mat-icon-button (click)="goBack()" class="back-btn">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div>
+                <h1>
+                    <span *ngIf="category()?.icon" class="cat-icon">{{ category()?.icon }}</span>
+                    {{ category()?.name ?? 'Questions' }}
+                </h1>
+                <p class="subtitle">
+                    {{ filteredQuestions().length }} / {{ questions().length }} question(s)
+                    &bull; Score total: <strong>{{ totalScore }} pts</strong>
+                    &bull; Glissez-déposez pour réordonner
+                </p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span class="saving-indicator" *ngIf="isSavingOrder()">
+                <mat-spinner diameter="16"></mat-spinner>
+                Sauvegarde...
+            </span>
+            <button mat-flat-button color="primary" (click)="openAddDialog()" *ngIf="isAdmin()">
+                <mat-icon>add</mat-icon>
+                Nouvelle Question
+            </button>
+        </div>
     </div>
 
-    <!-- Header with Back Button and Title -->
-    <div class="title-header">
-        <button mat-icon-button (click)="goBack()">
-            <mat-icon>arrow_back</mat-icon>
+    <!-- Search bar -->
+    <div class="search-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="search-input" placeholder="Rechercher une question..." [value]="searchQuery()"
+            (input)="onSearch($event)">
+        <button mat-icon-button *ngIf="searchQuery()" (click)="clearSearch()" class="clear-btn">
+            <mat-icon>close</mat-icon>
         </button>
-        <h1>{{ category()?.name }}</h1>
     </div>
 
-    <!-- Stats -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-icon-wrapper blue">
-                <mat-icon>help_outline</mat-icon>
-            </div>
-            <div class="kpi-content">
-                <span class="kpi-label">Total Questions</span>
-                <span class="kpi-value">{{ questions().length }}</span>
-            </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-icon-wrapper green">
-                <mat-icon>score</mat-icon>
-            </div>
-            <div class="kpi-content">
-                <span class="kpi-label">Score Total Possible</span>
-                <span class="kpi-value">{{ totalScore }} pts</span>
-            </div>
-        </div>
+    <div *ngIf="isLoading()" class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
     </div>
 
-    <div class="content-card modern-card">
+    <!-- Drag list -->
+    <div class="drag-list" cdkDropList [cdkDropListDisabled]="!isAdmin() || !!searchQuery()"
+        (cdkDropListDropped)="onDrop($event)">
 
-        <!-- Toolbar -->
-        <div class="table-toolbar">
-            <div class="search-field-wrapper">
-                <mat-icon class="search-icon">search</mat-icon>
-                <input type="text" placeholder="Rechercher une question..." #input>
+        @for (question of filteredQuestions(); track question.id; let i = $index) {
+        <div class="drag-item" cdkDrag (click)="openEditDialog(question)">
+
+            <div class="drag-placeholder" *cdkDragPlaceholder></div>
+
+            <!-- Drag handle -->
+            <div class="drag-handle" cdkDragHandle *ngIf="isAdmin() && !searchQuery()"
+                (click)="$event.stopPropagation()" matTooltip="Glisser pour réordonner">
+                <mat-icon>drag_indicator</mat-icon>
             </div>
 
-            <div class="actions-wrapper">
-                <button mat-flat-button color="primary" class="new-audit-btn" (click)="openAddDialog()">
-                    <mat-icon>add</mat-icon> Nouvelle
+            <!-- Index badge -->
+            <div class="index-badge">{{ i + 1 }}</div>
+
+            <!-- Question text -->
+            <div class="question-info">
+                <p class="question-text">{{ question.text }}</p>
+                <div class="question-meta">
+                    <span class="meta-chip correct">
+                        Bonne réponse: <strong>{{ question.correct_answer === 'oui' ? 'Oui' : 'Non' }}</strong>
+                    </span>
+                    <span class="meta-chip na" *ngIf="question.na_score">
+                        N/A: {{ question.na_score }} pts
+                    </span>
+                </div>
+            </div>
+
+            <!-- Weight badge -->
+            <div class="weight-badge" [class.weight-high]="question.weight >= 3" matTooltip="Poids de la question">
+                <span class="weight-value">{{ question.weight }}</span>
+                <span class="weight-label">pts</span>
+            </div>
+
+            <!-- 3-dot menu -->
+            <button mat-icon-button class="menu-btn" [matMenuTriggerFor]="qMenu" (click)="$event.stopPropagation()">
+                <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #qMenu="matMenu">
+                <button mat-menu-item (click)="openEditDialog(question)" *ngIf="isAdmin()">
+                    <mat-icon>edit</mat-icon>
+                    <span>Modifier</span>
                 </button>
-            </div>
+                <mat-divider *ngIf="isAdmin()"></mat-divider>
+                <button mat-menu-item class="menu-danger" (click)="deleteQuestion(question)" *ngIf="isAdmin()">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Supprimer</span>
+                </button>
+            </mat-menu>
+
         </div>
+        }
 
-        <div class="table-responsive">
-            <table mat-table [dataSource]="questions()" class="custom-table">
-                <!-- Text Column -->
-                <ng-container matColumnDef="text">
-                    <th mat-header-cell *matHeaderCellDef>Question</th>
-                    <td mat-cell *matCellDef="let question">
-                        <span class="question-text">{{ question.text }}</span>
-                    </td>
-                </ng-container>
-
-                <!-- Weight Column -->
-                <ng-container matColumnDef="weight">
-                    <th mat-header-cell *matHeaderCellDef>Poids (Score Max)</th>
-                    <td mat-cell *matCellDef="let question">
-                        <span class="weight-badge" [ngClass]="getWeightColor(question.weight)">
-                            {{ question.weight }} pts
-                        </span>
-                    </td>
-                </ng-container>
-
-                <!-- Actions Column -->
-                <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
-                    <td mat-cell *matCellDef="let question" class="actions-cell">
-                        <button mat-icon-button [matMenuTriggerFor]="menu">
-                            <mat-icon>more_vert</mat-icon>
-                        </button>
-                        <mat-menu #menu="matMenu">
-                            <button mat-menu-item (click)="openEditDialog(question)">
-                                <mat-icon>edit</mat-icon>
-                                <span>Modifier</span>
-                            </button>
-                            <button mat-menu-item (click)="deleteQuestion(question)" class="delete-action">
-                                <mat-icon color="warn">delete</mat-icon>
-                                <span>Supprimer</span>
-                            </button>
-                        </mat-menu>
-                    </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="interactive-row"></tr>
-
-                <!-- No data row -->
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" [attr.colspan]="displayedColumns.length"
-                        style="text-align: center; padding: 24px;">
-                        @if (isLoading()) {
-                        <p>Chargement...</p>
-                        } @else {
-                        <p>Aucune question trouvée dans cette catégorie.</p>
-                        }
-                    </td>
-                </tr>
-            </table>
+        <!-- Empty states -->
+        <div class="empty-state" *ngIf="!isLoading() && questions().length === 0">
+            <mat-icon>help_outline</mat-icon>
+            <p>Aucune question dans cette catégorie</p>
+            <button mat-flat-button color="primary" (click)="openAddDialog()" *ngIf="isAdmin()">
+                Ajouter la première question
+            </button>
+        </div>
+        <div class="empty-state" *ngIf="!isLoading() && questions().length > 0 && filteredQuestions().length === 0">
+            <mat-icon>search_off</mat-icon>
+            <p>Aucun résultat pour "{{ searchQuery() }}"</p>
+            <button mat-stroked-button (click)="clearSearch()">Effacer la recherche</button>
         </div>
     </div>
+
 </div>

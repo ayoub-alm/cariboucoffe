@@ -11,6 +11,23 @@ export enum UserRole {
     VIEWER = 'VIEWER'
 }
 
+/** Per-action permissions for a single module */
+export interface ModulePermissions {
+    read: boolean;
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+}
+
+/** Full permissions map keyed by module name */
+export interface UserPermissions {
+    coffees: ModulePermissions;
+    audits: ModulePermissions;
+    users: ModulePermissions;
+    categories: ModulePermissions;
+    questions: ModulePermissions;
+}
+
 /** Main user interface */
 export interface User {
     id: number;
@@ -29,9 +46,9 @@ export interface User {
     receive_daily_report?: boolean;
     receive_weekly_report?: boolean;
     receive_monthly_report?: boolean;
+    permissions?: UserPermissions | null;
 }
 
-/** Login response from authentication */
 export interface LoginResponse {
     access_token: string;
     token_type: string;

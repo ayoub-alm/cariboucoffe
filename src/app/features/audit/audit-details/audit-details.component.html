@@ -1,4 +1,4 @@
-﻿<div class="details-container" *ngIf="audit() as a; else loading">
+﻿<div class="details-container" *ngIf="audit() as a; else loading" #auditContent>
 
     <!-- Image Lightbox Modal -->
     <div class="lightbox-overlay" *ngIf="lightboxImage" (click)="closeLightbox()">
@@ -48,20 +48,29 @@
             </div>
         </div>
 
-        <div class="header-score-badge" [ngClass]="getScoreClass(a.score)">
-            <span class="score-number">{{ a.score }}%</span>
-            <span class="total-points-label" *ngIf="getTotalPoints() as points">
-                ({{ points.obtained }} / {{ points.total }} pts)
-            </span>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; align-items: flex-end;">
-                <span *ngIf="a.workflowStatus === 'IN_PROGRESS'" class="status-chip en-cours">Audit en cours</span>
-                <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
-
-                <span class="status-chip"
-                    [ngClass]="a.status === 'Conforme' ? 'conforme' : (a.status === 'Partiel' ? 'partiel' : 'non-conforme')">
-                    État: {{ a.status }}
+        <div class="header-right">
+            <div class="header-score-badge" [ngClass]="getScoreClass(a.score)">
+                <span class="score-number">{{ a.score }}%</span>
+                <span class="total-points-label" *ngIf="getTotalPoints() as points">
+                    ({{ points.obtained }} / {{ points.total }} pts)
                 </span>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; align-items: flex-end;">
+                    <span *ngIf="a.workflowStatus === 'IN_PROGRESS'" class="status-chip en-cours">Audit en cours</span>
+                    <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
+
+                    <span class="status-chip"
+                        [ngClass]="a.status === 'Conforme' ? 'conforme' : (a.status === 'Partiel' ? 'partiel' : 'non-conforme')">
+                        État: {{ a.status }}
+                    </span>
+                </div>
             </div>
+
+            <!-- Export PDF Button -->
+            <button mat-stroked-button class="pdf-export-btn" (click)="exportPdf()" [disabled]="exportingPdf()"
+                matTooltip="Exporter ce rapport en PDF">
+                <mat-icon>picture_as_pdf</mat-icon>
+                {{ exportingPdf() ? 'Génération...' : 'Exporter PDF' }}
+            </button>
         </div>
     </div>
 

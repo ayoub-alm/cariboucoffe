@@ -60,6 +60,12 @@
   letter-spacing: 0.5px;
 }
 
+.nav-group-admin {
+  color: var(--primary);
+  border-top: 1px solid var(--outline-variant);
+  margin-top: 8px;
+}
+
 /* Active Link Styling */
 .active-link {
   border-left: 4px solid var(--primary);

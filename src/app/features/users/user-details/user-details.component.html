@@ -3,7 +3,7 @@
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">
         <mat-icon class="breadcrumb-icon">home</mat-icon>
-        <span class="breadcrumb-text">Admin > Utilisateurs > Détails</span>
+        <span class="breadcrumb-text">Admin &gt; Utilisateurs &gt; Détails</span>
     </div>
 
     <div class="page-header">
@@ -21,11 +21,37 @@
             </div>
         </div>
 
-        <div class="header-badge" [ngClass]="user.is_active ? 'badge-active' : 'badge-inactive'">
-            <mat-icon style="font-size: 18px; width: 18px; height: 18px;">
-                {{ user.is_active ? 'check_circle' : 'cancel' }}
-            </mat-icon>
-            {{ user.is_active ? 'Actif' : 'Inactif' }}
+        <div class="header-right">
+            <div class="header-badge" [class.badge-active]="user.is_active" [class.badge-inactive]="!user.is_active">
+                <mat-icon style="font-size: 18px; width: 18px; height: 18px;">
+                    {{ user.is_active ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                {{ user.is_active ? 'Actif' : 'Inactif' }}
+            </div>
+
+            <!-- 3-dot menu — admin only -->
+            <button mat-icon-button [matMenuTriggerFor]="userMenu" *ngIf="isAdmin()" matTooltip="Options">
+                <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #userMenu="matMenu">
+                <button mat-menu-item (click)="editUser()">
+                    <mat-icon>edit</mat-icon>
+                    <span>Modifier</span>
+                </button>
+                <button mat-menu-item (click)="resetPassword()">
+                    <mat-icon>lock_reset</mat-icon>
+                    <span>Réinitialiser le mot de passe</span>
+                </button>
+                <button mat-menu-item (click)="toggleActive()">
+                    <mat-icon>{{ user.is_active ? 'person_off' : 'person' }}</mat-icon>
+                    <span>{{ user.is_active ? 'Désactiver' : 'Activer' }}</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item class="menu-danger" (click)="deleteUser()">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Supprimer l'utilisateur</span>
+                </button>
+            </mat-menu>
         </div>
     </div>
 
@@ -98,6 +124,61 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ===== PERMISSIONS MATRIX — visible to admin only ===== -->
+            @if (isAdmin()) {
+            <div class="permissions-section">
+                <div class="permissions-header">
+                    <mat-icon class="permissions-icon">security</mat-icon>
+                    <h3>Gestion des Accès (CRUD)</h3>
+                </div>
+                <p class="permissions-note">
+                    Définissez les droits d'accès pour chaque module.
+                    Cliquez sur <strong>Enregistrer</strong> pour appliquer les modifications.
+                </p>
+
+                <div class="permissions-table-wrapper">
+                    <table class="permissions-table">
+                        <thead>
+                            <tr>
+                                <th class="module-col">Module</th>
+                                @for (action of actions; track action.key) {
+                                <th class="action-col">{{ action.label }}</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (module of modules; track module.key) {
+                            <tr class="permissions-row">
+                                <td class="module-name">
+                                    <span class="module-label">{{ module.label }}</span>
+                                </td>
+                                @for (action of actions; track action.key) {
+                                <td class="action-cell">
+                                    <mat-checkbox color="primary" [checked]="getPermission(module.key, action.key)"
+                                        (change)="togglePermission(module.key, action.key, $event.checked)">
+                                    </mat-checkbox>
+                                </td>
+                                }
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="permissions-actions">
+                    <button mat-flat-button color="primary" (click)="savePermissions()"
+                        [disabled]="savingPermissions()">
+                        @if (savingPermissions()) {
+                        <mat-spinner diameter="18" style="display:inline-block; margin-right: 8px;"></mat-spinner>
+                        } @else {
+                        <mat-icon>save</mat-icon>
+                        }
+                        Enregistrer les permissions
+                    </button>
+                </div>
+            </div>
+            }
         </div>
     </section>
 
