@@ -806,3 +806,455 @@ body.dark-theme .main-toolbar {
 body.dark-theme .toolbar-title {
     color: var(--on-surface) !important;
 }
+
+/* ======================================================
+   COMPREHENSIVE LIGHT/DARK IMPROVEMENTS
+   ====================================================== */
+
+/* ── Native inputs: search bars, standalone inputs ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+textarea {
+    background-color: transparent;
+    color: var(--on-surface) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+/* ── Search wrapper (categories/questions/custom search bars) ── */
+.search-wrapper {
+    background-color: var(--surface) !important;
+    border-color: var(--outline-variant) !important;
+}
+
+body.dark-theme .search-wrapper {
+    background-color: var(--surface-container) !important;
+    border-color: var(--outline) !important;
+}
+
+body.dark-theme .search-input {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .search-input::placeholder {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .search-icon {
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Mat form-field overrides (dark) ── */
+body.dark-theme .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: var(--surface-container);
+    --mdc-outlined-text-field-outline-color: var(--outline);
+    --mdc-outlined-text-field-hover-outline-color: var(--on-surface-variant);
+    --mdc-outlined-text-field-focus-outline-color: var(--primary);
+    --mdc-filled-text-field-input-text-color: var(--on-surface);
+    --mdc-outlined-text-field-input-text-color: var(--on-surface);
+    --mdc-filled-text-field-label-text-color: var(--on-surface-variant);
+    --mdc-outlined-text-field-label-text-color: var(--on-surface-variant);
+}
+
+body.dark-theme .mat-mdc-text-field-wrapper {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .mat-mdc-input-element {
+    color: var(--on-surface) !important;
+    caret-color: var(--primary) !important;
+}
+
+body.dark-theme .mat-mdc-select-value-text,
+body.dark-theme .mat-mdc-select-placeholder {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-select-arrow {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .mdc-floating-label,
+body.dark-theme .mat-mdc-floating-label {
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Mat menu ── */
+.mat-mdc-menu-panel {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--outline-variant) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.mat-mdc-menu-item {
+    color: var(--on-surface) !important;
+}
+
+.mat-mdc-menu-item .mat-icon {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .mat-mdc-menu-panel {
+    background-color: var(--surface-container) !important;
+    border-color: var(--outline) !important;
+}
+
+body.dark-theme .mat-mdc-menu-item {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-menu-item:hover,
+body.dark-theme .mat-mdc-menu-item.cdk-focused {
+    background-color: var(--surface-container-high) !important;
+}
+
+/* ── Drag items (categories & questions) ── */
+body.dark-theme .drag-item {
+    background-color: var(--surface-container) !important;
+    border-color: var(--outline) !important;
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .drag-item:hover {
+    background-color: var(--surface-container-high) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark-theme .drag-placeholder {
+    background-color: var(--primary-container) !important;
+    border-color: var(--primary) !important;
+}
+
+body.dark-theme .drag-handle {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .category-name,
+body.dark-theme .question-text {
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .category-desc {
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Score / Weight / Index badges ── */
+body.dark-theme .score-badge,
+body.dark-theme .weight-badge,
+body.dark-theme .index-badge {
+    background-color: var(--surface-container-high) !important;
+}
+
+body.dark-theme .score-value,
+body.dark-theme .weight-value {
+    color: var(--primary) !important;
+}
+
+body.dark-theme .score-label,
+body.dark-theme .weight-label {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .weight-badge.weight-high {
+    background-color: var(--error-container) !important;
+}
+
+body.dark-theme .weight-badge.weight-high .weight-value {
+    color: var(--error) !important;
+}
+
+/* ── Category icon ── */
+body.dark-theme .category-icon-chip {
+    background-color: var(--primary-container) !important;
+}
+
+body.dark-theme .default-cat-icon {
+    color: var(--on-primary-container) !important;
+}
+
+/* ── Question meta chips ── */
+body.dark-theme .meta-chip.correct {
+    background-color: var(--primary-container) !important;
+    color: var(--on-primary-container) !important;
+}
+
+body.dark-theme .meta-chip.na {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Role badges ── */
+body.dark-theme .role-admin {
+    background-color: var(--primary-container) !important;
+    color: var(--on-primary-container) !important;
+}
+
+body.dark-theme .role-auditor {
+    background-color: var(--warning-container) !important;
+    color: var(--on-warning-container) !important;
+}
+
+body.dark-theme .role-manager {
+    background-color: #0d3b13 !important;
+    color: #81c995 !important;
+}
+
+body.dark-theme .role-boss {
+    background-color: #0a2744 !important;
+    color: #8ab4f8 !important;
+}
+
+body.dark-theme .role-viewer {
+    background-color: #2d0f47 !important;
+    color: #ce93d8 !important;
+}
+
+/* ── Status pills ── */
+body.dark-theme .status-active {
+    background-color: var(--success-container) !important;
+    color: var(--on-success-container) !important;
+}
+
+body.dark-theme .status-inactive {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .status-draft {
+    background-color: var(--warning-container) !important;
+    color: var(--on-warning-container) !important;
+}
+
+/* ── Header badge (user details) ── */
+.badge-active {
+    background-color: var(--success-container);
+    color: var(--on-success-container);
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.badge-inactive {
+    background-color: var(--surface-container);
+    color: var(--on-surface-variant);
+    border-radius: 20px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+body.dark-theme .badge-active {
+    background-color: var(--success-container) !important;
+    color: var(--on-success-container) !important;
+}
+
+body.dark-theme .badge-inactive {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Permissions table ── */
+.permissions-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--on-surface);
+}
+
+.permissions-table th {
+    background-color: var(--surface-container);
+    color: var(--on-surface-variant);
+    border-bottom: 1px solid var(--outline);
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.permissions-table td {
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 12px 16px;
+    color: var(--on-surface);
+}
+
+.permissions-table .permissions-row:hover {
+    background-color: var(--surface-variant);
+}
+
+body.dark-theme .permissions-table th {
+    background-color: var(--surface-container-high) !important;
+    color: var(--on-surface-variant) !important;
+    border-bottom-color: var(--outline) !important;
+}
+
+body.dark-theme .permissions-table td {
+    color: var(--on-surface) !important;
+    border-bottom-color: var(--outline) !important;
+}
+
+body.dark-theme .permissions-table .permissions-row:hover {
+    background-color: var(--surface-container-high) !important;
+}
+
+body.dark-theme .permissions-table-wrapper {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--outline) !important;
+}
+
+/* ── Section cards ── */
+.section-card {
+    background-color: var(--surface);
+    border: 1px solid var(--outline-variant);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-header {
+    background-color: var(--surface-container);
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 16px 24px;
+}
+
+body.dark-theme .section-card {
+    background-color: var(--surface-container) !important;
+    border-color: var(--outline) !important;
+}
+
+body.dark-theme .section-header {
+    background-color: var(--surface-container-high) !important;
+    border-bottom-color: var(--outline) !important;
+}
+
+body.dark-theme .section-header h2 {
+    color: var(--on-surface) !important;
+}
+
+/* ── Detail items in section cards ── */
+body.dark-theme .detail-item label {
+    color: var(--on-surface-variant) !important;
+    font-size: 12px;
+}
+
+body.dark-theme .detail-item p {
+    color: var(--on-surface) !important;
+}
+
+/* ── KPI icon wrappers in dark ── */
+body.dark-theme .kpi-icon-wrapper.blue {
+    background-color: var(--primary-container) !important;
+    color: var(--on-primary-container) !important;
+}
+
+body.dark-theme .kpi-icon-wrapper.green {
+    background-color: var(--success-container) !important;
+    color: var(--on-success-container) !important;
+}
+
+body.dark-theme .kpi-icon-wrapper.purple {
+    background-color: #2d0f47 !important;
+    color: #ce93d8 !important;
+}
+
+/* ── Dialog container ── */
+.mat-mdc-dialog-surface {
+    background-color: var(--surface) !important;
+    color: var(--on-surface) !important;
+}
+
+body.dark-theme .mat-mdc-dialog-surface {
+    background-color: var(--surface-container) !important;
+}
+
+body.dark-theme .mat-mdc-dialog-title,
+body.dark-theme .mdc-dialog__title {
+    color: var(--on-surface) !important;
+}
+
+/* ── Paginator ── */
+.mat-mdc-paginator {
+    background-color: transparent !important;
+    color: var(--on-surface) !important;
+    border-top: 1px solid var(--outline-variant) !important;
+}
+
+body.dark-theme .mat-mdc-paginator {
+    color: var(--on-surface) !important;
+    border-top-color: var(--outline) !important;
+}
+
+body.dark-theme .mat-mdc-paginator-range-label,
+body.dark-theme .mat-mdc-paginator-page-size-label {
+    color: var(--on-surface-variant) !important;
+}
+
+body.dark-theme .mat-mdc-paginator-icon {
+    fill: var(--on-surface-variant) !important;
+}
+
+/* ── Divider ── */
+.mat-divider {
+    border-top-color: var(--outline-variant) !important;
+}
+
+body.dark-theme .mat-divider {
+    border-top-color: var(--outline) !important;
+}
+
+/* ── Button: stroked variant in dark ── */
+body.dark-theme .mat-mdc-outlined-button,
+body.dark-theme .mat-mdc-stroked-button {
+    --mdc-outlined-button-outline-color: var(--outline) !important;
+    --mdc-outlined-button-label-text-color: var(--on-surface) !important;
+    border-color: var(--outline) !important;
+    color: var(--on-surface) !important;
+}
+
+/* ── Saving indicator ── */
+body.dark-theme .saving-indicator {
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Empty states ── */
+body.dark-theme .empty-state {
+    color: var(--on-surface-variant) !important;
+}
+
+/* ── Smooth transitions on themed elements ── */
+.drag-item,
+.section-card,
+.kpi-card,
+.score-badge,
+.weight-badge,
+.index-badge,
+.category-icon-chip,
+.role-badge,
+.status-pill,
+.status-active,
+.status-inactive,
+.badge-active,
+.badge-inactive,
+.search-wrapper,
+.permissions-table th,
+.permissions-table td,
+.meta-chip,
+.mat-mdc-menu-panel,
+.mat-mdc-dialog-surface,
+.mat-mdc-paginator {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
