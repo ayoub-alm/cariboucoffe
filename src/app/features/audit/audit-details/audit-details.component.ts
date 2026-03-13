@@ -78,63 +78,35 @@ export class AuditDetailsComponent implements OnInit {
         this.router.navigate(['/audits']);
     }
 
-    async exportPdf() {
+    exportPdf() {
         const audit = this.audit();
-        if (!audit) return;
+        if (!audit || !audit.id) return;
 
         this.exportingPdf.set(true);
         this.cdr.markForCheck();
-        this.snackBar.open('Génération du PDF en cours...', undefined, { duration: 3000 });
+        this.snackBar.open('Génération du PDF en cours par le serveur...', undefined, { duration: 3000 });
 
-        try {
-            const html2canvas = (await import('html2canvas')).default;
-            const jsPDF = (await import('jspdf')).default;
-
-            const element = this.auditContent?.nativeElement;
-            if (!element) return;
-
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pdfWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
-
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pdfHeight;
+        this.auditService.downloadAuditPdf(audit.id).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audit-${audit.coffeeShop}-${new Date().toISOString().slice(0, 10)}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                this.snackBar.open('PDF exporté avec succès !', 'Fermer', { duration: 3000 });
+                this.exportingPdf.set(false);
+                this.cdr.markForCheck();
+            },
+            error: (err) => {
+                console.error('PDF export failed', err);
+                this.snackBar.open('Erreur lors de la génération du PDF', 'Fermer', { duration: 4000, panelClass: ['error-snackbar'] });
+                this.exportingPdf.set(false);
+                this.cdr.markForCheck();
             }
-
-            const filename = `audit-${audit.coffeeShop}-${new Date().toISOString().slice(0, 10)}.pdf`;
-            pdf.save(filename);
-            this.snackBar.open('PDF exporté avec succès !', 'Fermer', { duration: 3000 });
-        } catch (err) {
-            console.error('PDF export failed', err);
-            this.snackBar.open('Erreur lors de la génération du PDF', 'Fermer', { duration: 4000, panelClass: ['error-snackbar'] });
-        } finally {
-            this.exportingPdf.set(false);
-            this.cdr.markForCheck();
-        }
+        });
     }
 
     getScoreClass(score: number): string {

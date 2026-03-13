@@ -9,19 +9,23 @@ import { Chart, registerables } from 'chart.js';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
+import { DashboardDataService } from '../../../core/services/dashboard-data.service';
 
 Chart.register(...registerables);
 
 @Component({
     selector: 'app-auditor-dashboard',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule],
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatChipsModule, FilterBarComponent],
     template: `
     <div class="auditor-dashboard">
         <div class="welcome-section">
             <h1>Bienvenue, {{ userName }}</h1>
             <p class="subtitle">Espace Auditeur</p>
         </div>
+
+        <app-filter-bar (filterChanged)="onFilterChanged($event)"></app-filter-bar>
 
         <div class="action-cards">
             <mat-card class="action-card start-audit" (click)="startNewAudit()">
@@ -198,12 +202,15 @@ Chart.register(...registerables);
 export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
+    private dashboardDataService = inject(DashboardDataService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: import('@angular/core').ElementRef<HTMLCanvasElement>;
     private chart: Chart | undefined;
 
+    allAudits: Audit[] = [];
     audits: Audit[] = [];
+    currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
     userName = '';
     averageScore = 0;
 
@@ -215,13 +222,21 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
 
     loadAudits() {
         this.auditService.getAudits().subscribe(data => {
-            this.audits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            if (this.audits.length > 0) {
-                const sum = this.audits.reduce((acc, a) => acc + a.score, 0);
-                this.averageScore = sum / this.audits.length;
-                setTimeout(() => this.initChart(), 0);
-            }
+            this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            this.applyFilters();
         });
+    }
+
+    onFilterChanged(filters: DashboardFilters) {
+        this.currentFilters = filters;
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        const { filteredAudits, kpis } = this.dashboardDataService.processDashboardData(this.allAudits, this.currentFilters);
+        this.audits = filteredAudits;
+        this.averageScore = kpis.averageScore;
+        setTimeout(() => this.initChart(), 0);
     }
 
     ngAfterViewInit() { }
@@ -232,6 +247,9 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
 
     initChart() {
         if (!this.scoreChartRef) return;
+        
+        if (this.chart) this.chart.destroy();
+        
         const last10 = this.audits.slice(0, 10).reverse();
         this.chart = new Chart(this.scoreChartRef.nativeElement, {
             type: 'line',

@@ -24,6 +24,10 @@ export class AuditService {
         );
     }
 
+    downloadAuditPdf(id: number): Observable<Blob> {
+        return this.http.get(`${API_URL}/audits/${id}/pdf`, { responseType: 'blob' });
+    }
+
     createAudit(auditUI: AuditUI): Observable<AuditDTO> {
         const payload = this.mapToCreateDTO(auditUI);
         return this.http.post<AuditDTO>(`${API_URL}/audits`, payload);

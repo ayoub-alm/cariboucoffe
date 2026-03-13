@@ -8,13 +8,15 @@ import { Chart, registerables } from 'chart.js';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
+import { DashboardDataService } from '../../../core/services/dashboard-data.service';
 
 Chart.register(...registerables);
 
 @Component({
     selector: 'app-viewer-dashboard',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, FilterBarComponent],
     template: `
     <div class="viewer-dashboard">
         <div class="welcome-section">
@@ -26,6 +28,8 @@ Chart.register(...registerables);
                 <mat-icon>refresh</mat-icon> Actualiser
             </button>
         </div>
+
+        <app-filter-bar (filterChanged)="onFilterChanged($event)"></app-filter-bar>
 
         <div class="stats-grid">
             <mat-card class="stat-card">
@@ -172,12 +176,15 @@ Chart.register(...registerables);
 export class ViewerDashboardComponent implements OnInit, OnDestroy {
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
+    private dashboardDataService = inject(DashboardDataService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: ElementRef<HTMLCanvasElement>;
     private scoreChart: Chart | undefined;
 
+    allAudits: Audit[] = [];
     audits: Audit[] = [];
+    currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
     recentAudits: Audit[] = [];
     userName = '';
     coffeeName = '';
@@ -202,18 +209,24 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
     loadAudits() {
         this.auditService.getAudits().subscribe(data => {
             // Sort audits chronologically desc
-            this.audits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            this.recentAudits = this.audits; // Usually viewers don't have hundreds, but we can slice to 10 if needed
-
-            if (this.audits.length > 0) {
-                const sum = this.audits.reduce((acc, a) => acc + a.score, 0);
-                this.averageScore = sum / this.audits.length;
-                const conforming = this.audits.filter(a => a.score >= 80).length;
-                this.complianceRate = (conforming / this.audits.length) * 100;
-
-                setTimeout(() => this.initChart(), 0);
-            }
+            this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            this.applyFilters();
         });
+    }
+
+    onFilterChanged(filters: DashboardFilters) {
+        this.currentFilters = filters;
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        const { filteredAudits, kpis } = this.dashboardDataService.processDashboardData(this.allAudits, this.currentFilters);
+        this.audits = filteredAudits;
+        this.recentAudits = this.audits; 
+        this.averageScore = kpis.averageScore;
+        this.complianceRate = kpis.complianceRate;
+
+        setTimeout(() => this.initChart(), 0);
     }
 
     initChart() {

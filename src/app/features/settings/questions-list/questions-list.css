@@ -285,3 +285,7 @@
 .empty-state p {
     margin-bottom: 16px;
 }
+
+.rounded-btn {
+    border-radius: 50px !important;
+}

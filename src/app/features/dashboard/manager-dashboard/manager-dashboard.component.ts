@@ -9,19 +9,23 @@ import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { KpiService } from '../../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
+import { DashboardDataService } from '../../../core/services/dashboard-data.service';
 
 Chart.register(...registerables);
 
 @Component({
     selector: 'app-manager-dashboard',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, FilterBarComponent],
     template: `
     <div class="manager-dashboard">
         <div class="welcome-section">
             <h1>Bienvenue, {{ userName }}</h1>
             <p class="subtitle">Tableau de bord Manager — Mes Cafés</p>
         </div>
+
+        <app-filter-bar (filterChanged)="onFilterChanged($event)"></app-filter-bar>
 
         <div class="stats-grid">
             <mat-card class="stat-card">
@@ -148,12 +152,15 @@ Chart.register(...registerables);
 export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
+    private dashboardDataService = inject(DashboardDataService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: ElementRef<HTMLCanvasElement>;
     private chart: Chart | undefined;
 
+    allAudits: Audit[] = [];
     audits: Audit[] = [];
+    currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
     userName = '';
     managedCoffeeCount = 0;
     totalAudits = 0;
@@ -176,28 +183,33 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
 
     loadAudits() {
         this.auditService.getAudits().subscribe(data => {
-            this.audits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            this.totalAudits = this.audits.length;
-
-            if (this.totalAudits > 0) {
-                const sum = this.audits.reduce((acc, a) => acc + a.score, 0);
-                this.averageScore = sum / this.totalAudits;
-                const conforming = this.audits.filter(a => a.score >= 80).length;
-                this.complianceRate = (conforming / this.totalAudits) * 100;
-            }
-
-            const now = new Date();
-            this.auditsThisMonth = this.audits.filter(a => {
-                const d = new Date(a.date);
-                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-            }).length;
-
-            setTimeout(() => this.initChart(), 0);
+            this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            this.applyFilters();
         });
+    }
+
+    onFilterChanged(filters: DashboardFilters) {
+        this.currentFilters = filters;
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        const { filteredAudits, kpis } = this.dashboardDataService.processDashboardData(this.allAudits, this.currentFilters);
+        this.audits = filteredAudits;
+        
+        this.totalAudits = kpis.totalAudits;
+        this.averageScore = kpis.averageScore;
+        this.complianceRate = kpis.complianceRate;
+        this.auditsThisMonth = kpis.auditsMonth;
+        
+        setTimeout(() => this.initChart(), 0);
     }
 
     initChart() {
         if (!this.scoreChartRef) return;
+        
+        if (this.chart) this.chart.destroy();
+        
         const last10 = this.audits.slice(0, 10).reverse();
         this.chart = new Chart(this.scoreChartRef.nativeElement, {
             type: 'line',

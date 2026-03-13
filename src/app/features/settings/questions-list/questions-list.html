@@ -22,7 +22,7 @@
                 <mat-spinner diameter="16"></mat-spinner>
                 Sauvegarde...
             </span>
-            <button mat-flat-button color="primary" (click)="openAddDialog()" *ngIf="isAdmin()">
+            <button mat-flat-button color="primary" class="rounded-btn" (click)="openAddDialog()" *ngIf="isAdmin()">
                 <mat-icon>add</mat-icon>
                 Nouvelle Question
             </button>
@@ -103,7 +103,7 @@
         <div class="empty-state" *ngIf="!isLoading() && questions().length === 0">
             <mat-icon>help_outline</mat-icon>
             <p>Aucune question dans cette catégorie</p>
-            <button mat-flat-button color="primary" (click)="openAddDialog()" *ngIf="isAdmin()">
+            <button mat-flat-button color="primary" class="rounded-btn" (click)="openAddDialog()" *ngIf="isAdmin()">
                 Ajouter la première question
             </button>
         </div>

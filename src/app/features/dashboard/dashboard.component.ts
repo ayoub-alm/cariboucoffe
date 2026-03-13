@@ -8,12 +8,15 @@ import { RouterModule } from '@angular/router';
 import { KpiService } from '../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../core/models/audit.model';
 
+import { FilterBarComponent, DashboardFilters } from '../../shared/components/filter-bar/filter-bar.component';
+import { DashboardDataService } from '../../core/services/dashboard-data.service';
+
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatCardModule, MatIconModule, CommonModule, RouterModule],
+  imports: [MatCardModule, MatIconModule, CommonModule, RouterModule, FilterBarComponent],
   template: `
     <div class="dashboard-container">
       <div class="breadcrumb-container">
@@ -26,6 +29,8 @@ Chart.register(...registerables);
       </div>
 
       <h1 class="dashboard-title">Tableau de Bord Caribou</h1>
+      
+      <app-filter-bar (filterChanged)="onFilterChanged($event)"></app-filter-bar>
       
       <div class="stats-grid">
         <mat-card class="stat-card">
@@ -180,6 +185,7 @@ Chart.register(...registerables);
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private auditService = inject(AuditService);
   private kpiService = inject(KpiService);
+  private dashboardDataService = inject(DashboardDataService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('pieCanvas') pieCanvas!: ElementRef<HTMLCanvasElement>;
@@ -197,7 +203,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   auditsMonth = 0;
   avgScoreMonth = 0;
   topPerformer = '';
+  allAudits: Audit[] = [];
   audits: Audit[] = [];
+  currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
 
   ngOnInit(): void {
     this.loadData();
@@ -214,29 +222,43 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadData() {
-    this.kpiService.getKPI().subscribe(kpi => {
-      this.totalAudits = kpi.total_audits;
-      this.averageScore = kpi.average_score;
-      this.complianceRate = kpi.compliance_rate;
-      this.auditsMonth = kpi.audits_this_month;
-      this.avgScoreMonth = kpi.average_score_this_month;
-      this.topPerformer = kpi.top_performer || 'N/A';
-    });
-
     this.auditService.getAudits().subscribe(data => {
-      this.audits = data;
-      setTimeout(() => this.initCharts(), 0);
+      this.allAudits = data;
+      this.applyFilters();
     });
+  }
+
+  onFilterChanged(filters: DashboardFilters) {
+    this.currentFilters = filters;
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    const { filteredAudits, kpis } = this.dashboardDataService.processDashboardData(this.allAudits, this.currentFilters);
+    this.audits = filteredAudits;
+    this.totalAudits = kpis.totalAudits;
+    this.averageScore = kpis.averageScore;
+    this.complianceRate = kpis.complianceRate;
+    this.auditsMonth = kpis.auditsMonth;
+    this.avgScoreMonth = kpis.avgScoreMonth;
+    this.topPerformer = kpis.topPerformer;
+    
+    setTimeout(() => this.initCharts(), 0);
   }
 
   initCharts() {
     if (!this.barCanvas || !this.pieCanvas || !this.categoryCanvas || !this.cafeComplianceCanvas) return;
 
+    if (this.barChart) this.barChart.destroy();
+    if (this.pieChart) this.pieChart.destroy();
+    if (this.categoryChart) this.categoryChart.destroy();
+    if (this.cafeComplianceChart) this.cafeComplianceChart.destroy();
+
     const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
     const shopScores = shops.map(shop => {
       const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
       const sum = shopAudits.reduce((acc, curr) => acc + curr.score, 0);
-      return sum / shopAudits.length;
+      return shopAudits.length > 0 ? sum / shopAudits.length : 0;
     });
 
     this.barChart = new Chart(this.barCanvas.nativeElement, {

@@ -9,19 +9,23 @@ import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { KpiService } from '../../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
+import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
+import { DashboardDataService } from '../../../core/services/dashboard-data.service';
 
 Chart.register(...registerables);
 
 @Component({
     selector: 'app-boss-dashboard',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, FilterBarComponent],
     template: `
     <div class="boss-dashboard">
         <div class="welcome-section">
             <h1>Bienvenue, {{ userName }}</h1>
             <p class="subtitle">Tableau de bord Directeur</p>
         </div>
+
+        <app-filter-bar (filterChanged)="onFilterChanged($event)"></app-filter-bar>
 
         <div class="stats-grid">
             <mat-card class="stat-card">
@@ -173,6 +177,7 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
     private kpiService = inject(KpiService);
+    private dashboardDataService = inject(DashboardDataService);
     private router = inject(Router);
 
     @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
@@ -184,7 +189,9 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
     categoryScores: { [key: string]: number } = {};
 
+    allAudits: Audit[] = [];
     audits: Audit[] = [];
+    currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
     recentAudits: Audit[] = [];
     userName = '';
     totalAudits = 0;
@@ -210,32 +217,47 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     loadData() {
-        this.kpiService.getKPI().subscribe(kpi => {
-            this.totalAudits = kpi.total_audits;
-            this.averageScore = kpi.average_score;
-            this.complianceRate = kpi.compliance_rate;
-            this.auditsThisMonth = kpi.audits_this_month;
-            this.topPerformer = kpi.top_performer || 'N/A';
-            this.worstPerformer = kpi.worst_performer || 'N/A';
-            this.avgScoreMonth = kpi.average_score_this_month;
-            this.categoryScores = kpi.scores_per_category || {};
-            setTimeout(() => this.initRadarChart(), 0);
-        });
-
         this.auditService.getAudits().subscribe(data => {
-            this.audits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            this.recentAudits = this.audits.slice(0, 12);
-            setTimeout(() => this.initCharts(), 0);
+            this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            this.applyFilters();
         });
+    }
+
+    onFilterChanged(filters: DashboardFilters) {
+        this.currentFilters = filters;
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        const { filteredAudits, kpis } = this.dashboardDataService.processDashboardData(this.allAudits, this.currentFilters);
+        this.audits = filteredAudits;
+        this.recentAudits = this.audits.slice(0, 12);
+        
+        this.totalAudits = kpis.totalAudits;
+        this.averageScore = kpis.averageScore;
+        this.complianceRate = kpis.complianceRate;
+        this.auditsThisMonth = kpis.auditsMonth;
+        this.avgScoreMonth = kpis.avgScoreMonth;
+        this.topPerformer = kpis.topPerformer;
+        this.worstPerformer = kpis.worstPerformer;
+        this.categoryScores = kpis.scoresPerCategory;
+        
+        setTimeout(() => {
+             this.initCharts();
+             this.initRadarChart();
+        }, 0);
     }
 
     initCharts() {
         if (!this.barChartRef || !this.pieChartRef) return;
+        
+        if (this.barChart) this.barChart.destroy();
+        if (this.pieChart) this.pieChart.destroy();
 
         const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
         const shopScores = shops.map(shop => {
             const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
-            return shopAudits.reduce((acc, curr) => acc + curr.score, 0) / shopAudits.length;
+            return shopAudits.length > 0 ? (shopAudits.reduce((acc, curr) => acc + curr.score, 0) / shopAudits.length) : 0;
         });
 
         this.barChart = new Chart(this.barChartRef.nativeElement, {
@@ -266,6 +288,8 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
     initRadarChart() {
         if (!this.radarChartRef) return;
+        
+        if (this.radarChart) this.radarChart.destroy();
 
         const labels = Object.keys(this.categoryScores);
         const data = Object.values(this.categoryScores);
