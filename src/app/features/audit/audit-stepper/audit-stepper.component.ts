@@ -15,12 +15,13 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { debounceTime, filter } from 'rxjs/operators';
 
-import { AuditUI as Audit, AuditCategory } from '../../../core/models/audit.model';
+import { AuditUI as Audit, AuditCategory, AuditWorkflowStatus } from '../../../core/models/audit.model';
 import { QuestionItemComponent } from '../components/question-item/question-item.component';
 import { AuditSummaryComponent } from '../components/audit-summary/audit-summary.component';
 import { AuditService } from '../../../core/services/audit.service';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { isAdmin } from '../../../core/models/user.model';
 
 @Component({
     selector: 'app-audit-stepper',
@@ -65,6 +66,7 @@ export class AuditStepperComponent {
     isLoadingCategories = true;
     isSaving = signal(false);
     editingAuditId: number | null = null;
+    editingWorkflowStatus: AuditWorkflowStatus | null = null;
 
     coffees$ = this.coffeeService.getCoffees();
 
@@ -122,10 +124,10 @@ export class AuditStepperComponent {
             }
         });
 
-        // Real-time update auto-save
+        // Real-time update auto-save (skip for completed audits)
         this.auditForm.valueChanges.pipe(
             debounceTime(2000),
-            filter(() => !!this.infoGroup.get('coffeeShop')?.value && !this.isSaving())
+            filter(() => !!this.infoGroup.get('coffeeShop')?.value && !this.isSaving() && this.editingWorkflowStatus !== 'COMPLETED')
         ).subscribe(() => {
             this.silentAutoSave();
         });
@@ -134,7 +136,14 @@ export class AuditStepperComponent {
     private loadExistingAudit(id: number) {
         this.auditService.getAudit(id).subscribe({
             next: (audit) => {
+                if (audit.workflowStatus === 'COMPLETED' && !isAdmin(this.authService.currentUser())) {
+                    this.snackBar.open('Cet audit est terminé et ne peut plus être modifié', 'OK', { duration: 4000 });
+                    this.router.navigate(['/audits', id]);
+                    return;
+                }
+
                 this.editingAuditId = id;
+                this.editingWorkflowStatus = audit.workflowStatus || null;
                 this.infoGroup.patchValue({
                     coffeeShop: audit.coffeeId,
                     shift: audit.shift || 'AM',
@@ -233,7 +242,9 @@ export class AuditStepperComponent {
 
                 itemGroup.get('status')?.valueChanges.subscribe(val => {
                     const remarksCtrl = itemGroup.get('remarks');
-                    if (val === 'non') {
+                    const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+                    const isNonConform = !!val && val !== 'n/a' && val !== correctAnswer;
+                    if (isNonConform) {
                         remarksCtrl?.setValidators([Validators.required]);
                     } else {
                         remarksCtrl?.clearValidators();

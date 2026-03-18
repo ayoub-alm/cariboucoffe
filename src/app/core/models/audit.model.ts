@@ -163,7 +163,8 @@ export function calculateCategoryScore(category: AuditCategory): number {
     const weight = item.weight || 1;
     totalWeight += weight;
 
-    if (item.status === 'oui') {
+    const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+    if (item.status === correctAnswer) {
       earnedPoints += weight;
     }
   });

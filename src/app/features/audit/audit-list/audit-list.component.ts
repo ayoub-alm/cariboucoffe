@@ -54,6 +54,14 @@ export class AuditListComponent {
         return isAdmin(this.authService.currentUser());
     }
 
+    /** Auditors can only edit their own IN_PROGRESS audits; admin can edit any */
+    canEditAudit(audit: Audit): boolean {
+        const user = this.authService.currentUser();
+        if (!user) return false;
+        if (isAdmin(user)) return true;
+        return audit.workflowStatus === 'IN_PROGRESS' && canCreateAudits(user);
+    }
+
     // Use setters for ViewChild to handle *ngIf re-creation
     @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
         this.dataSource.paginator = paginator;

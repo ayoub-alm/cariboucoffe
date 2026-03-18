@@ -131,8 +131,14 @@ export class AuditDetailsComponent implements OnInit {
         return { obtained, total };
     }
 
+    isItemNonConform(item: AuditQuestion): boolean {
+        if (!item.status || item.status === 'n/a') return false;
+        const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+        return item.status !== correctAnswer;
+    }
+
     hasNonConformity(cat: AuditCategory): boolean {
-        return cat.items.some(i => i.status === 'non');
+        return cat.items.some(i => this.isItemNonConform(i));
     }
 
     hasAnyNonConformity(): boolean {
@@ -148,17 +154,16 @@ export class AuditDetailsComponent implements OnInit {
 
         cat.items.forEach(item => {
             if (item.status === 'n/a') {
-                return; // Skip N/A entirely
+                return;
             }
 
             const weight = item.weight || 1;
             maxScore += weight;
 
-            // Calculate obtained score based on choice
-            if (item.status === 'oui') {
+            const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+            if (item.status === correctAnswer) {
                 obtainedScore += weight;
             }
-            // 'non' gives 0 points
         });
 
         return {
@@ -189,16 +194,17 @@ export class AuditDetailsComponent implements OnInit {
     }
 
     getQuestionStatusClass(item: AuditQuestion): string {
-        if (item.status === 'oui') return 'status-yes';
-        if (item.status === 'non') return 'status-no';
         if (item.status === 'n/a') return 'status-na';
-        return 'status-unknown';
+        if (!item.status) return 'status-unknown';
+        const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+        return item.status === correctAnswer ? 'status-yes' : 'status-no';
     }
 
     getQuestionScore(item: AuditQuestion): number {
         const weight = item.weight || 1;
-        if (item.status === 'oui') return weight;
         if (item.status === 'n/a' && item.na_score !== undefined) return item.na_score;
+        const correctAnswer = (item.correct_answer || 'oui').toLowerCase();
+        if (item.status === correctAnswer) return weight;
         return 0;
     }
 

@@ -1,4 +1,4 @@
-﻿<div class="details-container" *ngIf="audit() as a; else loading" #auditContent>
+<div class="details-container" *ngIf="audit() as a; else loading" #auditContent>
 
     <!-- Image Lightbox Modal -->
     <div class="lightbox-overlay" *ngIf="lightboxImage" (click)="closeLightbox()">
@@ -178,7 +178,7 @@
 
                     <div class="questions-list">
                         <div *ngFor="let item of cat.items" class="question-item"
-                            [ngClass]="{'non-conforme': item.status === 'non', 'is-na': item.status === 'n/a'}">
+                            [ngClass]="{'non-conforme': isItemNonConform(item), 'is-na': item.status === 'n/a'}">
                             <div class="q-main">
                                 <div class="q-content">
                                     <span class="q-text">{{ item.label }}</span>
@@ -292,7 +292,7 @@
                     <mat-list>
                         <ng-container *ngFor="let cat of a.categories">
                             <ng-container *ngFor="let item of cat.items">
-                                <mat-list-item *ngIf="item.status === 'non'" lines="3">
+                                <mat-list-item *ngIf="isItemNonConform(item)" lines="3">
                                     <mat-icon matListItemIcon style="color: #c62828;">warning</mat-icon>
                                     <div matListItemTitle
                                         style="font-size: 13px; font-weight: 600; white-space: normal; line-height: 1.4;">
