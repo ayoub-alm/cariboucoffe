@@ -13,11 +13,13 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, ActivatedRoute } from '@angular/router';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
+import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, filter } from 'rxjs/operators';
 
 import { AuditUI as Audit, AuditCategory, AuditWorkflowStatus } from '../../../core/models/audit.model';
 import { QuestionItemComponent } from '../components/question-item/question-item.component';
 import { AuditSummaryComponent } from '../components/audit-summary/audit-summary.component';
+import { CameraDialogComponent } from '../components/camera-dialog/camera-dialog.component';
 import { AuditService } from '../../../core/services/audit.service';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -58,6 +60,7 @@ export class AuditStepperComponent {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private snackBar = inject(MatSnackBar);
+    private dialog = inject(MatDialog);
 
     @ViewChild('stepper') stepper!: MatStepper;
 
@@ -70,10 +73,10 @@ export class AuditStepperComponent {
 
     coffees$ = this.coffeeService.getCoffees();
 
-    selectedFileName: string | null = null;
-    photoPreview: string | null = null;
-    photoData: string | null = null;
+    photoPreviews: string[] = [];
+    photosData: string[] = [];
     isCompressing = false;
+    isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     answeredCount = signal(0);
     totalQuestions = signal(0);
@@ -159,8 +162,8 @@ export class AuditStepperComponent {
                     });
                 }
 
-                if (audit.photoUrl) {
-                    this.photoPreview = audit.photoUrl;
+                if (audit.photoUrls?.length) {
+                    this.photoPreviews = [...audit.photoUrls];
                 }
 
                 if (audit.categories?.length) {
@@ -175,7 +178,8 @@ export class AuditStepperComponent {
                             const itemGroup = this.getItemGroup(catIdx, itemIdx);
                             itemGroup.patchValue({
                                 status: savedItem.status,
-                                remarks: savedItem.remarks || ''
+                                remarks: savedItem.remarks || '',
+                                photosData: savedItem.photoUrls?.length ? savedItem.photoUrls : []
                             });
                         }
                     }
@@ -237,7 +241,7 @@ export class AuditStepperComponent {
                     id: [item.id],
                     status: [null],
                     remarks: [''],
-                    photoData: [null]
+                    photosData: [[]]
                 });
 
                 itemGroup.get('status')?.valueChanges.subscribe(val => {
@@ -272,13 +276,15 @@ export class AuditStepperComponent {
         this.answeredCount.set(answered);
     }
 
-    onFileSelected(event: Event) {
+    onFilesSelected(event: Event) {
         const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
-        if (file) {
-            this.selectedFileName = file.name;
-            this.processFile(file);
+        const files = input.files;
+        if (files) {
+            for (let i = 0; i < files.length; i++) {
+                this.processFile(files[i]);
+            }
         }
+        input.value = '';
     }
 
     processFile(file: File) {
@@ -305,18 +311,30 @@ export class AuditStepperComponent {
                 canvas.height = height;
                 ctx?.drawImage(img, 0, 0, width, height);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                this.photoPreview = dataUrl;
-                this.photoData = dataUrl;
+                this.photoPreviews = [...this.photoPreviews, dataUrl];
+                this.photosData = [...this.photosData, dataUrl];
                 this.isCompressing = false;
             };
         };
         reader.readAsDataURL(file);
     }
 
-    removePhoto() {
-        this.selectedFileName = null;
-        this.photoPreview = null;
-        this.photoData = null;
+    removePhoto(index: number) {
+        this.photoPreviews = this.photoPreviews.filter((_, i) => i !== index);
+        this.photosData = this.photosData.filter((_, i) => i !== index);
+    }
+
+    openCamera(mobileInput?: HTMLInputElement) {
+        if (this.isMobile && mobileInput) {
+            mobileInput.click();
+        } else {
+            this.dialog.open(CameraDialogComponent, { width: '600px', autoFocus: false }).afterClosed().subscribe(dataUrl => {
+                if (dataUrl) {
+                    this.photoPreviews = [...this.photoPreviews, dataUrl];
+                    this.photosData = [...this.photosData, dataUrl];
+                }
+            });
+        }
     }
 
     private buildAuditData(workflowStatus: 'IN_PROGRESS' | 'COMPLETED'): Audit {
@@ -334,14 +352,14 @@ export class AuditStepperComponent {
             actionsCorrectives: formVal.conclusion.actionsCorrectives,
             trainingNeeds: formVal.conclusion.trainingNeeds,
             purchases: formVal.conclusion.purchases,
-            photoData: this.photoData || undefined,
+            photosData: this.photosData.length ? this.photosData : undefined,
             categories: this.auditCategories.map((cat, i) => ({
                 ...cat,
                 items: cat.items.map((item, j) => ({
                     ...item,
                     status: formVal.categories[i]?.items[j]?.status ?? null,
                     remarks: formVal.categories[i]?.items[j]?.remarks ?? '',
-                    photoData: formVal.categories[i]?.items[j]?.photoData
+                    photosData: formVal.categories[i]?.items[j]?.photosData ?? []
                 }))
             }))
         };

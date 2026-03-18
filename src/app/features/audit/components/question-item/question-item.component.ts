@@ -1,4 +1,4 @@
-import { Component, input, signal, computed, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, input, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -7,7 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { AuditQuestion } from '../../../../core/models/audit.model';
+import { CameraDialogComponent } from '../camera-dialog/camera-dialog.component';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -50,7 +52,7 @@ import { Subscription } from 'rxjs';
             <mat-panel-title class="panel-warning-title" [class.text-danger]="isNonConform()">
               <mat-icon class="icon-spacer" *ngIf="isNonConform()">warning</mat-icon> 
               <mat-icon class="icon-spacer" *ngIf="!isNonConform()">info</mat-icon>
-              {{ isNonConform() ? 'Non-conformité détectée - Remarque obligatoire' : 'Détails & Photo' }}
+              {{ isNonConform() ? 'Non-conformité détectée - Remarque obligatoire' : 'Détails & Photos' }}
             </mat-panel-title>
           </mat-expansion-panel-header>
           
@@ -64,20 +66,26 @@ import { Subscription } from 'rxjs';
 
           <!-- Photo Upload Section -->
           <div class="photo-section">
-            <div class="photo-actions" *ngIf="!photoPreview()">
+            <div class="photo-actions">
                 <button mat-stroked-button color="primary" type="button" (click)="fileInput.click()" [disabled]="isCompressing()">
-                  <mat-icon>add_a_photo</mat-icon> Ajouter Photo
+                  <mat-icon>add_photo_alternate</mat-icon> Depuis l'appareil
                 </button>
-                <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+                <button mat-stroked-button color="primary" type="button" (click)="openCamera(cameraInput)" [disabled]="isCompressing()">
+                  <mat-icon>photo_camera</mat-icon> Prendre photo
+                </button>
+                <input #fileInput type="file" (change)="onFilesSelected($event)" accept="image/*" multiple style="display: none;">
+                <input #cameraInput type="file" (change)="onFilesSelected($event)" accept="image/*" capture="environment" style="display: none;">
             </div>
 
-            <div *ngIf="photoPreview()" class="photo-preview-container">
-                <img [src]="photoPreview()" class="preview-img">
-                <button mat-icon-button color="warn" class="remove-btn" type="button" (click)="removePhoto()">
-                    <mat-icon>close</mat-icon>
-                </button>
+            <div *ngIf="photoPreviews().length" class="photo-grid">
+                <div *ngFor="let photo of photoPreviews(); let idx = index" class="photo-preview-container">
+                    <img [src]="photo" class="preview-img">
+                    <button mat-icon-button color="warn" class="remove-btn" type="button" (click)="removePhoto(idx)">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
             </div>
-             <div *ngIf="isCompressing()" class="compressing-text">Optimisation...</div>
+            <div *ngIf="isCompressing()" class="compressing-text">Optimisation...</div>
           </div>
 
         </mat-expansion-panel>
@@ -167,14 +175,22 @@ import { Subscription } from 'rxjs';
     .photo-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+    }
+    .photo-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
     }
     .photo-preview-container {
         position: relative;
         display: inline-block;
-        margin-top: 8px;
     }
     .preview-img {
-        max-height: 150px;
+        height: 100px;
+        width: 100px;
+        object-fit: cover;
         border-radius: 8px;
         border: 1px solid #ddd;
     }
@@ -187,7 +203,7 @@ import { Subscription } from 'rxjs';
         width: 24px;
         height: 24px;
         line-height: 24px;
-        display: flex; /* For centering icon */
+        display: flex;
         align-items: center;
         justify-content: center;
     }
@@ -216,6 +232,8 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class QuestionItemComponent implements OnInit, OnDestroy {
+  private dialog = inject(MatDialog);
+
   group = input.required<FormGroup>();
   item = input.required<AuditQuestion>();
   isExpanded = signal(false);
@@ -223,21 +241,19 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
   showDetails = signal(false);
   isNonConform = signal(false);
 
-  // Photo signals
-  photoPreview = signal<string | null>(null);
+  photoPreviews = signal<string[]>([]);
   isCompressing = signal(false);
+  isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   ngOnInit() {
     this.sub = this.group().get('status')?.valueChanges.subscribe(val => {
       this.checkConformity(val);
     });
-    // Initial check
     this.checkConformity(this.group().get('status')?.value);
 
-    // Resume photo preview if exist
-    const existingPhoto = this.group().get('photoData')?.value;
-    if (existingPhoto) {
-      this.photoPreview.set(existingPhoto);
+    const existing = this.group().get('photosData')?.value;
+    if (existing?.length) {
+      this.photoPreviews.set([...existing]);
     }
   }
 
@@ -263,12 +279,15 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
     }
   }
 
-  onFileSelected(event: Event) {
+  onFilesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      this.processFile(file);
+    const files = input.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        this.processFile(files[i]);
+      }
     }
+    input.value = '';
   }
 
   processFile(file: File) {
@@ -287,15 +306,9 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
         let height = img.height;
 
         if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
+          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
         } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
+          if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
         }
 
         canvas.width = width;
@@ -303,15 +316,12 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
         ctx?.drawImage(img, 0, 0, width, height);
 
         const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-        this.photoPreview.set(dataUrl);
+        const updated = [...this.photoPreviews(), dataUrl];
+        this.photoPreviews.set(updated);
 
-        // Keep the control if mapped, handle if missing
-        const control = this.group().get('photoData');
+        const control = this.group().get('photosData');
         if (control) {
-          control.setValue(dataUrl);
-        } else {
-          // Maybe we should add it if missing?
-          // Better to rely on parent creating it properly
+          control.setValue(updated);
         }
 
         this.isCompressing.set(false);
@@ -320,9 +330,27 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
-  removePhoto() {
-    this.photoPreview.set(null);
-    this.group().patchValue({ photoData: null });
+  removePhoto(index: number) {
+    const updated = this.photoPreviews().filter((_, i) => i !== index);
+    this.photoPreviews.set(updated);
+    this.group().patchValue({ photosData: updated });
+  }
+
+  openCamera(mobileInput?: HTMLInputElement) {
+    if (this.isMobile && mobileInput) {
+      mobileInput.click();
+    } else {
+      this.dialog.open(CameraDialogComponent, { width: '600px', autoFocus: false }).afterClosed().subscribe(dataUrl => {
+        if (dataUrl) {
+          const updated = [...this.photoPreviews(), dataUrl];
+          this.photoPreviews.set(updated);
+          const control = this.group().get('photosData');
+          if (control) {
+            control.setValue(updated);
+          }
+        }
+      });
+    }
   }
 
   ngOnDestroy() {

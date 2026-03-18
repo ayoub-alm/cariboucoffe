@@ -1,17 +1,17 @@
 import { Component, Inject, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
+import { AsyncPipe } from '@angular/common';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { CoffeeService } from '../../../core/services/coffee.service';
-import { AsyncPipe } from '@angular/common';
-
-import { MatIconModule } from '@angular/material/icon';
+import { CameraDialogComponent } from '../components/camera-dialog/camera-dialog.component';
 
 @Component({
     selector: 'app-audit-dialog',
@@ -38,16 +38,16 @@ import { MatIconModule } from '@angular/material/icon';
 export class AuditDialogComponent {
     private fb = inject(FormBuilder);
     private coffeeService = inject(CoffeeService);
+    private dialog = inject(MatDialog);
     dialogRef = inject(MatDialogRef<AuditDialogComponent>);
     data = inject<Audit | null>(MAT_DIALOG_DATA);
 
     coffees$ = this.coffeeService.getCoffees();
 
-    // Photo handling
-    selectedFileName: string | null = null;
-    photoPreview: string | null = null;
-    photoData: string | null = null;
+    photoPreviews: string[] = [];
+    photosData: string[] = [];
     isCompressing = false;
+    isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     auditForm = this.fb.group({
         coffeeId: [this.data?.coffeeId || null, Validators.required],
@@ -57,13 +57,15 @@ export class AuditDialogComponent {
         status: [this.data?.status || 'Non-conforme', Validators.required]
     });
 
-    onFileSelected(event: Event) {
+    onFilesSelected(event: Event) {
         const input = event.target as HTMLInputElement;
-        const file = input.files?.[0];
-        if (file) {
-            this.selectedFileName = file.name;
-            this.processFile(file);
+        const files = input.files;
+        if (files) {
+            for (let i = 0; i < files.length; i++) {
+                this.processFile(files[i]);
+            }
         }
+        input.value = '';
     }
 
     processFile(file: File) {
@@ -75,43 +77,45 @@ export class AuditDialogComponent {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-
-                // Strategy: Max dimension 1024px for good balance of quality and size
                 const MAX_WIDTH = 1024;
                 const MAX_HEIGHT = 1024;
                 let width = img.width;
                 let height = img.height;
 
                 if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                 } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
                 }
 
                 canvas.width = width;
                 canvas.height = height;
                 ctx?.drawImage(img, 0, 0, width, height);
-
-                // Strategy: JPEG with 0.7 quality
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                this.photoPreview = dataUrl;
-                this.photoData = dataUrl;
+                this.photoPreviews = [...this.photoPreviews, dataUrl];
+                this.photosData = [...this.photosData, dataUrl];
                 this.isCompressing = false;
             };
         };
         reader.readAsDataURL(file);
     }
 
-    removePhoto() {
-        this.selectedFileName = null;
-        this.photoPreview = null;
-        this.photoData = null;
+    removePhoto(index: number) {
+        this.photoPreviews = this.photoPreviews.filter((_, i) => i !== index);
+        this.photosData = this.photosData.filter((_, i) => i !== index);
+    }
+
+    openCamera(mobileInput?: HTMLInputElement) {
+        if (this.isMobile && mobileInput) {
+            mobileInput.click();
+        } else {
+            this.dialog.open(CameraDialogComponent, { width: '600px', autoFocus: false }).afterClosed().subscribe(dataUrl => {
+                if (dataUrl) {
+                    this.photoPreviews = [...this.photoPreviews, dataUrl];
+                    this.photosData = [...this.photosData, dataUrl];
+                }
+            });
+        }
     }
 
     onSubmit() {
@@ -120,7 +124,7 @@ export class AuditDialogComponent {
             this.dialogRef.close({
                 ...this.data,
                 ...this.auditForm.value,
-                photoData: this.photoData
+                photosData: this.photosData.length ? this.photosData : undefined
             });
         }
     }

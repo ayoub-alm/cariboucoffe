@@ -12,7 +12,7 @@ interface ReviewQuestion {
   label: string;
   status: 'oui' | 'non' | 'n/a' | null;
   remarks: string;
-  photo: string | null;
+  photos: string[];
   weight: number;
   correct_answer: string;
   categoryName: string;
@@ -145,10 +145,12 @@ interface ReviewCategory {
                     <mat-icon class="remark-icon">comment</mat-icon> {{ q.remarks }}
                   </div>
                 }
-                @if (q.photo) {
+                @if (q.photos.length) {
                   <div class="q-photo-row">
-                    <img [src]="q.photo" class="q-thumb" alt="photo">
-                    <span class="q-photo-lbl"><mat-icon>photo_camera</mat-icon> Photo jointe</span>
+                    @for (p of q.photos; track p) {
+                      <img [src]="p" class="q-thumb" alt="photo">
+                    }
+                    <span class="q-photo-lbl"><mat-icon>photo_camera</mat-icon> {{ q.photos.length }} photo(s)</span>
                   </div>
                 }
               </div>
@@ -182,8 +184,12 @@ interface ReviewCategory {
                   Aucune remarque saisie — pensez à décrire l'action corrective
                 </div>
               }
-              @if (nc.photo) {
-                <img [src]="nc.photo" class="nc-thumb" alt="photo nc">
+              @if (nc.photos.length) {
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+                  @for (p of nc.photos; track p) {
+                    <img [src]="p" class="nc-thumb" alt="photo nc">
+                  }
+                </div>
               }
             </div>
           }
@@ -335,8 +341,8 @@ interface ReviewCategory {
       background: #fffde7; border-color: #ffe082; color: #e65100;
     }
     .nc-thumb {
-      display: block; margin-top: 10px;
-      max-height: 120px; border-radius: 6px; border: 1px solid #ddd;
+      display: block;
+      max-height: 90px; border-radius: 6px; border: 1px solid #ddd;
     }
 
     /* ── All OK ── */
@@ -401,7 +407,7 @@ export class AuditSummaryComponent {
           label: item.label,
           status,
           remarks: formItem.remarks ?? '',
-          photo: formItem.photoData ?? null,
+          photos: formItem.photosData ?? [],
           weight,
           correct_answer: correct,
           categoryName: cat.name,

@@ -61,13 +61,13 @@ export interface AuditCreateDTO {
   actions_correctives?: string;
   training_needs?: string;
   purchases?: string;
-  photo_data?: string;
+  photo_data?: string[];
   answers: {
     question_id: number;
     value: number;
     choice: 'oui' | 'non' | 'n/a';
     comment?: string;
-    photo_data?: string;
+    photo_data?: string[];
   }[];
 }
 
@@ -100,8 +100,8 @@ export interface AuditUI {
   actionsCorrectives?: string;
   trainingNeeds?: string;
   purchases?: string;
-  photoUrl?: string;
-  photoData?: string;
+  photoUrls?: string[];
+  photosData?: string[];
 }
 
 /** Audit category grouping questions */
@@ -121,8 +121,8 @@ export interface AuditQuestion {
   status: AuditResponse;
   numericValue?: number;
   remarks?: string;
-  photos?: string[];
-  photoData?: string;
+  photoUrls?: string[];
+  photosData?: string[];
   backendId?: number;
   weight?: number;
   correct_answer?: string;

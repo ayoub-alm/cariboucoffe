@@ -205,13 +205,16 @@
                                     style="font-size:14px;width:14px;height:14px;vertical-align:middle;">comment</mat-icon>
                                 {{ item.remarks }}
                             </div>
-                            <!-- Per-question photo -->
-                            <div *ngIf="item.photoData" class="q-photo">
-                                <img [src]="item.photoData" class="q-photo-thumb" alt="Photo preuve"
-                                    (click)="openLightbox(item.photoData!)">
+                            <!-- Per-question photos -->
+                            <div *ngIf="item.photoUrls && item.photoUrls.length" class="q-photos">
+                                <div class="q-photo-grid">
+                                    <img *ngFor="let photoUrl of item.photoUrls" [src]="photoUrl"
+                                        class="q-photo-thumb" alt="Photo preuve"
+                                        (click)="openLightbox(photoUrl)">
+                                </div>
                                 <span class="q-photo-label">
                                     <mat-icon style="font-size:13px;width:13px;height:13px;">photo_camera</mat-icon>
-                                    Photo jointe
+                                    {{ item.photoUrls.length }} photo(s) jointe(s)
                                 </span>
                             </div>
                         </div>
@@ -224,20 +227,21 @@
         <!-- Right Column: Summary & Actions -->
         <div class="side-column">
 
-            <!-- Audit Main Photo Card -->
-            <section class="section-card photo-card" *ngIf="a.photoUrl">
+            <!-- Audit Photos Card -->
+            <section class="section-card photo-card" *ngIf="a.photoUrls && a.photoUrls.length">
                 <div class="section-header">
                     <h2>
                         <mat-icon class="section-header-icon">photo_camera</mat-icon>
-                        Photo de l'Audit
+                        Photos de l'Audit ({{ a.photoUrls.length }})
                     </h2>
                 </div>
-                <div class="audit-photo-container">
-                    <img [src]="a.photoUrl" class="audit-photo" alt="Photo de l'audit"
-                        (click)="openLightbox(a.photoUrl!)">
-                    <div class="audit-photo-overlay" (click)="openLightbox(a.photoUrl!)">
-                        <mat-icon>zoom_in</mat-icon>
-                        <span>Voir en plein écran</span>
+                <div class="audit-photos-grid">
+                    <div *ngFor="let url of a.photoUrls" class="audit-photo-container">
+                        <img [src]="url" class="audit-photo" alt="Photo de l'audit"
+                            (click)="openLightbox(url)">
+                        <div class="audit-photo-overlay" (click)="openLightbox(url)">
+                            <mat-icon>zoom_in</mat-icon>
+                        </div>
                     </div>
                 </div>
                 <div class="photo-meta">

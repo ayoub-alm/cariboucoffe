@@ -73,29 +73,37 @@ export class AuditService {
     }
 
     /**
-     * Converts a stored photo_url to a fully-qualified URL that the browser can load.
+     * Parse photo_url from backend which may be:
+     * - null/undefined
+     * - A single URL string (legacy): "/static/uploads/abc.jpg"
+     * - A JSON array string: '["/static/uploads/a.jpg","/static/uploads/b.jpg"]'
+     * - A base64 data URI (legacy)
      *
-     * The backend saves images as relative paths: /static/uploads/<uuid>.jpg
-     * We prefix them with the backend static base URL.
-     *
-     * Legacy audits may have stored raw base64 data URIs directly in photo_url.
-     * In list mode we skip those to avoid freezing the browser.
+     * Returns a resolved array of full URLs.
      */
-    private resolveImageUrl(photoUrl: string | undefined | null, includeImages: boolean): string | undefined {
-        if (!photoUrl) return undefined;
+    private resolveImageUrls(photoUrl: string | undefined | null, includeImages: boolean): string[] {
+        if (!photoUrl) return [];
 
-        // Already a data URI (base64) — only use in detail view
-        if (photoUrl.startsWith('data:')) {
-            return includeImages ? photoUrl : undefined;
+        let rawUrls: string[];
+        try {
+            const parsed = JSON.parse(photoUrl);
+            rawUrls = Array.isArray(parsed) ? parsed : [photoUrl];
+        } catch {
+            rawUrls = [photoUrl];
         }
 
-        // Relative path from backend (e.g. /static/uploads/xyz.jpg)
-        if (photoUrl.startsWith('/')) {
-            return `${STATIC_URL}${photoUrl}`;
+        const resolved: string[] = [];
+        for (const url of rawUrls) {
+            if (!url) continue;
+            if (url.startsWith('data:')) {
+                if (includeImages) resolved.push(url);
+            } else if (url.startsWith('/')) {
+                resolved.push(`${STATIC_URL}${url}`);
+            } else {
+                resolved.push(url);
+            }
         }
-
-        // Already an absolute URL
-        return photoUrl;
+        return resolved;
     }
 
     private mapToUI(dto: AuditDTO, includeImages = true): AuditUI {
@@ -125,7 +133,7 @@ export class AuditService {
                         weight: ans.question.weight || 1,
                         correct_answer: ans.question.correct_answer,
                         na_score: ans.question.na_score,
-                        photoData: this.resolveImageUrl(ans.photo_url, includeImages)
+                        photoUrls: this.resolveImageUrls(ans.photo_url, includeImages)
                     });
 
                 }
@@ -149,7 +157,7 @@ export class AuditService {
             actionsCorrectives: dto.actions_correctives,
             trainingNeeds: dto.training_needs,
             purchases: dto.purchases,
-            photoUrl: this.resolveImageUrl(dto.photo_url, includeImages)
+            photoUrls: this.resolveImageUrls(dto.photo_url, includeImages)
         };
     }
 
@@ -159,12 +167,11 @@ export class AuditService {
             value: number;
             choice: 'oui' | 'non' | 'n/a';
             comment?: string;
-            photo_data?: string;
+            photo_data?: string[];
         }[] = [];
 
         for (const cat of ui.categories) {
             for (const item of cat.items) {
-                // Use numericValue if available, otherwise convert status
                 const value = item.numericValue !== undefined
                     ? item.numericValue
                     : (item.status === 'oui' ? 5 : 0);
@@ -174,9 +181,8 @@ export class AuditService {
                     value: value,
                     choice: item.status ? item.status : undefined as any,
                     comment: item.remarks || '',
-                    photo_data: item.photoData
+                    photo_data: item.photosData?.length ? item.photosData : undefined
                 });
-
             }
         }
 
@@ -188,7 +194,7 @@ export class AuditService {
             actions_correctives: ui.actionsCorrectives,
             training_needs: ui.trainingNeeds,
             purchases: ui.purchases,
-            photo_data: ui.photoData,
+            photo_data: ui.photosData?.length ? ui.photosData : undefined,
             answers: answers
         };
     }

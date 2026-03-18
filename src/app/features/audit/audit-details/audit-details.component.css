@@ -516,13 +516,20 @@
     padding: 16px 20px 12px;
 }
 
+.audit-photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+    padding: 0 8px 8px;
+}
+
 .audit-photo-container {
     position: relative;
-    width: 100%;
     overflow: hidden;
     cursor: pointer;
     background: #000;
-    max-height: 280px;
+    border-radius: 6px;
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -530,7 +537,7 @@
 
 .audit-photo {
     width: 100%;
-    max-height: 280px;
+    height: 100%;
     object-fit: cover;
     display: block;
     transition: transform 0.3s ease, opacity 0.3s ease;
@@ -581,13 +588,17 @@
 /* ============================================================
    PER-QUESTION PHOTO THUMBNAIL
    ============================================================ */
-.q-photo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.q-photos {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px dashed var(--outline-variant);
+}
+
+.q-photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
 .q-photo-thumb {
