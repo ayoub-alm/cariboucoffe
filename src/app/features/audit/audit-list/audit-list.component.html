@@ -67,15 +67,25 @@
                     *ngIf="canCreate()">
                     <mat-icon>add</mat-icon> Nouveau
                 </button>
-                <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer">
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Filtrer" (click)="toggleFilterBar()">
                     <mat-icon>filter_list</mat-icon>
                 </button>
-                <button mat-icon-button class="icon-btn-secondary" matTooltip="Options">
+                <button mat-icon-button class="icon-btn-secondary" matTooltip="Options" [matMenuTriggerFor]="optionsMenu">
                     <mat-icon>more_vert</mat-icon>
                 </button>
+                <mat-menu #optionsMenu="matMenu">
+                    <button mat-menu-item (click)="exportExcel()">
+                        <mat-icon>dataset</mat-icon> Exporter sous Excel (CSV)
+                    </button>
+                    <button mat-menu-item *ngIf="isAdmin() && selection.hasValue()" (click)="bulkDelete()">
+                        <mat-icon>delete</mat-icon> Supprimer la sélection
+                    </button>
+                </mat-menu>
             </div>
         </div>
 
+        <!-- Filter Bar -->
+        <app-filter-bar *ngIf="showFilter" (filterChanged)="onAdvancedFilterChange($event)"></app-filter-bar>
 
         <!-- List View -->
         <div *ngIf="viewMode === 'list'">

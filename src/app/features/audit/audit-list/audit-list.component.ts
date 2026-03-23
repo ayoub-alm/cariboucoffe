@@ -20,6 +20,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuditDialogComponent } from '../audit-dialog/audit-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FilterBarComponent } from '../../../shared/components/filter-bar/filter-bar.component';
 
 @Component({
     selector: 'app-audit-list',
@@ -31,15 +32,24 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
         MatIconModule, MatChipsModule, MatTooltipModule,
         MatDialogModule, MatCheckboxModule, MatMenuModule,
         MatButtonToggleModule,
-        DatePipe, NgClass, RouterModule
+        DatePipe, NgClass, RouterModule, FilterBarComponent
     ],
     templateUrl: './audit-list.component.html',
     styleUrls: ['./audit-list.component.css']
 })
 export class AuditListComponent {
-    displayedColumns: string[] = ['select', 'coffeeShop', 'auditor', 'date', 'score', 'status', 'actions'];
+    get displayedColumns(): string[] {
+        const cols = ['coffeeShop', 'auditor', 'date', 'score', 'status', 'actions'];
+        if (this.isAdmin()) {
+            cols.unshift('select');
+        }
+        return cols;
+    }
     dataSource: MatTableDataSource<Audit>;
     selection = new SelectionModel<Audit>(true, []);
+    
+    showFilter = false;
+    currentFilters: any = {};
 
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
@@ -78,6 +88,30 @@ export class AuditListComponent {
 
     constructor() {
         this.dataSource = new MatTableDataSource<Audit>([]);
+        
+        // Custom filter predicate for the FilterBarComponent
+        this.dataSource.filterPredicate = (data: Audit, filter: string) => {
+            const searchStr = (data.coffeeShop + data.auditorName + data.status).toLowerCase();
+            const matchesText = searchStr.includes(filter);
+
+            let matchesAdvanced = true;
+            if (this.currentFilters) {
+                if (this.currentFilters.coffeeShop && data.coffeeShop !== this.currentFilters.coffeeShop) matchesAdvanced = false;
+                if (this.currentFilters.auditorName && data.auditorName !== this.currentFilters.auditorName) matchesAdvanced = false;
+                if (this.currentFilters.startDate) {
+                    const d = new Date(data.date);
+                    if (d < new Date(this.currentFilters.startDate)) matchesAdvanced = false;
+                }
+                if (this.currentFilters.endDate) {
+                    const d = new Date(data.date);
+                    if (d > new Date(this.currentFilters.endDate)) matchesAdvanced = false;
+                }
+                // Category filtering is tricky since it's inside items, skipping for simple audit list if not joined natively, or could be skipped
+            }
+
+            return matchesText && matchesAdvanced;
+        };
+
         this.loadAudits();
     }
 
@@ -108,6 +142,17 @@ export class AuditListComponent {
         const filterValue = (event.target as HTMLInputElement).value;
         this.dataSource.filter = filterValue.trim().toLowerCase();
         if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+    }
+
+    onAdvancedFilterChange(filters: any) {
+        this.currentFilters = filters;
+        // Trigger filter predicate execution by reassigning filter (a hack)
+        this.dataSource.filter = this.dataSource.filter || ' ';
+        if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+    }
+
+    toggleFilterBar() {
+        this.showFilter = !this.showFilter;
     }
 
     isAllSelected() {
@@ -171,6 +216,46 @@ export class AuditListComponent {
                 if (this.viewMode === 'calendar') this.generateCalendar();
             });
         }
+    }
+
+    bulkDelete() {
+        if (this.selection.selected.length === 0) return;
+        if (confirm(`Êtes-vous sûr de vouloir supprimer ${this.selection.selected.length} audit(s) sélectionnés ?`)) {
+            const idsToDelete = this.selection.selected.map(a => a.id).filter((id): id is number => id !== undefined);
+            
+            this.auditService.deleteAudits(idsToDelete).subscribe(() => {
+                 this.dataSource.data = this.dataSource.data.filter(a => a.id !== undefined && !idsToDelete.includes(a.id));
+                 this.selection.clear();
+                 this.calculateStats(this.dataSource.data);
+                 if (this.viewMode === 'calendar') this.generateCalendar();
+            });
+        }
+    }
+
+    exportExcel() {
+        const data = this.dataSource.filteredData.map(a => ({
+            'ID': a.id,
+            'Café': a.coffeeShop,
+            'Auditeur': a.auditorName,
+            'Date': new DatePipe('en-US').transform(a.date, 'dd/MM/yyyy'),
+            'Score': a.score + '%',
+            'Statut': a.status,
+            'Etat Workflow': a.workflowStatus
+        }));
+
+        const replacer = (key: string, value: any) => value === null ? '' : value;
+        const header = Object.keys(data[0]);
+        const csv = data.map(row => header.map(fieldName => JSON.stringify((row as any)[fieldName], replacer)).join(','));
+        csv.unshift(header.join(','));
+        const csvArray = csv.join('\r\n');
+
+        const blob = new Blob([csvArray], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audits_export_${new Date().getTime()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     }
 
     // Calendar Methods

@@ -37,6 +37,10 @@ export class AuditService {
         return this.http.delete(`${API_URL}/audits/${id}`);
     }
 
+    deleteAudits(ids: number[]): Observable<any> {
+        return this.http.post(`${API_URL}/audits/bulk-delete`, { ids });
+    }
+
     updateAudit(id: number, auditUI: AuditUI): Observable<AuditDTO> {
         const payload = this.mapToCreateDTO(auditUI);
         return this.http.put<AuditDTO>(`${API_URL}/audits/${id}`, payload);

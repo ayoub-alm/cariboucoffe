@@ -72,15 +72,7 @@ export interface DashboardFilters {
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Catégorie</mat-label>
-        <mat-select [(ngModel)]="filters.categoryName" (selectionChange)="onFilterChange()">
-          <mat-option [value]="null">Toutes les catégories</mat-option>
-          <mat-option *ngFor="let cat of categories" [value]="cat.name">
-            {{ cat.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+
       
       <button mat-icon-button color="warn" (click)="resetFilters()" matTooltip="Réinitialiser les filtres" *ngIf="hasActiveFilters()">
          <mat-icon>clear</mat-icon>
@@ -150,8 +142,7 @@ export class FilterBarComponent implements OnInit {
     return this.filters.startDate !== null ||
            this.filters.endDate !== null ||
            this.filters.coffeeShop !== null ||
-           this.filters.auditorName !== null ||
-           this.filters.categoryName !== null;
+           this.filters.auditorName !== null;
   }
 
   resetFilters() {
