@@ -40,7 +40,7 @@ import { FilterBarComponent } from '../../../shared/components/filter-bar/filter
 export class AuditListComponent {
     get displayedColumns(): string[] {
         const cols = ['coffeeShop', 'auditor', 'date', 'score', 'status', 'actions'];
-        if (this.isAdmin()) {
+        if (this.canDeleteAudit()) {
             cols.unshift('select');
         }
         return cols;
@@ -68,8 +68,13 @@ export class AuditListComponent {
     canEditAudit(audit: Audit): boolean {
         const user = this.authService.currentUser();
         if (!user) return false;
-        if (isAdmin(user)) return true;
+        if (isAdmin(user) || user.permissions?.audits?.update) return true;
         return audit.workflowStatus === 'IN_PROGRESS' && canCreateAudits(user);
+    }
+
+    canDeleteAudit(): boolean {
+        const user = this.authService.currentUser();
+        return !!user && (isAdmin(user) || !!user.permissions?.audits?.delete);
     }
 
     // Use setters for ViewChild to handle *ngIf re-creation

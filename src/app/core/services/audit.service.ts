@@ -148,7 +148,7 @@ export class AuditService {
 
         return {
             id: dto.id,
-            date: new Date(dto.created_at),
+            date: new Date(dto.date || dto.created_at),
             coffeeShop: dto.coffee.name,
             coffeeId: dto.coffee.id,
             auditorName: dto.auditor.full_name || dto.auditor.email,
@@ -192,6 +192,7 @@ export class AuditService {
 
         return {
             coffee_id: ui.coffeeId || 1,
+            date: ui.date instanceof Date ? ui.date.toISOString() : (ui.date ? new Date(ui.date).toISOString() : undefined),
             status: ui.workflowStatus || 'IN_PROGRESS',
             shift: ui.shift,
             staff_present: ui.staffPresent,
@@ -199,6 +200,7 @@ export class AuditService {
             training_needs: ui.trainingNeeds,
             purchases: ui.purchases,
             photo_data: ui.photosData?.length ? ui.photosData : undefined,
+            existing_photo_urls: ui.existingPhotoUrls?.length ? ui.existingPhotoUrls : undefined,
             answers: answers
         };
     }

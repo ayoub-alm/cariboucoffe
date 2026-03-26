@@ -16,7 +16,7 @@ import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, filter } from 'rxjs/operators';
 
-import { AuditUI as Audit, AuditCategory, AuditWorkflowStatus } from '../../../core/models/audit.model';
+import { AuditUI as Audit, AuditDTO, AuditCategory, AuditWorkflowStatus } from '../../../core/models/audit.model';
 import { QuestionItemComponent } from '../components/question-item/question-item.component';
 import { AuditSummaryComponent } from '../components/audit-summary/audit-summary.component';
 import { CameraDialogComponent } from '../components/camera-dialog/camera-dialog.component';
@@ -24,6 +24,7 @@ import { AuditService } from '../../../core/services/audit.service';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { isAdmin } from '../../../core/models/user.model';
+import { STATIC_URL } from '../../../core/constants';
 
 @Component({
     selector: 'app-audit-stepper',
@@ -74,7 +75,8 @@ export class AuditStepperComponent {
     coffees$ = this.coffeeService.getCoffees();
 
     photoPreviews: string[] = [];
-    photosData: string[] = [];
+    photosData: string[] = [];           // NEW base64 photos (not yet saved)
+    existingPhotoUrls: string[] = [];    // Server-side URLs of previously saved photos
     isCompressing = false;
     isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -98,7 +100,7 @@ export class AuditStepperComponent {
                 auditor: [{ value: auditorName, disabled: true }, Validators.required],
                 coffeeShop: [null, Validators.required],
                 shift: ['AM', Validators.required],
-                date: [new Date(), Validators.required],
+                date: [new Date().toISOString().slice(0, 16), Validators.required],
                 staffPresent: ['', Validators.required]
             }),
             categories: this.fb.array([]),
@@ -150,7 +152,7 @@ export class AuditStepperComponent {
                 this.infoGroup.patchValue({
                     coffeeShop: audit.coffeeId,
                     shift: audit.shift || 'AM',
-                    date: audit.date,
+                    date: audit.date ? new Date(audit.date).toISOString().slice(0, 16) : '',
                     staffPresent: audit.staffPresent || ''
                 });
 
@@ -163,6 +165,7 @@ export class AuditStepperComponent {
                 }
 
                 if (audit.photoUrls?.length) {
+                    this.existingPhotoUrls = [...audit.photoUrls];
                     this.photoPreviews = [...audit.photoUrls];
                 }
 
@@ -314,14 +317,22 @@ export class AuditStepperComponent {
                 this.photoPreviews = [...this.photoPreviews, dataUrl];
                 this.photosData = [...this.photosData, dataUrl];
                 this.isCompressing = false;
+                this.saveAfterPhotoChange();
             };
         };
         reader.readAsDataURL(file);
     }
 
     removePhoto(index: number) {
+        const removedUrl = this.photoPreviews[index];
         this.photoPreviews = this.photoPreviews.filter((_, i) => i !== index);
-        this.photosData = this.photosData.filter((_, i) => i !== index);
+        // Remove from the correct list (new base64 vs existing server URL)
+        if (removedUrl?.startsWith('data:')) {
+            this.photosData = this.photosData.filter(p => p !== removedUrl);
+        } else {
+            this.existingPhotoUrls = this.existingPhotoUrls.filter(p => p !== removedUrl);
+        }
+        this.saveAfterPhotoChange();
     }
 
     openCamera(mobileInput?: HTMLInputElement) {
@@ -332,9 +343,43 @@ export class AuditStepperComponent {
                 if (dataUrl) {
                     this.photoPreviews = [...this.photoPreviews, dataUrl];
                     this.photosData = [...this.photosData, dataUrl];
+                    this.saveAfterPhotoChange();
                 }
             });
         }
+    }
+
+    /**
+     * Immediately save the audit after a photo is added or removed,
+     * so images are persisted and not lost on page refresh.
+     */
+    private saveAfterPhotoChange() {
+        if (!this.infoGroup.get('coffeeShop')?.value) {
+            // Can't save yet — coffee shop is required by the API
+            return;
+        }
+        if (this.isSaving() || this.editingWorkflowStatus === 'COMPLETED') {
+            return;
+        }
+
+        this.isSaving.set(true);
+        const auditData = this.buildAuditData('IN_PROGRESS');
+        const obs = this.editingAuditId
+            ? this.auditService.updateAudit(this.editingAuditId, auditData)
+            : this.auditService.createAudit(auditData);
+
+        obs.subscribe({
+            next: (res) => {
+                this.handlePostSave(res);
+                this.isSaving.set(false);
+                this.snackBar.open('Photo(s) sauvegardées', 'OK', { duration: 2000 });
+            },
+            error: (err) => {
+                this.isSaving.set(false);
+                console.error('Photo auto-save failed:', err);
+                this.snackBar.open('Erreur lors de la sauvegarde des photos', 'Fermer', { duration: 3000 });
+            }
+        });
     }
 
     private buildAuditData(workflowStatus: 'IN_PROGRESS' | 'COMPLETED'): Audit {
@@ -353,6 +398,7 @@ export class AuditStepperComponent {
             trainingNeeds: formVal.conclusion.trainingNeeds,
             purchases: formVal.conclusion.purchases,
             photosData: this.photosData.length ? this.photosData : undefined,
+            existingPhotoUrls: this.existingPhotoUrls.length ? this.existingPhotoUrls : undefined,
             categories: this.auditCategories.map((cat, i) => ({
                 ...cat,
                 items: cat.items.map((item, j) => ({
@@ -380,7 +426,7 @@ export class AuditStepperComponent {
 
         obs.subscribe({
             next: (res) => {
-                this.editingAuditId = res.id;
+                this.handlePostSave(res);
                 this.isSaving.set(false);
                 this.snackBar.open('Brouillon sauvegardé', 'OK', { duration: 2000 });
             },
@@ -400,11 +446,54 @@ export class AuditStepperComponent {
 
         obs.subscribe({
             next: (res) => {
-                this.editingAuditId = res.id;
-                // Silently saved
+                this.handlePostSave(res);
             },
             error: (err) => console.error('AutoSave failed:', err)
         });
+    }
+
+    /**
+     * Common post-save logic: update the URL so page refresh loads the saved draft,
+     * and move newly uploaded photos to the existing list since they're now persisted.
+     */
+    private handlePostSave(res: AuditDTO) {
+        const isNew = !this.editingAuditId;
+        this.editingAuditId = res.id;
+
+        // Update URL if this was a new audit (so page refresh loads it)
+        if (isNew) {
+            this.router.navigate(['/audits', res.id, 'edit'], { replaceUrl: true });
+        }
+
+        // Only update photo state when we actually uploaded new photos
+        if (this.photosData.length > 0) {
+            // New photos were saved — refresh everything from server response
+            const serverUrls = res.photo_url ? this.parsePhotoUrls(res.photo_url) : [];
+            this.photoPreviews = serverUrls;
+            this.existingPhotoUrls = serverUrls;
+            this.photosData = [];
+        } else if (res.photo_url) {
+            // No new photos, but keep existingPhotoUrls in sync with server
+            // (don't touch photoPreviews — they're already correct from loadExistingAudit)
+            this.existingPhotoUrls = this.parsePhotoUrls(res.photo_url);
+        }
+    }
+
+    /**
+     * Parse photo_url JSON string from backend into resolved full URLs.
+     */
+    private parsePhotoUrls(photoUrl: string): string[] {
+        if (!photoUrl) return [];
+        let rawUrls: string[];
+        try {
+            const parsed = JSON.parse(photoUrl);
+            rawUrls = Array.isArray(parsed) ? parsed : [photoUrl];
+        } catch {
+            rawUrls = [photoUrl];
+        }
+        return rawUrls
+            .filter(u => !!u)
+            .map(u => u.startsWith('/') ? `${STATIC_URL}${u}` : u);
     }
 
     submitAudit() {

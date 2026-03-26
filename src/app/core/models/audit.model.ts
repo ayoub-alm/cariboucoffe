@@ -39,6 +39,7 @@ export interface AuditAnswerDTO {
 export interface AuditDTO {
   id: number;
   created_at: string;
+  date?: string;
   score: number;
   status?: string;
   coffee: Coffee;
@@ -55,6 +56,7 @@ export interface AuditDTO {
 /** Audit creation payload */
 export interface AuditCreateDTO {
   coffee_id: number;
+  date?: string;
   status?: AuditWorkflowStatus;
   shift?: string;
   staff_present?: string;
@@ -62,6 +64,7 @@ export interface AuditCreateDTO {
   training_needs?: string;
   purchases?: string;
   photo_data?: string[];
+  existing_photo_urls?: string[];
   answers: {
     question_id: number;
     value: number;
@@ -102,6 +105,7 @@ export interface AuditUI {
   purchases?: string;
   photoUrls?: string[];
   photosData?: string[];
+  existingPhotoUrls?: string[];
 }
 
 /** Audit category grouping questions */

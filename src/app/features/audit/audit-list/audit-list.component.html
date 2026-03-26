@@ -77,7 +77,7 @@
                     <button mat-menu-item (click)="exportExcel()">
                         <mat-icon>dataset</mat-icon> Exporter sous Excel (CSV)
                     </button>
-                    <button mat-menu-item *ngIf="isAdmin() && selection.hasValue()" (click)="bulkDelete()">
+                    <button mat-menu-item *ngIf="canDeleteAudit() && selection.hasValue()" (click)="bulkDelete()">
                         <mat-icon>delete</mat-icon> Supprimer la sélection
                     </button>
                 </mat-menu>
@@ -173,7 +173,7 @@
                                 <button mat-menu-item *ngIf="isAdmin()" (click)="continueAudit(row)">
                                     <mat-icon>edit</mat-icon> Modifier
                                 </button>
-                                <button mat-menu-item *ngIf="isAdmin()" (click)="deleteAudit(row)">
+                                <button mat-menu-item *ngIf="canDeleteAudit()" (click)="deleteAudit(row)">
                                     <mat-icon>delete</mat-icon> Supprimer
                                 </button>
                             </mat-menu>

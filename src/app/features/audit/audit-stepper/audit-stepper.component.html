@@ -54,10 +54,8 @@
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
-                            <mat-label>Date</mat-label>
-                            <input matInput [matDatepicker]="picker" formControlName="date">
-                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                            <mat-datepicker #picker></mat-datepicker>
+                            <mat-label>Date et Heure</mat-label>
+                            <input matInput type="datetime-local" formControlName="date">
                             <mat-error>Requis</mat-error>
                         </mat-form-field>
 

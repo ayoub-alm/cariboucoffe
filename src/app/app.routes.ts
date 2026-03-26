@@ -5,9 +5,10 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { UserRole } from './core/models/user.model';
+import { noAuthGuard } from './core/guards/no-auth.guard';
 
 export const routes: Routes = [
-    { path: 'login', component: LoginComponent },
+    { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
     {
         path: '',
         component: NavComponent,

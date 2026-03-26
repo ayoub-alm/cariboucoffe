@@ -249,6 +249,19 @@ export class QuestionItemComponent implements OnInit, OnDestroy {
     this.sub = this.group().get('status')?.valueChanges.subscribe(val => {
       this.checkConformity(val);
     });
+    
+    const photosSub = this.group().get('photosData')?.valueChanges.subscribe(val => {
+      if (val && Array.isArray(val)) {
+        this.photoPreviews.set([...val]);
+      } else {
+        this.photoPreviews.set([]);
+      }
+    });
+
+    if (photosSub) {
+        this.sub?.add(photosSub);
+    }
+
     this.checkConformity(this.group().get('status')?.value);
 
     const existing = this.group().get('photosData')?.value;
