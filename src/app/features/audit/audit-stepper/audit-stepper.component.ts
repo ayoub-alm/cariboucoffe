@@ -1,5 +1,7 @@
 import { Component, inject, ViewChild, computed, signal } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { map, shareReplay } from 'rxjs/operators';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -62,6 +64,14 @@ export class AuditStepperComponent {
     private route = inject(ActivatedRoute);
     private snackBar = inject(MatSnackBar);
     private dialog = inject(MatDialog);
+    private breakpointObserver = inject(BreakpointObserver);
+
+    isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset)
+        .pipe(
+            map(result => result.matches),
+            shareReplay()
+        );
+
 
     @ViewChild('stepper') stepper!: MatStepper;
 

@@ -1,39 +1,48 @@
 <div class="audit-container">
 
-    <div class="breadcrumb-container">
-        <mat-icon class="breadcrumb-icon">home</mat-icon>
-        <span class="breadcrumb-text">Audits > {{ editingAuditId ? 'Modifier' : 'Nouveau' }}</span>
-    </div>
-
-    <div class="page-header">
-        <div>
+    <!-- Premium Sticky Header -->
+    <div class="sticky-header">
+        <div class="header-left">
             <h1 class="page-title">{{ editingAuditId ? 'Continuer l\'Audit' : 'Nouvel Audit' }}</h1>
-            <p class="page-subtitle">Formulaire d'inspection et de conformité</p>
+            <p class="page-subtitle">Formulaire d'inspection et de conformité • {{ answeredCount() }}/{{ totalQuestions() }}</p>
         </div>
         <div class="header-actions">
-            <button mat-stroked-button (click)="saveDraft()" [disabled]="isSaving()" class="save-draft-btn">
+            <button mat-button (click)="saveDraft()" [disabled]="isSaving()" class="btn-secondary">
                 <mat-icon>save</mat-icon>
-                Sauvegarder brouillon
+                <span *ngIf="!(isHandset$ | async)">Sauvegarder brouilllon</span>
             </button>
         </div>
     </div>
 
-    <!-- Progress bar -->
-    <div class="progress-section">
-        <div class="progress-info">
-            <span class="progress-label">Progression</span>
-            <span class="progress-value">{{ answeredCount() }} / {{ totalQuestions() }} questions ({{ progressPercent() }}%)</span>
+    <!-- Integrated Progress Tracker -->
+    <div class="progress-container">
+        <div class="progress-header">
+            <div class="progress-title-wrapper">
+                <mat-icon>analytics</mat-icon>
+                <span class="progress-text">Progression de l'audit</span>
+            </div>
+            <span class="progress-stats">{{ progressPercent() }}% Complété</span>
         </div>
-        <mat-progress-bar mode="determinate" [value]="progressPercent()" class="audit-progress-bar"></mat-progress-bar>
+        <div class="progress-bar-wrapper">
+            <mat-progress-bar mode="determinate" [value]="progressPercent()" class="custom-progress-bar"></mat-progress-bar>
+        </div>
     </div>
 
     <form [formGroup]="auditForm">
-        <mat-stepper #stepper class="stepper-bg" orientation="vertical" [linear]="false">
+        <mat-stepper #stepper class="custom-stepper" orientation="vertical" [linear]="false">
 
             <!-- Step 1: Info -->
-            <mat-step [stepControl]="infoGroup" label="Informations Générales">
+            <mat-step [stepControl]="infoGroup">
+                <ng-template matStepLabel>Informations Générales</ng-template>
                 <div class="step-card" [formGroup]="infoGroup">
-                    <h2 class="step-title">Détails de l'Audit</h2>
+                    <div class="step-header">
+                        <div class="step-title-group">
+                            <div class="step-icon-circle">
+                                <mat-icon>business</mat-icon>
+                            </div>
+                            <h2 class="step-title-text">Détails de l'Audit</h2>
+                        </div>
+                    </div>
 
                     <div class="info-grid">
                         <mat-form-field appearance="outline">
@@ -43,20 +52,17 @@
                                     {{ coffee.name }}
                                 </mat-option>
                             </mat-select>
-                            <mat-error>Requis</mat-error>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
                             <mat-label>Auditeur</mat-label>
-                            <input matInput formControlName="auditor" [readonly]="true" style="cursor:default;">
-                            <mat-icon matSuffix style="color:#9e9e9e;font-size:18px;">lock</mat-icon>
-                            <mat-hint>Utilisateur connecté</mat-hint>
+                            <input matInput formControlName="auditor" readonly>
+                            <mat-icon matSuffix>lock</mat-icon>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
                             <mat-label>Date et Heure</mat-label>
                             <input matInput type="datetime-local" formControlName="date">
-                            <mat-error>Requis</mat-error>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
@@ -65,76 +71,73 @@
                                 <mat-option value="AM">Matin (AM)</mat-option>
                                 <mat-option value="PM">Après-midi (PM)</mat-option>
                             </mat-select>
-                            <mat-error>Requis</mat-error>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" class="full-width-col">
+                        <mat-form-field appearance="outline" style="grid-column: 1 / -1;">
                             <mat-label>Personnel en poste</mat-label>
-                            <textarea matInput formControlName="staffPresent" rows="2"
-                                placeholder="Noms des collaborateurs présents..."></textarea>
-                            <mat-error>Requis</mat-error>
+                            <textarea matInput formControlName="staffPresent" rows="2"></textarea>
                         </mat-form-field>
                     </div>
 
-                    <!-- Photo Upload -->
-                    <div class="photo-upload-section">
-                        <label class="photo-label">Photos de l'audit (Optionnel)</label>
-                        <div class="photo-actions">
-                            <button type="button" mat-stroked-button (click)="fileInput.click()"
-                                [disabled]="isCompressing" class="action-btn">
-                                <mat-icon>add_photo_alternate</mat-icon>
-                                Depuis l'appareil
+                    <!-- Photo Upload Section -->
+                    <div class="photo-section">
+                        <h3 class="photo-title">
+                            <mat-icon>add_a_photo</mat-icon>
+                            Photos de l'audit
+                        </h3>
+                        <div class="photo-controls">
+                            <button type="button" mat-flat-button color="primary" (click)="fileInput.click()" class="btn-upload">
+                                <mat-icon>photo_library</mat-icon>
+                                Charger
                             </button>
-                            <button type="button" mat-stroked-button (click)="openCamera(cameraInput)"
-                                [disabled]="isCompressing" class="action-btn camera-btn">
+                            <button type="button" mat-stroked-button (click)="openCamera(cameraInput)" class="btn-upload">
                                 <mat-icon>photo_camera</mat-icon>
-                                Prendre une photo
+                                Camera
                             </button>
-                            <input #fileInput type="file" (change)="onFilesSelected($event)" accept="image/*" multiple
-                                style="display: none;">
-                            <input #cameraInput type="file" (change)="onFilesSelected($event)" accept="image/*" capture="environment"
-                                style="display: none;">
+                            <input #fileInput type="file" (change)="onFilesSelected($event)" accept="image/*" multiple style="display: none;">
+                            <input #cameraInput type="file" (change)="onFilesSelected($event)" accept="image/*" capture="environment" style="display: none;">
                         </div>
 
-                        <div *ngIf="photoPreviews.length" class="photo-grid">
-                            <div *ngFor="let photo of photoPreviews; let idx = index" class="photo-preview-wrapper">
-                                <img [src]="photo" alt="Preview" class="photo-preview-img">
-                                <button mat-icon-button type="button" (click)="removePhoto(idx)" class="remove-photo-btn">
+                        <div class="photo-preview-grid" *ngIf="photoPreviews.length">
+                            <div *ngFor="let photo of photoPreviews; let idx = index" class="preview-card">
+                                <img [src]="photo" alt="Audit Preview">
+                                <button mat-icon-button (click)="removePhoto(idx)" class="btn-remove">
                                     <mat-icon>close</mat-icon>
                                 </button>
                             </div>
                         </div>
-                        <div *ngIf="isCompressing" class="compress-indicator">
-                            <mat-icon class="spin-icon">sync</mat-icon>
-                            Optimisation de l'image en cours...
-                        </div>
                     </div>
 
-                    <div class="actions-footer">
-                        <button mat-raised-button color="primary" matStepperNext
-                            [disabled]="isCompressing">Suivant</button>
+                    <div class="step-actions">
+                        <button mat-flat-button color="primary" matStepperNext class="btn-nav-next">
+                            Commencer l'audit
+                            <mat-icon matSuffix>arrow_forward</mat-icon>
+                        </button>
                     </div>
                 </div>
             </mat-step>
 
             <!-- Category Steps -->
-            <mat-step *ngFor="let cat of auditCategories; let i = index"
-                [label]="cat.name">
+            <mat-step *ngFor="let cat of auditCategories; let i = index">
                 <ng-template matStepLabel>
                     <span>{{ cat.name }}</span>
-                    <span class="step-counter"
-                        [class.complete]="getCategoryAnsweredCount(i) === getCategoryTotalCount(i)">
+                    <span class="step-counter" [class.complete]="getCategoryAnsweredCount(i) === getCategoryTotalCount(i)">
                         {{ getCategoryAnsweredCount(i) }}/{{ getCategoryTotalCount(i) }}
                     </span>
                 </ng-template>
+
                 <div class="step-card">
-                    <h2 class="step-title">
-                        <mat-icon *ngIf="cat.icon" class="step-title-icon">{{ cat.icon }}</mat-icon>
-                        {{ cat.name }}
+                    <div class="step-header">
+                        <div class="step-title-group">
+                            <div class="step-icon-circle">
+                                <mat-icon>{{ cat.icon || 'assignment' }}</mat-icon>
+                            </div>
+                            <h2 class="step-title-text">{{ cat.name }}</h2>
+                        </div>
                         <span class="step-badge" [class.done]="getCategoryAnsweredCount(i) === getCategoryTotalCount(i)">
-                            {{ getCategoryAnsweredCount(i) }}/{{ getCategoryTotalCount(i) }}
+                            {{ getCategoryAnsweredCount(i) }}/{{ getCategoryTotalCount(i) }} questions
                         </span>
-                    </h2>
+                    </div>
 
                     <div [formGroup]="getCategoryGroup(i)">
                         <div formArrayName="items">
@@ -144,79 +147,79 @@
                         </div>
                     </div>
 
-                    <div class="actions-footer">
-                        <button mat-button matStepperPrevious>Retour</button>
-                        <button mat-raised-button color="primary" matStepperNext>Suivant</button>
+                    <div class="step-actions">
+                        <button mat-button matStepperPrevious class="btn-nav-prev">Retour</button>
+                        <button mat-flat-button color="primary" matStepperNext class="btn-nav-next">Suivant</button>
                     </div>
                 </div>
             </mat-step>
 
             <!-- Conclusion Step -->
-            <mat-step label="Conclusion & Actions">
+            <mat-step>
+                <ng-template matStepLabel>Conclusion & Actions</ng-template>
                 <div class="step-card" [formGroup]="conclusionGroup">
-                    <h2 class="step-title">
-                        <mat-icon class="step-title-icon">summarize</mat-icon>
-                        Conclusion & Actions
-                    </h2>
+                    <div class="step-header">
+                        <div class="step-title-group">
+                            <div class="step-icon-circle">
+                                <mat-icon>rate_review</mat-icon>
+                            </div>
+                            <h2 class="step-title-text">Conclusion</h2>
+                        </div>
+                    </div>
 
                     <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Actions Correctives (Maintenance lourde)</mat-label>
-                        <textarea matInput formControlName="actionsCorrectives" rows="3"
-                            placeholder="Réparations, infrastructure..."></textarea>
+                        <mat-label>Actions Correctives</mat-label>
+                        <textarea matInput formControlName="actionsCorrectives" rows="3"></textarea>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="full-width">
                         <mat-label>Besoins en Formation</mat-label>
-                        <textarea matInput formControlName="trainingNeeds" rows="3"
-                            placeholder="Coaching nécessaire sur..."></textarea>
+                        <textarea matInput formControlName="trainingNeeds" rows="3"></textarea>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Achats / Smallware</mat-label>
-                        <textarea matInput formControlName="purchases" rows="3"
-                            placeholder="Matériel à commander..."></textarea>
+                        <mat-label>Achats / Matériel</mat-label>
+                        <textarea matInput formControlName="purchases" rows="3"></textarea>
                     </mat-form-field>
 
-                    <div class="actions-footer">
-                        <button mat-button matStepperPrevious>Retour</button>
-                        <button mat-raised-button color="primary" matStepperNext>Suivant</button>
+                    <div class="step-actions">
+                        <button mat-button matStepperPrevious class="btn-nav-prev">Retour</button>
+                        <button mat-flat-button color="primary" matStepperNext class="btn-nav-next">Résumé</button>
                     </div>
                 </div>
             </mat-step>
 
-            <!-- Final Step: Validation -->
-            <mat-step label="Validation & Résumé">
-                <div class="step-card">
-                    <h2 class="step-title">
-                        <mat-icon class="step-title-icon">fact_check</mat-icon>
-                        Résumé de l'Audit
-                    </h2>
+            <!-- Final Step -->
+            <mat-step>
+                <ng-template matStepLabel>Validation</ng-template>
+                <div class="step-card validation-card">
+                    <div class="step-header">
+                        <div class="step-title-group">
+                            <div class="step-icon-circle">
+                                <mat-icon>verified</mat-icon>
+                            </div>
+                            <h2 class="step-title-text">Résumé Final</h2>
+                        </div>
+                    </div>
 
                     <app-audit-summary [auditForm]="auditForm" [auditCategories]="auditCategories"></app-audit-summary>
 
-                    <!-- Validation status -->
-                    <div class="validation-status" [class.ready]="allQuestionsAnswered()" [class.not-ready]="!allQuestionsAnswered()">
-                        <mat-icon>{{ allQuestionsAnswered() ? 'check_circle' : 'warning' }}</mat-icon>
-                        <span *ngIf="allQuestionsAnswered()">
-                            Toutes les questions ont été répondues. L'audit peut être validé.
-                        </span>
-                        <span *ngIf="!allQuestionsAnswered()">
-                            {{ answeredCount() }}/{{ totalQuestions() }} questions répondues.
-                            Répondez à toutes les questions pour valider l'audit.
-                        </span>
+                    <div class="status-callout" [class.success]="allQuestionsAnswered()" [class.warning]="!allQuestionsAnswered()">
+                        <mat-icon>{{ allQuestionsAnswered() ? 'check_circle' : 'info' }}</mat-icon>
+                        <div class="status-text">
+                            <div class="status-title">{{ allQuestionsAnswered() ? 'Audit Prêt' : 'Audit Incomplet' }}</div>
+                            <div class="status-desc">
+                                {{ allQuestionsAnswered() ? 'Toutes les questions ont été traitées.' : answeredCount() + '/' + totalQuestions() + ' questions répondues.' }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="actions-footer final-actions">
-                        <button mat-button matStepperPrevious>Retour</button>
-                        <button mat-stroked-button (click)="saveDraft()" [disabled]="isSaving()">
-                            <mat-icon>save</mat-icon>
-                            Sauvegarder brouillon
-                        </button>
-                        <button mat-raised-button class="btn-primary" (click)="submitAudit()"
-                            [disabled]="!allQuestionsAnswered() || isSaving()"
-                            [matTooltip]="!allQuestionsAnswered() ? 'Répondez à toutes les questions' : ''">
-                            <mat-icon>check_circle</mat-icon>
-                            Valider l'Audit
+                    <div class="step-actions">
+                        <button mat-button matStepperPrevious class="btn-nav-prev">Retour</button>
+                        <button mat-flat-button class="btn-nav-next btn-primary" (click)="submitAudit()" 
+                                [disabled]="!allQuestionsAnswered() || isSaving()">
+                            <mat-icon>publish</mat-icon>
+                            Finaliser l'Audit
                         </button>
                     </div>
                 </div>
@@ -225,3 +228,4 @@
         </mat-stepper>
     </form>
 </div>
+

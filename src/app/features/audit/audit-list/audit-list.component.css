@@ -418,23 +418,71 @@
     border-left: 3px solid #e65100;
 }
 
-.event-time {
-    font-size: 0.7em;
-    opacity: 0.9;
-    min-width: 24px;
+/* Floating Action Button (FAB) for Mobile */
+.fab-mobile {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    background-color: var(--primary);
+    color: white;
 }
 
-.event-title {
-    font-weight: 500;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* Mobile Responsive Optimizations */
+@media (max-width: 768px) {
+    .audit-page-container {
+        padding: 12px;
+    }
 
-.event-score {
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0 4px;
-    border-radius: 3px;
-    font-size: 0.7em;
-}
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .content-card.modern-card {
+        padding: 16px;
+    }
+
+    .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .search-field-wrapper {
+        width: 100%;
+    }
+
+    .actions-wrapper {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+
+    .fab-mobile {
+        display: flex; /* Show FAB on mobile */
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Make view toggle full width or hidden */
+    .view-toggle {
+        margin-right: 0;
+        flex: 1;
+    }
+
+    .current-month-label {
+        font-size: 1.1rem;
+        margin: 0 12px;
+        min-width: 140px;
+    }
+
+    .calendar-day {
+        min-height: 80px;
+    }
+}

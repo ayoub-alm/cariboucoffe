@@ -173,11 +173,16 @@
     flex-shrink: 0;
 }
 
-.default-cat-icon {
+.category-icon-chip mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
     color: var(--primary);
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+}
+
+.default-cat-icon {
+    /* Kept for backward compatibility if needed, but the rule above covers it */
+    color: var(--primary);
 }
 
 .category-info {

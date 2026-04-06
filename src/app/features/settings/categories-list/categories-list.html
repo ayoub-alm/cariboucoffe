@@ -49,7 +49,7 @@
 
             <!-- Category icon -->
             <div class="category-icon-chip">
-                <span *ngIf="category.icon; else defaultIcon">{{ category.icon }}</span>
+                <mat-icon *ngIf="category.icon; else defaultIcon">{{ category.icon }}</mat-icon>
                 <ng-template #defaultIcon>
                     <mat-icon class="default-cat-icon">category</mat-icon>
                 </ng-template>

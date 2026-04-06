@@ -63,7 +63,7 @@
                     </mat-button-toggle>
                 </mat-button-toggle-group>
 
-                <button mat-flat-button color="primary" class="new-audit-btn" (click)="openAddDialog()"
+                <button mat-flat-button color="primary" class="new-audit-btn desktop-only" (click)="openAddDialog()"
                     *ngIf="canCreate()">
                     <mat-icon>add</mat-icon> Nouveau
                 </button>
@@ -231,4 +231,9 @@
         </div>
 
     </div>
+
+    <!-- Floating Action Button for Mobile -->
+    <button mat-fab color="primary" class="fab-mobile" (click)="openAddDialog()" *ngIf="canCreate()" matTooltip="Nouvel Audit">
+        <mat-icon>add</mat-icon>
+    </button>
 </div>
