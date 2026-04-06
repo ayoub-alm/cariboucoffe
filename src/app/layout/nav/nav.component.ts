@@ -119,7 +119,16 @@ export class NavComponent {
         this.authService.logout();
     }
 
+    resetAndReload() {
+        if (confirm('Voulez-vous réinitialiser la session et recharger la page ?')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
+        }
+    }
+
     openChangePasswordDialog() {
+
         this.dialog.open(ChangePasswordDialogComponent, { width: '400px' });
     }
 

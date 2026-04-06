@@ -58,6 +58,20 @@
                     onerror="this.style.display='none'">
                 <div class="illustration-fallback"></div>
             </div>
+
+            <!-- Mobile Only: Quick User Actions -->
+            <mat-nav-list class="mobile-only-user-section" *ngIf="isHandset$ | async">
+                <mat-divider></mat-divider>
+                <div class="nav-group-title">Session</div>
+                <a mat-list-item (click)="resetAndReload()">
+                    <mat-icon matListItemIcon class="nav-icon">refresh</mat-icon>
+                    <div matListItemTitle>Réinitialiser & Recharger</div>
+                </a>
+                <a mat-list-item (click)="logout()" class="logout-item">
+                    <mat-icon matListItemIcon class="nav-icon">logout</mat-icon>
+                    <div matListItemTitle>Déconnexion</div>
+                </a>
+            </mat-nav-list>
         </div>
     </mat-sidenav>
 
@@ -106,6 +120,11 @@
                 <button mat-menu-item (click)="openChangePasswordDialog()">
                     <mat-icon>lock</mat-icon>
                     <span>Changer le mot de passe</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="resetAndReload()">
+                    <mat-icon>refresh</mat-icon>
+                    <span>Réinitialiser & Recharger</span>
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item (click)="logout()" class="logout-btn">

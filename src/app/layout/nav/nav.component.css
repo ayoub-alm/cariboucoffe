@@ -298,4 +298,23 @@
   .toolbar-title {
     font-size: 16px;
   }
-}
+
+  .mobile-only-user-section {
+    padding-bottom: 24px;
+    border-top: 1px solid var(--outline-variant);
+  }
+
+  .mobile-only-user-section .nav-group-title {
+    color: var(--primary);
+    padding-top: 24px;
+    font-weight: 700;
+  }
+
+  .logout-item {
+     color: var(--error) !important;
+  }
+
+  .logout-item .nav-icon {
+     color: var(--error) !important;
+  }
+}
