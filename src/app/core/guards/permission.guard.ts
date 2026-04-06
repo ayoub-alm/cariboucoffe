@@ -33,21 +33,41 @@ export function permissionGuard(
             return router.createUrlTree(['/login']);
         }
 
-        // ADMIN always has full access
+        // 1. ADMIN always has full access
         if (user.role === UserRole.ADMIN) {
             return true;
         }
 
-        // Check if user satisfies ANY of the permission checks
-        const perms = user.permissions;
-        const allowed = checks.some(({ module, action }) => {
-            return !!(perms as any)?.[module]?.[action];
+        // 2. Default permissions based on roles for specific modules
+        // This ensures AUDITOR can toujours manage audits even without explicit UserRights entry
+        const hasModuleRole = checks.some(({ module, action }) => {
+            if (module === 'audits') {
+                if (user.role === UserRole.AUDITOR && (action === 'create' || action === 'update' || action === 'read')) return true;
+                if (user.role === UserRole.BOSS && action === 'read') return true;
+            }
+            if (module === 'coffees') {
+                if (user.role === UserRole.BOSS || user.role === UserRole.MANAGER) return true;
+            }
+            return false;
         });
 
-        if (allowed) {
+        if (hasModuleRole) {
             return true;
+        }
+
+        // 3. Check explicit permissions in UserRights
+        const perms = user.permissions;
+        if (perms) {
+            const allowed = checks.some(({ module, action }) => {
+                return !!(perms as any)?.[module]?.[action];
+            });
+
+            if (allowed) {
+                return true;
+            }
         }
 
         return router.createUrlTree(['/dashboard']);
     };
 }
+

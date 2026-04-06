@@ -26,12 +26,12 @@ export const routes: Routes = [
             {
                 path: 'audits/new',
                 loadComponent: () => import('./features/audit/audit-stepper/audit-stepper.component').then(m => m.AuditStepperComponent),
-                canActivate: [roleGuard(UserRole.ADMIN, UserRole.AUDITOR)]
+                canActivate: [permissionGuard({ module: 'audits', action: 'create' })]
             },
             {
                 path: 'audits/:id/edit',
                 loadComponent: () => import('./features/audit/audit-stepper/audit-stepper.component').then(m => m.AuditStepperComponent),
-                canActivate: [roleGuard(UserRole.ADMIN, UserRole.AUDITOR)]
+                canActivate: [permissionGuard({ module: 'audits', action: 'update' })]
             },
             {
                 path: 'audits/:id',
@@ -42,16 +42,16 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/audit/audit-list/audit-list.component').then(m => m.AuditListComponent)
             },
 
-            // ── Users — ADMIN only ────────────────────────────────────────
+            // ── Users — ADMIN or users.read permission ──────────────────────────
             {
                 path: 'users/:id',
                 loadComponent: () => import('./features/users/user-details/user-details.component').then(m => m.UserDetailsComponent),
-                canActivate: [roleGuard(UserRole.ADMIN)]
+                canActivate: [permissionGuard({ module: 'users', action: 'update' })]
             },
             {
                 path: 'users',
                 loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent),
-                canActivate: [roleGuard(UserRole.ADMIN)]
+                canActivate: [permissionGuard({ module: 'users', action: 'read' })]
             },
 
             // ── Coffees — ADMIN or coffees.read permission ───────────────
