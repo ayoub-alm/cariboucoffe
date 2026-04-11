@@ -51,6 +51,7 @@ export class UserDetailsComponent implements OnInit {
     user: User | undefined;
     permissions = signal<UserPermissions | null>(null);
     savingPermissions = signal(false);
+    sendingReport = signal(false);
 
     isAdmin = computed(() => this.authService.currentUser()?.role === UserRole.ADMIN);
 
@@ -227,5 +228,52 @@ export class UserDetailsComponent implements OnInit {
                 this.snackBar.open('Erreur lors de la mise à jour', 'Fermer', { duration: 3000, panelClass: ['error-snackbar'] });
             }
         });
+    }
+
+    sendInstantReports() {
+        if (!this.user || !this.isAdmin()) return;
+        
+        const enabledReports: { label: string, days: number }[] = [];
+        if (this.user.receive_daily_report) enabledReports.push({ label: 'Journalier', days: 1 });
+        if (this.user.receive_weekly_report) enabledReports.push({ label: 'Hebdomadaire', days: 7 });
+        if (this.user.receive_monthly_report) enabledReports.push({ label: 'Mensuel', days: 30 });
+
+        if (enabledReports.length === 0) {
+            this.snackBar.open('Aucune préférence de rapport activée pour cet utilisateur', 'Fermer', { duration: 4000 });
+            return;
+        }
+
+        this.sendingReport.set(true);
+        this.snackBar.open(`Envoi de ${enabledReports.length} rapport(s) en cours...`, undefined, { duration: 2000 });
+
+        // Simple loop, could be forkJoin if we wanted parallel but sequential is safer for SMTP
+        let successCount = 0;
+        let failCount = 0;
+
+        const triggerRes = (idx: number) => {
+            if (idx >= enabledReports.length) {
+                this.sendingReport.set(false);
+                if (successCount > 0) {
+                    this.snackBar.open(`${successCount} rapport(s) envoyé(s) avec succès !`, 'Fermer', { duration: 4000 });
+                }
+                return;
+            }
+
+            const rep = enabledReports[idx];
+            this.userService.sendUserReport(this.user!.id, rep.days).subscribe({
+                next: () => {
+                    successCount++;
+                    triggerRes(idx + 1);
+                },
+                error: (err) => {
+                    console.error(`Failed to send ${rep.label} report`, err);
+                    failCount++;
+                    this.snackBar.open(`Erreur lors de l'envoi du rapport ${rep.label}`, 'Fermer', { duration: 4000 });
+                    triggerRes(idx + 1);
+                }
+            });
+        };
+
+        triggerRes(0);
     }
 }
