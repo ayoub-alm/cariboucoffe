@@ -11,6 +11,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuditService } from '../../../core/services/audit.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { UserRole } from '../../../core/models/user.model';
 import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/models/audit.model';
 
 @Component({
@@ -36,6 +38,7 @@ export class AuditDetailsComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private auditService = inject(AuditService);
+    private authService = inject(AuthService);
     private cdr = inject(ChangeDetectorRef);
     private snackBar = inject(MatSnackBar);
 
@@ -107,6 +110,11 @@ export class AuditDetailsComponent implements OnInit {
                 this.cdr.markForCheck();
             }
         });
+    }
+
+    canSeeAuditor(): boolean {
+        const user = this.authService.currentUser();
+        return !!user && (user.role === UserRole.ADMIN || user.role === UserRole.BOSS);
     }
 
     getScoreClass(score: number): string {

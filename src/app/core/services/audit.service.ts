@@ -161,7 +161,8 @@ export class AuditService {
             actionsCorrectives: dto.actions_correctives,
             trainingNeeds: dto.training_needs,
             purchases: dto.purchases,
-            photoUrls: this.resolveImageUrls(dto.photo_url, includeImages)
+            photoUrls: this.resolveImageUrls(dto.photo_url, includeImages),
+            createdAt: dto.created_at ? new Date(dto.created_at) : undefined
         };
     }
 

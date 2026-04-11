@@ -15,7 +15,7 @@ import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
-import { canCreateAudits, isAdmin } from '../../../core/models/user.model';
+import { canCreateAudits, isAdmin, UserRole } from '../../../core/models/user.model';
 import { Router, RouterModule } from '@angular/router';
 import { AuditDialogComponent } from '../audit-dialog/audit-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
@@ -39,7 +39,10 @@ import { FilterBarComponent } from '../../../shared/components/filter-bar/filter
 })
 export class AuditListComponent {
     get displayedColumns(): string[] {
-        const cols = ['coffeeShop', 'auditor', 'date', 'score', 'status', 'actions'];
+        const cols = ['coffeeShop', 'date', 'score', 'status', 'actions'];
+        if (this.canSeeAuditor()) {
+            cols.splice(1, 0, 'auditor');
+        }
         if (this.canDeleteAudit()) {
             cols.unshift('select');
         }
@@ -62,6 +65,11 @@ export class AuditListComponent {
 
     isAdmin() {
         return isAdmin(this.authService.currentUser());
+    }
+
+    canSeeAuditor() {
+        const user = this.authService.currentUser();
+        return !!user && (user.role === UserRole.ADMIN || user.role === UserRole.BOSS);
     }
 
     /** Auditors can only edit their own IN_PROGRESS audits; admin can edit any */

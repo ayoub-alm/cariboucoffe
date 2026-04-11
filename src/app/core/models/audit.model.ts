@@ -106,6 +106,7 @@ export interface AuditUI {
   photoUrls?: string[];
   photosData?: string[];
   existingPhotoUrls?: string[];
+  createdAt?: Date;
 }
 
 /** Audit category grouping questions */

@@ -90,7 +90,7 @@
         <!-- List View -->
         <div *ngIf="viewMode === 'list'">
             <div class="table-responsive">
-                <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+                <table mat-table [dataSource]="dataSource" matSort matSortActive="date" matSortDirection="desc" class="custom-table">
 
                     <!-- Checkbox Column -->
                     <ng-container matColumnDef="select">
@@ -124,7 +124,7 @@
                     <!-- Date (Matricule slot equiv) -->
                     <ng-container matColumnDef="date">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
-                        <td mat-cell *matCellDef="let row" class="text-secondary"> {{row.date | date:'dd/MM/yyyy'}}
+                        <td mat-cell *matCellDef="let row" class="text-secondary"> {{row.date | date:'dd/MM/yyyy HH:mm'}}
                         </td>
                     </ng-container>
 

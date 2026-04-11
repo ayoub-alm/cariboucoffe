@@ -37,9 +37,13 @@
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">calendar_today</mat-icon>
                     <span>{{ a.date | date:'dd MMM yyyy, HH:mm' }}</span>
                 </div>
-                <div class="meta-item">
+                <div class="meta-item" *ngIf="canSeeAuditor()">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">person</mat-icon>
                     <span>{{ a.auditorName }}</span>
+                </div>
+                <div class="meta-item" *ngIf="a.createdAt">
+                    <mat-icon style="font-size: 18px; width: 18px; height: 18px;">history</mat-icon>
+                    <span matTooltip="Date de création exacte">Créé le {{ a.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
                 <div class="meta-item" *ngIf="a.shift">
                     <mat-icon style="font-size: 18px; width: 18px; height: 18px;">schedule</mat-icon>
@@ -90,7 +94,7 @@
                 <span class="info-bar-value">{{ a.staffPresent }}</span>
             </div>
         </div>
-        <div class="info-bar-item">
+        <div class="info-bar-item" *ngIf="canSeeAuditor()">
             <mat-icon class="info-bar-icon">person_outline</mat-icon>
             <div>
                 <span class="info-bar-label">Auditeur</span>
