@@ -239,10 +239,6 @@
     min-width: 130px;
 }
 
-.permissions-table .permissions-row:nth-child(even) {
-    background: var(--surface-container-low, #f9f9f9);
-}
-
 .permissions-table td {
     padding: 10px 16px;
     vertical-align: middle;
@@ -266,4 +262,90 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 16px;
+}
+
+/* Visibility Helpers */
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+
+    .details-container {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .header-right {
+        justify-content: space-between;
+    }
+
+    .title-section h1 {
+        font-size: 20px;
+    }
+
+    .user-meta {
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .section-content {
+        padding: 16px;
+    }
+}
+
+/* Mobile Permissions Cards */
+.permissions-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.permission-card {
+    background: var(--surface-variant);
+    border: 1px solid var(--outline-variant);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.p-card-header {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--on-surface);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.p-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.p-action-item .action-label {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+}
+
+.p-action-item mat-checkbox {
+    transform: scale(0.9);
 }

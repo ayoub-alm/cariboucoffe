@@ -69,6 +69,15 @@
                 </div>
             </div>
 
+            <!-- Admin Edit Button -->
+            <button mat-flat-button color="primary" class="edit-audit-btn" 
+                *ngIf="canSeeAuditor()"
+                [routerLink]="['/audits', a.id, 'edit']"
+                matTooltip="Modifier cet audit (Admin)">
+                <mat-icon>edit</mat-icon>
+                Modifier
+            </button>
+
             <!-- Export PDF Button -->
             <button mat-stroked-button class="pdf-export-btn" (click)="exportPdf()" [disabled]="exportingPdf()"
                 matTooltip="Exporter ce rapport en PDF">
@@ -119,7 +128,9 @@
                 <div class="section-header">
                     <h2>Détail des Scores par Catégorie</h2>
                 </div>
-                <div class="table-responsive">
+                
+                <!-- Desktop Table -->
+                <div class="table-responsive desktop-only">
                     <table class="simple-table">
                         <thead>
                             <tr>
@@ -154,6 +165,30 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Cards for Category Scores -->
+                <div class="mobile-only category-score-cards">
+                    <div *ngFor="let cat of a.categories" class="category-score-card">
+                        <div class="cat-header">
+                            <span class="cat-name">{{ cat.name }}</span>
+                            <ng-container *ngIf="getCategoryScore(cat) as meta">
+                                <span class="status-pill-mini"
+                                    [ngClass]="{'success': meta.percentage === 100, 'warning': meta.percentage < 100}">
+                                    {{ meta.percentage === 100 ? 'Conforme' : 'Non-conforme' }}
+                                </span>
+                            </ng-container>
+                        </div>
+                        <div class="cat-body" *ngIf="getCategoryScore(cat) as meta">
+                            <div class="score-info">
+                                <span class="score-vals">{{ meta.yes }} / {{ meta.total }} pts</span>
+                                <span class="score-pct">{{ meta.percentage | number:'1.0-0' }}%</span>
+                            </div>
+                            <mat-progress-bar mode="determinate" [value]="meta.percentage"
+                                [color]="meta.percentage < 100 ? 'warn' : 'primary'"
+                                class="cat-progress"></mat-progress-bar>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -264,28 +299,15 @@
                 </div>
                 <div class="section-content conclusion-box">
 
-                    <div class="conclusion-item" *ngIf="a.actionsCorrectives">
-                        <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">build</mat-icon> Actions
-                            Correctives</h3>
-                        <div class="conclusion-text">{{ a.actionsCorrectives }}</div>
+                    <div class="conclusion-item" *ngIf="a.conclusion">
+                        <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">rate_review</mat-icon> Conclusion Générale</h3>
+                        <div class="conclusion-text" style="white-space: pre-wrap;">{{ a.conclusion }}</div>
                     </div>
 
-                    <div class="conclusion-item" *ngIf="a.trainingNeeds">
-                        <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">school</mat-icon> Formation
-                        </h3>
-                        <div class="conclusion-text">{{ a.trainingNeeds }}</div>
-                    </div>
-
-                    <div class="conclusion-item" *ngIf="a.purchases">
-                        <h3><mat-icon style="font-size: 18px; width: 18px; height: 18px;">shopping_cart</mat-icon>
-                            Achats</h3>
-                        <div class="conclusion-text">{{ a.purchases }}</div>
-                    </div>
-
-                    <div *ngIf="!a.actionsCorrectives && !a.trainingNeeds && !a.purchases"
+                    <div *ngIf="!a.conclusion"
                         style="color: #888; font-style: italic; text-align: center; padding: 16px 0;">
                         <mat-icon style="display:block;margin:0 auto 8px;">check_circle_outline</mat-icon>
-                        Aucune remarque de conclusion.
+                        Aucune conclusion rédigée.
                     </div>
 
                 </div>

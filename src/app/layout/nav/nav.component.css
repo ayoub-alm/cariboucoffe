@@ -55,7 +55,6 @@
   font-size: 11px;
   text-transform: uppercase;
   color: var(--on-surface);
-  /* Was variant */
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -79,7 +78,6 @@
 
 .nav-icon {
   color: var(--on-surface);
-  /* Was variant, now brighter */
 }
 
 /* Ensure list item text is bright */
@@ -119,7 +117,6 @@
   gap: 8px;
   padding: 6px 12px;
   border-radius: 20px;
-  /* Rounded button consistency */
   transition: background-color 0.2s;
 }
 
@@ -189,7 +186,6 @@
   width: 28px;
   height: 28px;
   color: white;
-  /* Keep white as it's inside the gradient header */
 }
 
 .user-info {
@@ -279,12 +275,9 @@
   overflow-y: auto;
   background-color: var(--background);
   padding: 0;
-  /* Let child components handle padding */
 }
 
-/* Dark Mode Styles - mostly redundant now but kept for very specific overrides if needed */
-/* The variables handle most of this automatically. Keeping sidebar border adjustment just in case */
-
+/* Dark Mode Styles */
 :host-context(.dark-theme) .sidenav {
   border-right-color: var(--outline-variant);
 }
@@ -292,11 +285,35 @@
 /* Responsive */
 @media (max-width: 768px) {
   .user-name {
-    display: none;
+    display: none !important;
   }
 
   .toolbar-title {
-    font-size: 16px;
+    font-size: 14px !important;
+    margin-left: 4px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px !important;
+  }
+
+  .role-badge {
+    display: none !important;
+  }
+
+  .user-profile-btn {
+    padding: 0 4px !important;
+    min-width: 40px !important;
+  }
+
+  .main-toolbar {
+    padding: 0 4px !important;
+    gap: 4px !important;
+  }
+
+  .main-toolbar button {
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   .mobile-only-user-section {
@@ -317,4 +334,4 @@
   .logout-item .nav-icon {
      color: var(--error) !important;
   }
-}
+}

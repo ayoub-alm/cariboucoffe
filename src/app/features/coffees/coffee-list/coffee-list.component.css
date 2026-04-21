@@ -1,12 +1,123 @@
 /* Inherit common list styles from list-page.css */
-/* Specific overrides for coffee list can go here */
-.status-badge {
-    /* Example override */
-    font-weight: 600;
+/* Specific overrides for coffee list */
+
+/* Desktop/Mobile Visibility Helpers */
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: block !important;
+    }
 }
 
 .table-responsive {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+.mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mobile-coffee-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--outline-variant);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 8px;
+}
+
+.coffee-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--on-surface);
+}
+
+.coffee-ref {
+    font-size: 11px;
+    background: #e8f5e9;
+    color: #006241;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--on-surface-variant);
+}
+
+.location-row mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-pill-mini {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-pill-mini.active { background-color: var(--success); }
+.status-pill-mini.inactive { background-color: var(--outline); }
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 12px;
+    border-top: 1px solid var(--outline-variant);
+    padding-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 12px;
+    }
+    .modern-card {
+        padding: 16px;
+    }
+    .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-field-wrapper {
+        width: 100%;
+    }
 }

@@ -62,7 +62,7 @@
         </div>
 
 
-        <div class="table-responsive">
+        <div class="table-responsive desktop-only">
             <table mat-table [dataSource]="dataSource" matSort class="custom-table">
 
                 <!-- Checkbox Column -->
@@ -152,6 +152,51 @@
                     (click)="viewDetails(row)">
                 </tr>
             </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-only mobile-cards">
+            <div *ngFor="let row of dataSource.data" class="mobile-user-card" (click)="viewDetails(row)">
+                <div class="card-header">
+                    <div class="user-avatar-placeholder" [attr.data-role]="row.role">
+                        {{ row.full_name?.substring(0, 1)?.toUpperCase() || 'U' }}
+                    </div>
+                    <div class="user-info-main">
+                        <span class="user-name">{{row.full_name}}</span>
+                        <span class="user-email">{{row.email}}</span>
+                    </div>
+                    <div class="status-pill-mini" [ngClass]="row.is_active ? 'active' : 'inactive'"></div>
+                </div>
+                <div class="card-body">
+                    <div class="role-row">
+                        <span class="role-badge-mini" [ngClass]="'role-' + row.role.toLowerCase()">
+                            {{ getRoleDisplayName(row.role) }}
+                        </span>
+                        <span class="coffee-id" *ngIf="row.coffee_id">
+                            <mat-icon inline>storefront</mat-icon> {{row.coffee_id}}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button mat-icon-button color="primary" (click)="editUser(row); $event.stopPropagation()">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="$event.stopPropagation()" [matMenuTriggerFor]="userMenu">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #userMenu="matMenu">
+                        <button mat-menu-item (click)="viewDetails(row)">
+                            <mat-icon>visibility</mat-icon> Détails
+                        </button>
+                        <button mat-menu-item (click)="resetPassword(row)">
+                            <mat-icon>lock_reset</mat-icon> Password
+                        </button>
+                        <button mat-menu-item (click)="deleteUser(row)">
+                            <mat-icon>delete</mat-icon> Supprimer
+                        </button>
+                    </mat-menu>
+                </div>
+            </div>
         </div>
 
         <mat-paginator [pageSizeOptions]="[25, 50, 100, 1000]" showFirstLastButtons

@@ -107,7 +107,7 @@ export class AuditStepperComponent {
 
         this.auditForm = this.fb.group({
             info: this.fb.group({
-                auditor: [{ value: auditorName, disabled: true }, Validators.required],
+                auditor: [{ value: auditorName, disabled: !isAdmin(currentUser) }, Validators.required],
                 coffeeShop: [null, Validators.required],
                 shift: ['AM', Validators.required],
                 date: [new Date().toISOString().slice(0, 16), Validators.required],
@@ -115,9 +115,7 @@ export class AuditStepperComponent {
             }),
             categories: this.fb.array([]),
             conclusion: this.fb.group({
-                actionsCorrectives: [''],
-                trainingNeeds: [''],
-                purchases: ['']
+                conclusion: ['']
             })
         });
 
@@ -166,11 +164,11 @@ export class AuditStepperComponent {
                     staffPresent: audit.staffPresent || ''
                 });
 
-                if (audit.actionsCorrectives || audit.trainingNeeds || audit.purchases) {
-                    this.conclusionGroup.patchValue({
-                        actionsCorrectives: audit.actionsCorrectives || '',
-                        trainingNeeds: audit.trainingNeeds || '',
-                        purchases: audit.purchases || ''
+                if (audit.actionsCorrectives || audit.trainingNeeds || audit.purchases || audit.conclusion) {
+                    this.auditForm.patchValue({
+                        conclusion: {
+                            conclusion: audit.conclusion || audit.actionsCorrectives || ''
+                        }
                     });
                 }
 
@@ -404,11 +402,12 @@ export class AuditStepperComponent {
             workflowStatus,
             shift: formVal.info.shift,
             staffPresent: formVal.info.staffPresent,
-            actionsCorrectives: formVal.conclusion.actionsCorrectives,
-            trainingNeeds: formVal.conclusion.trainingNeeds,
-            purchases: formVal.conclusion.purchases,
-            photosData: this.photosData.length ? this.photosData : undefined,
-            existingPhotoUrls: this.existingPhotoUrls.length ? this.existingPhotoUrls : undefined,
+            actionsCorrectives: formVal.conclusion.conclusion,
+            trainingNeeds: '',
+            purchases: '',
+            conclusion: formVal.conclusion.conclusion,
+            photosData: this.photosData,
+            existingPhotoUrls: this.existingPhotoUrls,
             categories: this.auditCategories.map((cat, i) => ({
                 ...cat,
                 items: cat.items.map((item, j) => ({

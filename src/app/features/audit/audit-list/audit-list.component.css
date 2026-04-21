@@ -430,6 +430,105 @@
     color: white;
 }
 
+/* Desktop/Mobile Visibility Helpers */
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Mobile Audit Cards */
+.mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mobile-audit-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--outline-variant);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mobile-audit-card:active {
+    transform: scale(0.98);
+    background-color: var(--surface-variant);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.coffee-shop-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--on-surface);
+}
+
+.audit-date {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--on-surface-variant);
+    font-size: 14px;
+}
+
+.info-item mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.score-high {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.score-low {
+    color: var(--error);
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--outline-variant);
+    padding-top: 8px;
+}
+
 /* Mobile Responsive Optimizations */
 @media (max-width: 768px) {
     .audit-page-container {
@@ -458,10 +557,6 @@
     .actions-wrapper {
         justify-content: space-between;
         width: 100%;
-    }
-
-    .desktop-only {
-        display: none !important;
     }
 
     .fab-mobile {

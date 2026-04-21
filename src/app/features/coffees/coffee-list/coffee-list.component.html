@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive desktop-only">
             <table mat-table [dataSource]="dataSource" matSort class="custom-table">
 
                 <!-- Ref Column -->
@@ -80,6 +80,34 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-only mobile-cards">
+            <div *ngFor="let element of dataSource.data" class="mobile-coffee-card">
+                <div class="card-header">
+                    <span class="coffee-name">{{element.name}}</span>
+                    <span class="coffee-ref">{{element.ref || '—'}}</span>
+                </div>
+                <div class="card-body">
+                    <div class="location-row">
+                        <mat-icon>location_on</mat-icon>
+                        <span>{{element.location}}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-pill-mini" [ngClass]="element.active ? 'active' : 'inactive'"></span>
+                        <span>{{element.active ? 'Actif' : 'Inactif'}}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button mat-icon-button color="primary" (click)="openDialog(element)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="deleteCoffee(element)" style="color: var(--error);">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <mat-paginator [pageSizeOptions]="[25, 50, 100, 1000]" showFirstLastButtons

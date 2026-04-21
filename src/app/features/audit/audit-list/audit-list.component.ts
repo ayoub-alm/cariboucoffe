@@ -253,6 +253,7 @@ export class AuditListComponent {
             'Date': new DatePipe('en-US').transform(a.date, 'dd/MM/yyyy'),
             'Score': a.score + '%',
             'Statut': a.status,
+            'Conclusion': a.conclusion || a.actionsCorrectives || '',
             'Etat Workflow': a.workflowStatus
         }));
 

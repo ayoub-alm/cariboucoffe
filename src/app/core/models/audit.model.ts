@@ -50,6 +50,7 @@ export interface AuditDTO {
   actions_correctives?: string;
   training_needs?: string;
   purchases?: string;
+  conclusion?: string;
   photo_url?: string;
 }
 
@@ -63,6 +64,7 @@ export interface AuditCreateDTO {
   actions_correctives?: string;
   training_needs?: string;
   purchases?: string;
+  conclusion?: string;
   photo_data?: string[];
   existing_photo_urls?: string[];
   answers: {
@@ -103,6 +105,7 @@ export interface AuditUI {
   actionsCorrectives?: string;
   trainingNeeds?: string;
   purchases?: string;
+  conclusion?: string;
   photoUrls?: string[];
   photosData?: string[];
   existingPhotoUrls?: string[];

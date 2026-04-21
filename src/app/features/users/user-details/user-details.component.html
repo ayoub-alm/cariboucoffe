@@ -160,7 +160,7 @@
                     Cliquez sur <strong>Enregistrer</strong> pour appliquer les modifications.
                 </p>
 
-                <div class="permissions-table-wrapper">
+                <div class="permissions-table-wrapper desktop-only">
                     <table class="permissions-table">
                         <thead>
                             <tr>
@@ -187,6 +187,21 @@
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile View for Permissions -->
+                <div class="mobile-only permissions-cards">
+                    <div *ngFor="let module of modules" class="permission-card">
+                        <div class="p-card-header">{{ module.label }}</div>
+                        <div class="p-card-grid">
+                            <div *ngFor="let action of actions" class="p-action-item">
+                                <mat-checkbox color="primary" [checked]="getPermission(module.key, action.key)"
+                                    (change)="togglePermission(module.key, action.key, $event.checked)">
+                                    <span class="action-label">{{ action.label }}</span>
+                                </mat-checkbox>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="permissions-actions">

@@ -89,10 +89,9 @@
 
         <!-- List View -->
         <div *ngIf="viewMode === 'list'">
-            <div class="table-responsive">
+            <div class="table-responsive desktop-only">
                 <table mat-table [dataSource]="dataSource" matSort matSortActive="date" matSortDirection="desc" class="custom-table">
-
-                    <!-- Checkbox Column -->
+                    <!-- ... Checkbox Column ... -->
                     <ng-container matColumnDef="select">
                         <th mat-header-cell *matHeaderCellDef>
                             <mat-checkbox (change)="$event ? toggleAllRows() : null"
@@ -109,29 +108,33 @@
                         </td>
                     </ng-container>
 
-                    <!-- Coffee Shop (Nom complete equiv) -->
+                    <!-- Coffee Shop -->
                     <ng-container matColumnDef="coffeeShop">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Café </th>
                         <td mat-cell *matCellDef="let row"> {{row.coffeeShop}} </td>
                     </ng-container>
 
-                    <!-- Auditor (Role equiv) -->
+                    <!-- Auditor -->
                     <ng-container matColumnDef="auditor">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Auditeur </th>
                         <td mat-cell *matCellDef="let row" class="text-secondary"> {{row.auditorName}} </td>
                     </ng-container>
 
-                    <!-- Date (Matricule slot equiv) -->
+                    <!-- Date -->
                     <ng-container matColumnDef="date">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
                         <td mat-cell *matCellDef="let row" class="text-secondary"> {{row.date | date:'dd/MM/yyyy HH:mm'}}
                         </td>
                     </ng-container>
 
-                    <!-- Score (Email equiv) -->
+                    <!-- Score -->
                     <ng-container matColumnDef="score">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Score </th>
-                        <td mat-cell *matCellDef="let row"> {{row.score}}% </td>
+                        <td mat-cell *matCellDef="let row"> 
+                            <span class="score-text" [ngClass]="{'score-high': row.score >= 80, 'score-low': row.score < 80}">
+                                {{row.score}}% 
+                            </span>
+                        </td>
                     </ng-container>
 
                     <!-- Status -->
@@ -185,6 +188,57 @@
                         class="clickable-row"></tr>
 
                 </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="mobile-only mobile-cards">
+                <div *ngFor="let row of dataSource.data" class="mobile-audit-card" (click)="viewDetails(row)">
+                    <div class="card-header">
+                        <div class="card-title-row">
+                            <span class="coffee-shop-name">{{row.coffeeShop}}</span>
+                            <span class="audit-date">{{row.date | date:'dd/MM/yyyy'}}</span>
+                        </div>
+                        <div class="status-row">
+                            <span *ngIf="row.workflowStatus === 'IN_PROGRESS'" class="status-pill status-draft">
+                                En cours
+                            </span>
+                            <span *ngIf="row.workflowStatus !== 'IN_PROGRESS'" class="status-pill" [ngClass]="{
+                                'status-active': row.status === 'Conforme',
+                                'status-inactive': row.status !== 'Conforme'
+                            }">
+                                {{ row.status === 'Conforme' ? 'Conforme' : 'Non-conforme' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <mat-icon>person</mat-icon>
+                            <span>{{row.auditorName}}</span>
+                        </div>
+                        <div class="info-item">
+                            <mat-icon>speed</mat-icon>
+                            <span [ngClass]="{'score-high': row.score >= 80, 'score-low': row.score < 80}">
+                                Score: {{row.score}}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button mat-icon-button color="primary" (click)="viewDetails(row); $event.stopPropagation()">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button *ngIf="canEditAudit(row)" (click)="continueAudit(row); $event.stopPropagation()">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button [matMenuTriggerFor]="mobileMenu" (click)="$event.stopPropagation()">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #mobileMenu="matMenu">
+                            <button mat-menu-item (click)="deleteAudit(row)" *ngIf="canDeleteAudit()">
+                                <mat-icon>delete</mat-icon> Supprimer
+                            </button>
+                        </mat-menu>
+                    </div>
+                </div>
             </div>
 
             <mat-paginator [pageSizeOptions]="[25, 50, 100, 1000]" showFirstLastButtons
