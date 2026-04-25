@@ -15,9 +15,12 @@ import { map, shareReplay, filter } from 'rxjs/operators';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { PwaInstallService } from '../../core/services/pwa-install.service';
 import { UserRole, getRoleDisplayName } from '../../core/models/user.model';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChangePasswordDialogComponent } from '../../features/users/change-password-dialog/change-password-dialog.component';
+import { PwaInstallIosDialogComponent } from '../pwa-install-ios-dialog/pwa-install-ios-dialog.component';
 
 @Component({
     selector: 'app-nav',
@@ -45,7 +48,9 @@ export class NavComponent {
     private router = inject(Router);
     private authService = inject(AuthService);
     themeService = inject(ThemeService);
+    pwaInstall = inject(PwaInstallService);
     private dialog = inject(MatDialog);
+    private snackBar = inject(MatSnackBar);
     private location = inject(Location);
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
@@ -130,6 +135,28 @@ export class NavComponent {
     openChangePasswordDialog() {
 
         this.dialog.open(ChangePasswordDialogComponent, { width: '400px' });
+    }
+
+    async installPwa() {
+        if (this.pwaInstall.isIosSafari) {
+            this.dialog.open(PwaInstallIosDialogComponent, { width: '420px', autoFocus: false });
+            return;
+        }
+
+        const outcome = await this.pwaInstall.promptInstall();
+        if (outcome === 'accepted') {
+            this.snackBar.open('Application installée', 'OK', { duration: 3000 });
+        } else if (outcome === 'dismissed') {
+            this.snackBar.open('Installation annulée', 'OK', { duration: 2000 });
+        } else {
+            // No native prompt available (e.g. browser doesn't support PWA install,
+            // or criteria not yet met — service worker still warming up).
+            this.snackBar.open(
+                "L'installation n'est pas disponible sur ce navigateur",
+                'OK',
+                { duration: 3000 }
+            );
+        }
     }
 
     goBack() {

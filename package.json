@@ -33,6 +33,7 @@
     "@angular/material": "^21.1.2",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
+    "@angular/service-worker": "20.3.16",
     "chart.js": "^4.5.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
