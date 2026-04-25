@@ -131,7 +131,8 @@ Chart.register(...registerables);
     </div>
     `,
     styles: [`
-        .boss-dashboard { padding: 24px; min-height: 100vh; background: var(--background); }
+    :host { display: block; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+    .boss-dashboard { padding: 24px; min-height: 100vh; background: var(--background); box-sizing: border-box; width: 100%; overflow-x: hidden; }
         .welcome-section { margin-bottom: 32px; }
         .welcome-section h1 { font-size: 28px; font-weight: 400; color: var(--on-background); margin: 0; }
         .subtitle { color: var(--on-surface-variant); font-size: 14px; margin-top: 4px; }
@@ -150,10 +151,10 @@ Chart.register(...registerables);
         .mini-stat { padding: 16px; border-radius: 8px; background: var(--surface-container, var(--surface)); color: var(--on-surface); }
         .mini-stat mat-card-title { margin: 0; font-size: 14px; }
 
-        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px; }
-        .chart-card { min-height: 350px; border-radius: 24px; box-shadow: var(--shadow-sm); background: var(--surface); }
-        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; }
-        .pie-container { display: flex; justify-content: center; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; margin-bottom: 32px; min-width: 0; }
+    .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); min-width: 0; overflow: hidden; }
+    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; min-width: 0; }
+    .pie-container { display: flex; justify-content: center; }
 
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .section-title { font-size: 20px; font-weight: 500; color: var(--on-background); margin: 0; }
@@ -171,6 +172,27 @@ Chart.register(...registerables);
         .status-chip.en-cours { background: #fff3e0; color: #e65100; }
         .empty-state { text-align: center; padding: 48px; border-radius: 16px; background: var(--surface); }
         .empty-icon { font-size: 64px; width: 64px; height: 64px; color: var(--on-surface-variant); margin-bottom: 16px; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .boss-dashboard { padding: 12px; }
+            .welcome-section h1 { font-size: 22px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 13px; }
+            .stat-icon-container { width: 38px; height: 38px; }
+            .secondary-stats { grid-template-columns: 1fr; gap: 12px; }
+            .charts-grid { grid-template-columns: 1fr; gap: 16px; }
+            .chart-card { min-height: 280px; border-radius: 16px; }
+            .chart-container { height: 220px; }
+            .pie-container { height: 240px; }
+            .audit-cards-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-value { font-size: 20px; }
+        }
     `]
 })
 export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -289,12 +289,13 @@
   }
 
   .toolbar-title {
-    font-size: 14px !important;
-    margin-left: 4px !important;
+    font-size: 15px !important;
+    margin-left: 6px !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px !important;
+    max-width: 140px !important;
+    font-weight: 600 !important;
   }
 
   .role-badge {
@@ -302,18 +303,35 @@
   }
 
   .user-profile-btn {
-    padding: 0 4px !important;
+    padding: 0 6px !important;
     min-width: 40px !important;
   }
 
   .main-toolbar {
-    padding: 0 4px !important;
-    gap: 4px !important;
+    padding: 0 8px !important;
+    gap: 2px !important;
+    height: 56px !important;
   }
 
   .main-toolbar button {
     background: transparent !important;
     box-shadow: none !important;
+  }
+
+  /* Make sidenav full width on mobile */
+  .sidenav {
+    width: 85vw !important;
+    max-width: 320px !important;
+  }
+
+  /* Reduce main body top offset for 56px toolbar */
+  .main-body {
+    height: calc(100vh - 56px) !important;
+    padding-bottom: 0 !important;
+  }
+
+  .global-back-btn {
+    margin-left: 0 !important;
   }
 
   .mobile-only-user-section {
@@ -333,5 +351,17 @@
 
   .logout-item .nav-icon {
      color: var(--error) !important;
+  }
+
+  /* Sidebar footer illustration hidden on mobile to save space */
+  .sidebar-footer-illustration {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-title {
+    max-width: 100px !important;
+    font-size: 14px !important;
   }
 }

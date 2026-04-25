@@ -116,8 +116,9 @@ Chart.register(...registerables);
         </ng-template>
     </div>
     `,
-    styles: [`
-        .auditor-dashboard { padding: 24px; min-height: 100vh; background: var(--background); }
+  styles: [`
+        :host { display: block; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .auditor-dashboard { padding: 24px; min-height: 100vh; background: var(--background); box-sizing: border-box; width: 100%; overflow-x: hidden; }
         .welcome-section { margin-bottom: 32px; }
         .welcome-section h1 { font-size: 28px; font-weight: 400; color: var(--on-background); margin: 0; }
         .subtitle { color: var(--on-surface-variant); font-size: 14px; margin-top: 4px; }
@@ -157,9 +158,9 @@ Chart.register(...registerables);
         .stat-number { font-size: 36px; font-weight: 700; color: #00637F; margin: 8px 0; }
         .card-action-btn { margin-top: 16px; background-color: #00637F; color: white; }
 
-        .charts-row { margin-bottom: 32px; }
-        .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); }
-        .chart-container { position: relative; height: 260px; width: 100%; margin-top: 16px; }
+        .charts-row { margin-bottom: 32px; min-width: 0; }
+        .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); min-width: 0; overflow: hidden; }
+        .chart-container { position: relative; height: 260px; width: 100%; margin-top: 16px; min-width: 0; }
 
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .section-title { font-size: 20px; font-weight: 500; color: var(--on-background); margin: 0; }
@@ -197,6 +198,21 @@ Chart.register(...registerables);
         .empty-icon { font-size: 64px; width: 64px; height: 64px; color: var(--on-surface-variant); margin-bottom: 16px; }
         .empty-state h3 { margin: 0 0 8px; }
         .empty-state p { color: var(--on-surface-variant); margin-bottom: 16px; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .auditor-dashboard { padding: 12px; }
+            .welcome-section h1 { font-size: 22px; }
+            .action-cards { grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
+            .action-card { padding: 16px; }
+            .card-icon-wrapper { width: 48px; height: 48px; margin-bottom: 12px; }
+            .card-icon { font-size: 24px; width: 24px; height: 24px; }
+            .stat-number { font-size: 28px; }
+            .chart-card { min-height: 280px; border-radius: 16px; }
+            .chart-container { height: 220px; }
+            .audit-cards-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 18px; }
+        }
     `]
 })
 export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -699,7 +699,7 @@
     display: none !important;
 }
 
-/* Mobile Responsiveness */
+    /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .desktop-only {
         display: none !important;
@@ -713,40 +713,67 @@
         padding: 12px;
     }
 
+    /* Stack the header cleanly: title on top, score+actions below */
     .page-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 16px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 16px;
     }
 
-    .header-score-badge {
-        text-align: center;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px;
-    }
-
-    .title-section h1 {
-        font-size: 22px;
-    }
-
-    .audit-meta {
+    .header-right {
+        align-items: stretch;
+        flex-direction: row;
         flex-wrap: wrap;
         gap: 8px;
     }
 
+    .header-score-badge {
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Buttons side by side on mobile */
+    .edit-audit-btn,
+    .pdf-export-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+        padding: 0 12px !important;
+    }
+
+    .title-section h1 {
+        font-size: 20px;
+    }
+
+    .audit-meta {
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .score-number {
+        font-size: 26px;
+        margin: 0;
+    }
+
+    /* 2-column info bar on mobile */
     .info-bar {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        padding: 12px;
+        padding: 10px;
         gap: 8px;
+        margin-bottom: 16px;
     }
 
     .info-bar-item {
         flex: none;
-        padding: 8px;
+        padding: 8px 10px;
         gap: 8px;
     }
 
@@ -760,10 +787,15 @@
         font-size: 13px;
     }
 
+    .info-bar-label {
+        font-size: 10px;
+    }
+
+    /* Stack question row on mobile */
     .q-main {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 10px;
     }
 
     .q-status {
@@ -771,17 +803,22 @@
         justify-content: space-between;
     }
 
-    .score-number {
-        font-size: 28px;
-        margin: 0;
-    }
-
     .modern-card {
-        padding: 16px;
+        padding: 14px;
+        border-radius: 12px;
     }
 
-    .modern-panel .mat-expansion-panel-header {
-        padding: 0 12px;
+    .section-card {
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    /* Panel header text wraps on mobile */
+    ::ng-deep .mat-expansion-panel-header-description {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+        font-size: 11px !important;
     }
 }
 

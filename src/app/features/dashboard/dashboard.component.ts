@@ -143,7 +143,8 @@ Chart.register(...registerables);
     </div>
   `,
   styles: [`
-    .dashboard-container { padding: 24px; background-color: var(--background); min-height: 100vh; }
+    :host { display: block; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+    .dashboard-container { padding: 24px; background-color: var(--background); min-height: 100vh; box-sizing: border-box; width: 100%; overflow-x: hidden; }
     
     /* Breadcrumb */
     .breadcrumb-container { margin-bottom: 24px; display: flex; align-items: center; color: var(--on-surface-variant); }
@@ -174,12 +175,49 @@ Chart.register(...registerables);
     .mini-stat-card { padding: 16px; border-radius: 8px; background: var(--surface-container); color: var(--on-surface); }
     .mini-stat-card mat-card-title { margin: 0; font-size: 14px; color: var(--on-surface); }
 
-    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; min-width: 0; }
     
-    .chart-card { min-height: 350px; border-radius: 24px; box-shadow: var(--shadow-sm); border: none; background: var(--surface); color: var(--on-surface); }
+    .chart-card { min-height: 350px; border-radius: 24px; box-shadow: var(--shadow-sm); border: none; background: var(--surface); color: var(--on-surface); min-width: 0; overflow: hidden; }
     
-    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; }
+    .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; min-width: 0; }
     .pie-container { display: flex; justify-content: center; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .dashboard-container { padding: 12px; }
+      .dashboard-title { font-size: 20px; margin-bottom: 16px; }
+      .breadcrumb-container { margin-bottom: 16px; }
+
+      /* 2-column KPI grid on mobile */
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .stat-value { font-size: 24px; }
+      .stat-label { font-size: 13px; }
+      .stat-icon-container { width: 38px; height: 38px; }
+
+      .secondary-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      /* Full-width charts, reduced height */
+      .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .chart-card { min-height: 280px; border-radius: 16px; }
+      .chart-container { height: 220px; }
+      .pie-container { height: 240px; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stat-value { font-size: 20px; }
+    }
   `]
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {

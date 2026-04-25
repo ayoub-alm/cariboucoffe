@@ -112,7 +112,8 @@ Chart.register(...registerables);
     </div>
     `,
     styles: [`
-        .manager-dashboard { padding: 24px; min-height: 100vh; background: var(--background); }
+        :host { display: block; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .manager-dashboard { padding: 24px; min-height: 100vh; background: var(--background); box-sizing: border-box; width: 100%; overflow-x: hidden; }
         .welcome-section { margin-bottom: 32px; }
         .welcome-section h1 { font-size: 28px; font-weight: 400; color: var(--on-background); margin: 0; }
         .subtitle { color: var(--on-surface-variant); font-size: 14px; margin-top: 4px; }
@@ -127,9 +128,9 @@ Chart.register(...registerables);
         .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
         .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
 
-        .charts-row { margin-bottom: 32px; }
-        .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); }
-        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; }
+        .charts-row { margin-bottom: 32px; min-width: 0; }
+        .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); min-width: 0; overflow: hidden; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 16px; min-width: 0; }
 
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .section-title { font-size: 20px; font-weight: 500; color: var(--on-background); margin: 0; }
@@ -147,6 +148,25 @@ Chart.register(...registerables);
         .status-chip.en-cours { background: #fff3e0; color: #e65100; }
         .empty-state { text-align: center; padding: 48px; border-radius: 16px; background: var(--surface); }
         .empty-icon { font-size: 64px; width: 64px; height: 64px; color: var(--on-surface-variant); margin-bottom: 16px; }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+            .manager-dashboard { padding: 12px; }
+            .welcome-section h1 { font-size: 22px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 13px; }
+            .stat-icon-container { width: 38px; height: 38px; }
+            .charts-row { margin-bottom: 24px; }
+            .chart-card { min-height: 280px; border-radius: 16px; }
+            .chart-container { height: 220px; }
+            .audit-cards-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-value { font-size: 20px; }
+        }
     `]
 })
 export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestroy {

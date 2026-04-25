@@ -29,7 +29,7 @@
     </div>
 
     <form [formGroup]="auditForm">
-        <mat-stepper #stepper class="custom-stepper" orientation="vertical" [linear]="false">
+        <mat-stepper #stepper class="custom-stepper" orientation="vertical" [linear]="false" (selectionChange)="onStepChange($event)">
 
             <!-- Step 1: Info -->
             <mat-step [stepControl]="infoGroup">

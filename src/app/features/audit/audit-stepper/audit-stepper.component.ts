@@ -4,6 +4,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, shareReplay } from 'rxjs/operators';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatStepperModule, MatStepper } from '@angular/material/stepper';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -503,6 +504,18 @@ export class AuditStepperComponent {
         return rawUrls
             .filter(u => !!u)
             .map(u => u.startsWith('/') ? `${STATIC_URL}${u}` : u);
+    }
+
+    onStepChange(event: StepperSelectionEvent) {
+        // Small timeout lets Angular finish rendering the expanded step content
+        // before we scroll — otherwise we land at the bottom of the section.
+        setTimeout(() => {
+            const stepHeaders = document.querySelectorAll('.mat-step-header');
+            const header = stepHeaders[event.selectedIndex] as HTMLElement;
+            if (header) {
+                header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 50);
     }
 
     submitAudit() {

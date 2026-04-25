@@ -113,7 +113,8 @@ Chart.register(...registerables);
     </div>
     `,
     styles: [`
-        .viewer-dashboard { padding: 32px; min-height: 100vh; background: var(--background); }
+        :host { display: block; width: 100%; box-sizing: border-box; overflow-x: hidden; }
+        .viewer-dashboard { padding: 32px; min-height: 100vh; background: var(--background); box-sizing: border-box; width: 100%; overflow-x: hidden; }
         .welcome-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
         .header-text h1 { font-size: 32px; font-weight: 700; color: var(--on-background); margin: 0 0 8px 0; letter-spacing: -0.5px; }
         .subtitle { color: var(--on-surface-variant); font-size: 16px; margin: 0; }
@@ -134,11 +135,11 @@ Chart.register(...registerables);
         .stat-label { font-size: 15px; font-weight: 600; color: var(--on-surface-variant); margin-top: 4px; }
         .stat-value { font-size: 36px; font-weight: 800; color: var(--on-surface); margin-top: 12px; letter-spacing: -1px; }
 
-        .charts-section { margin-bottom: 40px; }
-        .chart-card { border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--surface); padding-bottom: 24px; border: 1px solid rgba(0,0,0,0.05); }
+        .charts-section { margin-bottom: 40px; min-width: 0; }
+        .chart-card { border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--surface); padding-bottom: 24px; border: 1px solid rgba(0,0,0,0.05); min-width: 0; overflow: hidden; }
         .chart-header-title { display: flex; align-items: center; gap: 12px; }
         .chart-icon { color: #00637F; background: #e5eff2; padding: 8px; border-radius: 8px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
-        .chart-container { position: relative; height: 320px; width: 100%; margin-top: 24px; padding: 0 24px; }
+        .chart-container { position: relative; height: 320px; width: 100%; margin-top: 24px; padding: 0 24px; min-width: 0; }
 
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
         .section-title { font-size: 24px; font-weight: 700; color: var(--on-background); margin: 0; letter-spacing: -0.5px; }
@@ -165,11 +166,27 @@ Chart.register(...registerables);
         .empty-state h3 { margin: 0 0 12px; font-size: 24px; font-weight: 600; color: var(--on-surface); }
         .empty-state p { color: var(--on-surface-variant); font-size: 16px; margin: 0; }
         
-        @media (max-width: 600px) {
-            .viewer-dashboard { padding: 16px; }
-            .welcome-section { flex-direction: column; gap: 16px; align-items: flex-start; }
-            .charts-section { display: none; /* Hide chart on very small screens if needed, or make it horizontal scrollable */ } 
-            .chart-card { display: block; }
+        @media (max-width: 768px) {
+            .viewer-dashboard { padding: 12px; }
+            .welcome-section { flex-direction: column; gap: 16px; align-items: flex-start; margin-bottom: 24px; }
+            .header-text h1 { font-size: 24px; }
+            .subtitle { font-size: 14px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+            .stat-card { padding: 12px; }
+            .stat-icon-container { width: 40px; height: 40px; }
+            .stat-icon-container mat-icon { font-size: 20px; width: 20px; height: 20px; }
+            .stat-label { font-size: 12px; }
+            .stat-value { font-size: 24px; margin-top: 8px; }
+            .charts-section { margin-bottom: 24px; }
+            .chart-card { border-radius: 16px; padding-bottom: 16px; }
+            .chart-container { height: 220px; margin-top: 16px; padding: 0 12px; }
+            .audit-cards-grid { grid-template-columns: 1fr; }
+            .section-title { font-size: 20px; }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .action-button { width: 100%; }
         }
     `]
 })
