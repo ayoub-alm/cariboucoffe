@@ -27,10 +27,12 @@ export class PwaInstallService {
     /** True for iOS browsers other than Safari (Chrome/Firefox on iOS can't install at all). */
     readonly isIosSafari = this.isIos && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
 
-    /** Show the install button when: native prompt is available, OR iOS Safari (manual flow), AND not already installed. */
-    readonly showInstallButton = computed(() =>
-        !this.installed() && (this.canInstall() || this.isIosSafari)
-    );
+    /**
+     * Show the install button whenever the app is NOT already running as an installed PWA.
+     * The click handler is responsible for either triggering the native prompt or showing
+     * a helpful message if install isn't available yet (e.g. dev mode, Firefox, etc.).
+     */
+    readonly showInstallButton = computed(() => !this.installed());
 
     constructor() {
         window.addEventListener('beforeinstallprompt', (e: Event) => {

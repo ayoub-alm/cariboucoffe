@@ -52,18 +52,6 @@
                 </a>
             </mat-nav-list>
 
-            <!-- ===== PWA Install — visible on mobile + desktop when installable ===== -->
-            <mat-nav-list *ngIf="pwaInstall.showInstallButton()" class="install-pwa-section">
-                <div class="nav-group-title">Application</div>
-                <a mat-list-item (click)="installPwa()" class="install-pwa-item"
-                    matTooltip="Installer l'application sur votre appareil"
-                    matTooltipPosition="right">
-                    <mat-icon matListItemIcon class="nav-icon install-icon">install_desktop</mat-icon>
-                    <div matListItemTitle>Installer l'application</div>
-                    <div matListItemLine class="install-hint">Mobile et bureau</div>
-                </a>
-            </mat-nav-list>
-
             <div class="sidebar-footer-illustration">
                 <img src="assets/lighthouse-illustration.svg" alt="" class="illustration-img"
                     onerror="this.style.display='none'">
@@ -81,6 +69,11 @@
                 <a mat-list-item (click)="logout()" class="logout-item">
                     <mat-icon matListItemIcon class="nav-icon">logout</mat-icon>
                     <div matListItemTitle>Déconnexion</div>
+                </a>
+                <a mat-list-item (click)="installPwa()" *ngIf="pwaInstall.showInstallButton()"
+                    class="install-pwa-item">
+                    <mat-icon matListItemIcon class="nav-icon install-icon">install_mobile</mat-icon>
+                    <div matListItemTitle>Installer l'application</div>
                 </a>
             </mat-nav-list>
         </div>
@@ -142,6 +135,13 @@
                     <mat-icon>logout</mat-icon>
                     <span>Déconnexion</span>
                 </button>
+                <ng-container *ngIf="pwaInstall.showInstallButton()">
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="installPwa()" class="install-pwa-menu-item">
+                        <mat-icon>install_desktop</mat-icon>
+                        <span>Installer l'application</span>
+                    </button>
+                </ng-container>
             </mat-menu>
         </mat-toolbar>
 
