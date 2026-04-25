@@ -403,9 +403,17 @@
     }
 
     .step-card {
-        padding: 16px;
-        border-radius: 14px;
-        margin: 10px 0 20px;
+        padding: 12px 8px;
+        border-radius: 12px;
+        margin: 8px 0 16px;
+    }
+
+    ::ng-deep .mat-vertical-content-container {
+        margin-left: 16px !important;
+    }
+
+    ::ng-deep .mat-vertical-content {
+        padding: 0 0 16px 0 !important;
     }
 
     .step-title-text {
@@ -483,7 +491,11 @@
     }
 
     .step-card {
-        padding: 12px;
+        padding: 8px 4px;
+    }
+
+    ::ng-deep .mat-vertical-content-container {
+        margin-left: 8px !important;
     }
 
     .photo-preview-grid {

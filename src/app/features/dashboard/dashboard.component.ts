@@ -188,9 +188,9 @@ Chart.register(...registerables);
       .dashboard-title { font-size: 20px; margin-bottom: 16px; }
       .breadcrumb-container { margin-bottom: 16px; }
 
-      /* 2-column KPI grid on mobile */
+      /* 1-column KPI grid on mobile */
       .stats-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 12px;
         margin-bottom: 16px;
       }
@@ -215,7 +215,7 @@ Chart.register(...registerables);
     }
 
     @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .stats-grid { grid-template-columns: 1fr; gap: 8px; }
       .stat-value { font-size: 20px; }
     }
   `]

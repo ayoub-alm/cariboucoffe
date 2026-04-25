@@ -153,7 +153,7 @@ Chart.register(...registerables);
         @media (max-width: 768px) {
             .manager-dashboard { padding: 12px; }
             .welcome-section h1 { font-size: 22px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
             .stat-value { font-size: 24px; }
             .stat-label { font-size: 13px; }
             .stat-icon-container { width: 38px; height: 38px; }
@@ -164,7 +164,7 @@ Chart.register(...registerables);
         }
 
         @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 8px; }
             .stat-value { font-size: 20px; }
         }
     `]

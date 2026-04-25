@@ -214,19 +214,49 @@ import { Subscription } from 'rxjs';
     }
 
     @media (max-width: 600px) {
+      .question-item {
+        padding: 12px 8px;
+        margin-bottom: 12px;
+      }
       .header-row {
         flex-direction: column;
         align-items: stretch;
       }
-      .custom-toggle-group {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
+      .custom-toggle-group,
+      ::ng-deep .custom-toggle-group {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
       }
-      .custom-toggle {
-        width: 100%;
+      .custom-toggle,
+      ::ng-deep .custom-toggle {
+        flex: 1 1 0 !important;
         text-align: center;
-        padding: 12px 0;
+        padding: 0 !important;
+        font-size: 12px !important;
+        width: auto !important;
+      }
+      ::ng-deep .custom-toggle .mat-button-toggle-button {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+      }
+      ::ng-deep .custom-toggle .mat-button-toggle-label-content {
+        line-height: normal !important;
+        padding: 0 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .icon-spacer {
+        margin-right: 2px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
       }
     }
   `]

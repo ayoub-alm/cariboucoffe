@@ -171,7 +171,7 @@ Chart.register(...registerables);
             .welcome-section { flex-direction: column; gap: 16px; align-items: flex-start; margin-bottom: 24px; }
             .header-text h1 { font-size: 24px; }
             .subtitle { font-size: 14px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 24px; }
             .stat-card { padding: 12px; }
             .stat-icon-container { width: 40px; height: 40px; }
             .stat-icon-container mat-icon { font-size: 20px; width: 20px; height: 20px; }

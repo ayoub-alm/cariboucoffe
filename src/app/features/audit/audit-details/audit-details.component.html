@@ -58,7 +58,7 @@
                 <span class="total-points-label" *ngIf="getTotalPoints() as points">
                     ({{ points.obtained }} / {{ points.total }} pts)
                 </span>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; align-items: flex-end;">
+                <div class="status-badges-container">
                     <span *ngIf="a.workflowStatus === 'IN_PROGRESS'" class="status-chip en-cours">Audit en cours</span>
                     <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
 
@@ -69,21 +69,23 @@
                 </div>
             </div>
 
-            <!-- Admin Edit Button -->
-            <button mat-flat-button color="primary" class="edit-audit-btn" 
-                *ngIf="canSeeAuditor()"
-                [routerLink]="['/audits', a.id, 'edit']"
-                matTooltip="Modifier cet audit (Admin)">
-                <mat-icon>edit</mat-icon>
-                Modifier
-            </button>
+            <div class="header-buttons-row">
+                <!-- Admin Edit Button -->
+                <button mat-flat-button color="primary" class="edit-audit-btn" 
+                    *ngIf="canSeeAuditor()"
+                    [routerLink]="['/audits', a.id, 'edit']"
+                    matTooltip="Modifier cet audit (Admin)">
+                    <mat-icon>edit</mat-icon>
+                    Modifier
+                </button>
 
-            <!-- Export PDF Button -->
-            <button mat-stroked-button class="pdf-export-btn" (click)="exportPdf()" [disabled]="exportingPdf()"
-                matTooltip="Exporter ce rapport en PDF">
-                <mat-icon>picture_as_pdf</mat-icon>
-                {{ exportingPdf() ? 'Génération...' : 'Exporter PDF' }}
-            </button>
+                <!-- Export PDF Button -->
+                <button mat-stroked-button class="pdf-export-btn" (click)="exportPdf()" [disabled]="exportingPdf()"
+                    matTooltip="Exporter ce rapport en PDF">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                    {{ exportingPdf() ? 'Génération...' : 'Exporter PDF' }}
+                </button>
+            </div>
         </div>
     </div>
 
