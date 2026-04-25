@@ -90,6 +90,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 12px;
+    width: 90%;
 }
 
 .edit-audit-btn {
@@ -259,13 +260,13 @@
 }
 
 .status-pill-mini.success {
-    background: #e6f4ea;
-    color: #137333;
+    background: var(--success-container);
+    color: var(--on-success-container);
 }
 
 .status-pill-mini.warning {
-    background: #fce8e6;
-    color: #c5221f;
+    background: var(--error-container);
+    color: var(--on-error-container);
 }
 
 .status-chip {
@@ -279,28 +280,28 @@
 }
 
 .status-chip.en-cours {
-    background: #fff3e0;
-    color: #e65100;
+    background: var(--warning-container);
+    color: var(--on-warning-container);
 }
 
 .status-chip.termine {
-    background: #e3f2fd;
-    color: #1565c0;
+    background: var(--primary-container);
+    color: var(--on-primary-container);
 }
 
 .status-chip.conforme {
-    background: #e6f4ea;
-    color: #137333;
+    background: var(--success-container);
+    color: var(--on-success-container);
 }
 
 .status-chip.non-conforme {
-    background: #fce8e6;
-    color: #c5221f;
+    background: var(--error-container);
+    color: var(--on-error-container);
 }
 
 .status-chip.partiel {
-    background: #fff8e1;
-    color: #ff8f00;
+    background: var(--warning-container);
+    color: var(--on-warning-container);
 }
 
 .modern-accordion .mat-expansion-panel {
@@ -330,13 +331,13 @@
 }
 
 .question-item.non-conforme {
-    border-left: 3px solid #ea4335;
+    border-left: 3px solid var(--error);
 }
 
 .question-item.is-na {
     opacity: .65;
-    border-left: 3px dashed #bdbdbd;
-    background: #fafafa;
+    border-left: 3px dashed var(--outline);
+    background: var(--surface-variant);
 }
 
 .na-pill {
@@ -344,8 +345,8 @@
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
-    background: #fff3e0;
-    color: #e65100;
+    background: var(--warning-container);
+    color: var(--on-warning-container);
 }
 
 
@@ -388,18 +389,18 @@
 }
 
 .status-badge.status-yes {
-    background: #e6f4ea;
-    color: #137333;
+    background: var(--success-container);
+    color: var(--on-success-container);
 }
 
 .status-badge.status-no {
-    background: #fce8e6;
-    color: #c5221f;
+    background: var(--error-container);
+    color: var(--on-error-container);
 }
 
 .status-badge.status-na {
-    background: #fef7e0;
-    color: #ea8600;
+    background: var(--warning-container);
+    color: var(--on-warning-container);
 }
 
 .score-text {
@@ -474,7 +475,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: var(--surface-container-low, #f8f8f8);
+    background: var(--surface-container-low);
     border-radius: 8px;
     flex: 1 1 180px;
     transition: background 0.2s;
@@ -504,6 +505,7 @@
     color: var(--on-surface);
     margin-top: 1px;
 }
+
 
 /* ============================================================
    SECTION HEADER ICON
@@ -739,7 +741,7 @@
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
-        width: 100%;
+        width: 90%;
     }
 
     .header-score-badge {

@@ -60,4 +60,11 @@ export class ThemeService {
     setTheme(isDark: boolean): void {
         this.isDarkMode.set(isDark);
     }
+
+    /**
+     * Programmatically get a theme variable value
+     */
+    getColor(variableName: string): string {
+        return getComputedStyle(document.body).getPropertyValue(variableName).trim();
+    }
 }

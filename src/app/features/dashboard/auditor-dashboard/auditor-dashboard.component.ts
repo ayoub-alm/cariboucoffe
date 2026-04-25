@@ -11,6 +11,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
 import { DashboardDataService } from '../../../core/services/dashboard-data.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { effect } from '@angular/core';
 
 Chart.register(...registerables);
 
@@ -134,29 +136,29 @@ Chart.register(...registerables);
         }
         .action-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
 
-        .start-audit { border: 2px dashed #00637F; background: #e5eff2; }
-        .start-audit:hover { background: #00637F; color: white; }
-        .start-audit:hover .card-icon { color: white; }
-        .start-audit:hover p { color: white; opacity: 0.8; }
-        .start-audit:hover h2 { color: white; }
+        .start-audit { border: 2px dashed var(--primary); background: var(--primary-container); }
+        .start-audit:hover { background: var(--primary); color: var(--on-primary); }
+        .start-audit:hover .card-icon { color: var(--on-primary); }
+        .start-audit:hover p { color: var(--on-primary); opacity: 0.8; }
+        .start-audit:hover h2 { color: var(--on-primary); }
 
         .card-icon-wrapper {
             width: 64px; height: 64px; border-radius: 50%;
             display: flex;
             align-items: center; justify-content: center; margin-bottom: 16px;
         }
-        .card-icon-wrapper.blue { background: #e5eff2; color: #00637F; }
-        .card-icon-wrapper.blue .card-icon { color: #00637F; }
-        .card-icon-wrapper.brown { background: #efeceb; color: #5D4037; }
-        .card-icon-wrapper.brown .card-icon { color: #5D4037; }
-        .card-icon-wrapper.gold { background: #faf6eb; color: #cda252; }
-        .card-icon-wrapper.gold .card-icon { color: #cda252; }
+        .card-icon-wrapper.blue { background: var(--primary-container); color: var(--on-primary-container); }
+        .card-icon-wrapper.blue .card-icon { color: var(--on-primary-container); }
+        .card-icon-wrapper.brown { background: var(--surface-container-highest); color: var(--on-surface); }
+        .card-icon-wrapper.brown .card-icon { color: var(--on-surface); }
+        .card-icon-wrapper.gold { background: var(--warning-container); color: var(--on-warning-container); }
+        .card-icon-wrapper.gold .card-icon { color: var(--on-warning-container); }
         .card-icon { font-size: 32px; width: 32px; height: 32px; }
 
         .action-card h2 { font-size: 18px; font-weight: 600; margin: 0 0 4px 0; }
         .action-card p { color: var(--on-surface-variant); font-size: 13px; margin: 0; }
-        .stat-number { font-size: 36px; font-weight: 700; color: #00637F; margin: 8px 0; }
-        .card-action-btn { margin-top: 16px; background-color: #00637F; color: white; }
+        .stat-number { font-size: 36px; font-weight: 700; color: var(--primary); margin: 8px 0; }
+        .card-action-btn { margin-top: 16px; border-radius: 12px; }
 
         .charts-row { margin-bottom: 32px; min-width: 0; }
         .chart-card { border-radius: 16px; box-shadow: var(--shadow-sm); background: var(--surface); min-width: 0; overflow: hidden; }
@@ -177,16 +179,16 @@ Chart.register(...registerables);
 
         .audit-card-body { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
         .score-display { font-size: 28px; font-weight: 700; }
-        .score-display.good { color: #4CAF50; }
-        .score-display.medium { color: #FF9800; }
-        .score-display.bad { color: #F44336; }
+        .score-display.good { color: var(--success); }
+        .score-display.medium { color: var(--warning); }
+        .score-display.bad { color: var(--error); }
 
         .status-chip {
             padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
         }
-        .status-chip.conforme { background: #e8f5e9; color: #2e7d32; }
-        .status-chip.non-conforme { background: #ffebee; color: #c62828; }
-        .status-chip.en-cours { background: #fff3e0; color: #e65100; }
+        .status-chip.conforme { background: var(--success-container); color: var(--on-success-container); }
+        .status-chip.non-conforme { background: var(--error-container); color: var(--on-error-container); }
+        .status-chip.en-cours { background: var(--warning-container); color: var(--on-warning-container); }
 
         .audit-meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--on-surface-variant); font-size: 13px; }
         .audit-meta mat-icon { font-size: 16px; width: 16px; height: 16px; }
@@ -219,6 +221,7 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
     private dashboardDataService = inject(DashboardDataService);
+    private themeService = inject(ThemeService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: import('@angular/core').ElementRef<HTMLCanvasElement>;
@@ -229,6 +232,14 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
     currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
     userName = '';
     averageScore = 0;
+
+    constructor() {
+        effect(() => {
+            // Re-init chart when theme changes
+            this.themeService.isDarkMode();
+            setTimeout(() => this.initChart(), 100);
+        });
+    }
 
     ngOnInit() {
         const user = this.authService.currentUser();
@@ -266,6 +277,11 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
         
         if (this.chart) this.chart.destroy();
         
+        const isDark = this.themeService.isDarkMode();
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
         const last10 = this.audits.slice(0, 10).reverse();
         this.chart = new Chart(this.scoreChartRef.nativeElement, {
             type: 'line',
@@ -274,22 +290,39 @@ export class AuditorDashboardComponent implements OnInit, AfterViewInit, OnDestr
                 datasets: [{
                     label: 'Score (%)',
                     data: last10.map(a => a.score),
-                    borderColor: '#cda252',
-                    backgroundColor: 'rgba(205,162,82,0.1)',
+                    borderColor: primaryColor,
+                    backgroundColor: primaryColor + '1A', // 10% opacity
                     fill: true,
                     tension: 0.3,
                     pointRadius: 4,
-                    pointBackgroundColor: '#cda252'
+                    pointBackgroundColor: primaryColor
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: true, 
+                        max: 100, 
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    }
                 },
-                plugins: { legend: { display: false } }
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#3c4043' : '#fff',
+                        titleColor: isDark ? '#fff' : '#202124',
+                        bodyColor: isDark ? '#e8eaed' : '#5f6368',
+                        borderColor: gridColor,
+                        borderWidth: 1
+                    }
+                }
             }
         });
     }

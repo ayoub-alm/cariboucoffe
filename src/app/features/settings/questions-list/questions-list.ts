@@ -130,14 +130,16 @@ export class QuestionsListComponent implements OnInit {
   openAddDialog() {
     if (!this.categoryId) return;
     this.dialog.open(QuestionDialogComponent, {
-      width: '600px',
+      width: '100%',
+      maxWidth: '600px',
       data: { categoryId: this.categoryId, question: null }
     }).afterClosed().subscribe(r => { if (r) this.loadQuestions(); });
   }
 
   openEditDialog(question: Question) {
     this.dialog.open(QuestionDialogComponent, {
-      width: '600px',
+      width: '100%',
+      maxWidth: '600px',
       data: { categoryId: this.categoryId, question }
     }).afterClosed().subscribe(r => { if (r) this.loadQuestions(); });
   }

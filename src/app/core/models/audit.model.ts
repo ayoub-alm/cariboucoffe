@@ -96,6 +96,7 @@ export interface AuditUI {
   coffeeShop: string;
   coffeeId?: number;
   auditorName: string;
+  auditorId?: number;
   score: number;
   categories: AuditCategory[];
   status?: AuditStatus;

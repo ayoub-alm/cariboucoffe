@@ -90,8 +90,8 @@
 }
 
 .kpi-icon-wrapper.purple {
-    background-color: #f3e5f5;
-    color: #7b1fa2;
+    background-color: var(--primary-container);
+    color: var(--primary);
 }
 
 /* Add var if needed */
@@ -237,8 +237,8 @@
 }
 
 .status-draft {
-    background-color: #fff3e0;
-    color: #e65100;
+    background-color: var(--warning-container);
+    color: var(--on-warning-container);
 }
 
 /* View Toggle */
@@ -403,19 +403,19 @@
     background-color: var(--success);
     /* Green */
     color: #fff;
-    border-left: 3px solid #1b5e20;
+    border-left: 3px solid var(--success-container);
 }
 
 .status-inactive.audit-event-pill {
     background-color: var(--error);
     color: #fff;
-    border-left: 3px solid #b71c1c;
+    border-left: 3px solid var(--error-container);
 }
 
 .status-draft.audit-event-pill {
-    background-color: #ff9800;
+    background-color: var(--warning);
     color: #fff;
-    border-left: 3px solid #e65100;
+    border-left: 3px solid var(--warning-container);
 }
 
 /* Floating Action Button (FAB) for Mobile */

@@ -7,7 +7,7 @@
             </button>
             <div>
                 <h1>
-                    <span *ngIf="category()?.icon" class="cat-icon">{{ category()?.icon }}</span>
+                    <mat-icon *ngIf="category()?.icon" class="cat-icon">{{ category()?.icon }}</mat-icon>
                     {{ category()?.name ?? 'Questions' }}
                 </h1>
                 <p class="subtitle">
@@ -48,7 +48,7 @@
         (cdkDropListDropped)="onDrop($event)">
 
         @for (question of filteredQuestions(); track question.id; let i = $index) {
-        <div class="drag-item" cdkDrag (click)="openEditDialog(question)">
+        <div class="drag-item" cdkDrag (click)="isAdmin() ? openEditDialog(question) : null">
 
             <div class="drag-placeholder" *cdkDragPlaceholder></div>
 

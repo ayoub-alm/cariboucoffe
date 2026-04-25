@@ -10,6 +10,8 @@ import { AuditUI as Audit } from '../../core/models/audit.model';
 
 import { FilterBarComponent, DashboardFilters } from '../../shared/components/filter-bar/filter-bar.component';
 import { DashboardDataService } from '../../core/services/dashboard-data.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { effect } from '@angular/core';
 
 Chart.register(...registerables);
 
@@ -163,9 +165,9 @@ Chart.register(...registerables);
     .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     
     .stat-icon-container { border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
-    .stat-icon-container.blue { background-color: #e5eff2; color: #00637F; }
-    .stat-icon-container.gold { background-color: #faf6eb; color: #cda252; }
-    .stat-icon-container.brown { background-color: #efeceb; color: #5D4037; }
+    .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
+    .stat-icon-container.gold { background-color: var(--warning-container); color: var(--on-warning-container); }
+    .stat-icon-container.brown { background-color: var(--surface-container-highest); color: var(--on-surface); }
 
     .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
     .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
@@ -224,6 +226,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private auditService = inject(AuditService);
   private kpiService = inject(KpiService);
   private dashboardDataService = inject(DashboardDataService);
+  private themeService = inject(ThemeService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('pieCanvas') pieCanvas!: ElementRef<HTMLCanvasElement>;
@@ -244,6 +247,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   allAudits: Audit[] = [];
   audits: Audit[] = [];
   currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
+
+  constructor() {
+    effect(() => {
+        this.themeService.isDarkMode();
+        setTimeout(() => this.initCharts(), 100);
+    });
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -292,6 +302,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.categoryChart) this.categoryChart.destroy();
     if (this.cafeComplianceChart) this.cafeComplianceChart.destroy();
 
+    const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+    const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+    const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
     const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
     const shopScores = shops.map(shop => {
       const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
@@ -306,7 +320,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Score Moyen (%)',
           data: shopScores,
-          backgroundColor: '#00637F',
+          backgroundColor: primaryColor,
           borderRadius: 4,
           barThickness: 40
         }]
@@ -315,15 +329,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-          x: { grid: { display: false } }
+          y: { 
+            beginAtZero: true, 
+            max: 100, 
+            grid: { color: gridColor },
+            ticks: { color: textColor }
+          },
+          x: { 
+            grid: { display: false },
+            ticks: { color: textColor }
+          }
         },
         plugins: { legend: { display: false } }
       }
     });
 
     const conforming = this.audits.filter(a => a.status === 'Conforme').length;
-    const nonConforming = this.audits.filter(a => a.status === 'Non-conforme').length;
+    const nonConforming = this.audits.filter(a => a.status !== 'Conforme').length;
+
+    const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
 
     this.pieChart = new Chart(this.pieCanvas.nativeElement, {
       type: 'doughnut',
@@ -331,7 +355,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         labels: ['Conforme', 'Non-conforme'],
         datasets: [{
           data: [conforming, nonConforming],
-          backgroundColor: ['#00637F', '#5D4037'],
+          backgroundColor: [primaryColor, secondaryColor],
           borderWidth: 0,
           hoverOffset: 4
         }]
@@ -339,7 +363,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
+        plugins: { 
+            legend: { 
+                position: 'bottom',
+                labels: { color: textColor }
+            } 
+        },
         cutout: '70%'
       }
     });
@@ -374,6 +403,10 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return stats.total > 0 ? (stats.compliant / stats.total) * 100 : 0;
     });
 
+    const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+    const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+    const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
     this.categoryChart = new Chart(this.categoryCanvas.nativeElement, {
       type: 'bar',
       data: {
@@ -381,7 +414,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Conformité (%)',
           data: data,
-          backgroundColor: '#00637F',
+          backgroundColor: primaryColor,
           borderRadius: 4
         }]
       },
@@ -390,8 +423,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-          y: { grid: { display: false } }
+          x: { 
+            beginAtZero: true, 
+            max: 100, 
+            grid: { color: gridColor },
+            ticks: { color: textColor }
+          },
+          y: { 
+            grid: { display: false },
+            ticks: { color: textColor }
+          }
         },
         plugins: { legend: { display: false } }
       }
@@ -406,6 +447,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return shopAudits.length > 0 ? (compliantCount / shopAudits.length) * 100 : 0;
     });
 
+    const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+    const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+    const errorColor = this.themeService.getColor('--error') || '#d93025';
+    const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+    const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
     this.cafeComplianceChart = new Chart(this.cafeComplianceCanvas.nativeElement, {
       type: 'bar',
       data: {
@@ -414,7 +461,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           label: 'Conformité (%)',
           data: cafeCompliance,
           backgroundColor: cafeCompliance.map(rate =>
-            rate >= 85 ? '#00637F' : rate >= 70 ? '#5D4037' : '#E57373'
+            rate >= 85 ? primaryColor : rate >= 70 ? secondaryColor : errorColor
           ),
           borderRadius: 4,
           barThickness: 40
@@ -424,8 +471,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-          x: { grid: { display: false } }
+          y: { 
+            beginAtZero: true, 
+            max: 100, 
+            grid: { color: gridColor },
+            ticks: { color: textColor }
+          },
+          x: { 
+            grid: { display: false },
+            ticks: { color: textColor }
+          }
         },
         plugins: { legend: { display: false } }
       }

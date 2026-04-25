@@ -72,12 +72,16 @@ export class AuditListComponent {
         return !!user && (user.role === UserRole.ADMIN || user.role === UserRole.BOSS);
     }
 
-    /** Auditors can only edit their own IN_PROGRESS audits; admin can edit any */
+    /** Administrators or authorized users can edit any audit; Owners can edit their own */
     canEditAudit(audit: Audit): boolean {
         const user = this.authService.currentUser();
         if (!user) return false;
+        
+        // Admin or user with explicit update rights
         if (isAdmin(user) || user.permissions?.audits?.update) return true;
-        return audit.workflowStatus === 'IN_PROGRESS' && canCreateAudits(user);
+        
+        // Owner (auditor who created it)
+        return audit.auditorId === user.id;
     }
 
     canDeleteAudit(): boolean {

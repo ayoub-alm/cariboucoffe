@@ -10,6 +10,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
 import { DashboardDataService } from '../../../core/services/dashboard-data.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { effect } from '@angular/core';
 
 Chart.register(...registerables);
 
@@ -126,28 +128,28 @@ Chart.register(...registerables);
         
         .stat-icon-container { border-radius: 12px; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; }
         .stat-icon-container mat-icon { font-size: 28px; width: 28px; height: 28px; }
-        .stat-icon-container.blue { background-color: #e5eff2; color: #00637F; }
-        .stat-icon-container.gold { background-color: #faf6eb; color: #cda252; }
-        .stat-icon-container.green { background-color: #e8f5e9; color: #2e7d32; }
-        .stat-icon-container.orange { background-color: #fff3e0; color: #f57c00; }
-        .stat-icon-container.red { background-color: #ffebee; color: #c62828; }
+        .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
+        .stat-icon-container.gold { background-color: var(--warning-container); color: var(--on-warning-container); }
+        .stat-icon-container.green { background-color: var(--success-container); color: var(--on-success-container); }
+        .stat-icon-container.orange { background-color: var(--warning-container); color: var(--on-warning-container); }
+        .stat-icon-container.red { background-color: var(--error-container); color: var(--on-error-container); }
         
         .stat-label { font-size: 15px; font-weight: 600; color: var(--on-surface-variant); margin-top: 4px; }
         .stat-value { font-size: 36px; font-weight: 800; color: var(--on-surface); margin-top: 12px; letter-spacing: -1px; }
 
         .charts-section { margin-bottom: 40px; min-width: 0; }
-        .chart-card { border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--surface); padding-bottom: 24px; border: 1px solid rgba(0,0,0,0.05); min-width: 0; overflow: hidden; }
+        .chart-card { border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--surface); padding-bottom: 24px; border: 1px solid var(--outline-variant); min-width: 0; overflow: hidden; }
         .chart-header-title { display: flex; align-items: center; gap: 12px; }
-        .chart-icon { color: #00637F; background: #e5eff2; padding: 8px; border-radius: 8px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
+        .chart-icon { color: var(--on-primary-container); background: var(--primary-container); padding: 8px; border-radius: 8px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; box-sizing: border-box; }
         .chart-container { position: relative; height: 320px; width: 100%; margin-top: 24px; padding: 0 24px; min-width: 0; }
 
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
         .section-title { font-size: 24px; font-weight: 700; color: var(--on-background); margin: 0; letter-spacing: -0.5px; }
         
         .audit-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .audit-card { border-radius: 16px; cursor: pointer; transition: all 0.3s ease; background: var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); }
-        .audit-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); border-color: rgba(0,99,127,0.2); }
-        .card-avatar { background-color: #f5f5f5; color: #555; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+        .audit-card { border-radius: 16px; cursor: pointer; transition: all 0.3s ease; background: var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--outline-variant); }
+        .audit-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); border-color: var(--primary); }
+        .card-avatar { background-color: var(--surface-container-highest); color: var(--on-surface); display: flex; align-items: center; justify-content: center; border-radius: 12px; }
         
         .audit-card-body { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 8px 0; border-top: 1px dashed rgba(0,0,0,0.1); }
         .score-display { font-size: 32px; font-weight: 800; }
@@ -156,9 +158,9 @@ Chart.register(...registerables);
         .score-display.bad { color: #c62828; }
         
         .status-chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
-        .status-chip.conforme { background: #e8f5e9; color: #2e7d32; }
-        .status-chip.non-conforme { background: #ffebee; color: #c62828; }
-        .status-chip.en-cours { background: #fff3e0; color: #e65100; }
+        .status-chip.conforme { background: var(--success-container); color: var(--on-success-container); }
+        .status-chip.non-conforme { background: var(--error-container); color: var(--on-error-container); }
+        .status-chip.en-cours { background: var(--warning-container); color: var(--on-warning-container); }
 
         .empty-state { text-align: center; padding: 64px 24px; border-radius: 24px; background: transparent; border: 2px dashed rgba(0,0,0,0.1); box-shadow: none; }
         .empty-icon-wrap { width: 96px; height: 96px; background: rgba(0,0,0,0.03); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
@@ -194,6 +196,7 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
     private dashboardDataService = inject(DashboardDataService);
+    private themeService = inject(ThemeService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: ElementRef<HTMLCanvasElement>;
@@ -207,6 +210,13 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
     coffeeName = '';
     averageScore = 0;
     complianceRate = 0;
+
+    constructor() {
+        effect(() => {
+            this.themeService.isDarkMode();
+            setTimeout(() => this.initChart(), 100);
+        });
+    }
 
     ngOnInit() {
         const user = this.authService.currentUser();
@@ -256,10 +266,16 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
             this.scoreChart.destroy();
         }
 
-        const gradientFill = this.scoreChartRef.nativeElement.getContext('2d')?.createLinearGradient(0, 0, 0, 400);
+        const isDark = this.themeService.isDarkMode();
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
+        const ctx = this.scoreChartRef.nativeElement.getContext('2d');
+        const gradientFill = ctx?.createLinearGradient(0, 0, 0, 400);
         if (gradientFill) {
-            gradientFill.addColorStop(0, 'rgba(0, 99, 127, 0.4)');
-            gradientFill.addColorStop(1, 'rgba(0, 99, 127, 0.0)');
+            gradientFill.addColorStop(0, primaryColor + '66'); // 40% opacity
+            gradientFill.addColorStop(1, primaryColor + '00'); // 0% opacity
         }
 
         this.scoreChart = new Chart(this.scoreChartRef.nativeElement, {
@@ -269,11 +285,11 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
                 datasets: [{
                     label: 'Score (%)',
                     data: chronologicalAudits.map(a => a.score),
-                    backgroundColor: gradientFill || 'rgba(0, 99, 127, 0.2)',
-                    borderColor: '#00637F',
+                    backgroundColor: gradientFill || primaryColor + '33',
+                    borderColor: primaryColor,
                     borderWidth: 3,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#00637F',
+                    pointBackgroundColor: isDark ? '#1a1c1e' : '#fff',
+                    pointBorderColor: primaryColor,
                     pointBorderWidth: 2,
                     pointRadius: 5,
                     pointHoverRadius: 7,
@@ -292,18 +308,24 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: { font: { family: 'Inter, sans-serif' } }
+                        grid: { color: gridColor },
+                        ticks: { 
+                            color: textColor,
+                            font: { family: 'Inter, sans-serif' } 
+                        }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Inter, sans-serif' } }
+                        ticks: { 
+                            color: textColor,
+                            font: { family: 'Inter, sans-serif' } 
+                        }
                     }
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        backgroundColor: isDark ? '#3c4043' : 'rgba(0,0,0,0.8)',
                         padding: 12,
                         titleFont: { size: 14, family: 'Inter' },
                         bodyFont: { size: 14, family: 'Inter' },

@@ -5,8 +5,6 @@
     --error-red: var(--error);
     --bg-light: var(--background);
     --card-bg: var(--surface);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
 }
 
 .audit-container {
@@ -25,13 +23,13 @@
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--outline-variant);
+    border-bottom: 1px solid var(--glass-border);
     margin: -24px -20px 32px;
     padding: 20px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .header-left .page-title {
@@ -58,7 +56,7 @@
     padding: 0 20px;
     height: 44px;
     font-weight: 600;
-    background: white !important;
+    background: var(--surface) !important;
     border: 1.5px solid var(--outline-variant) !important;
     color: var(--on-surface) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -71,7 +69,7 @@
 
 /* Integrated Progress Section */
 .progress-container {
-    background: white;
+    background: var(--surface);
     border-radius: 20px;
     padding: 20px 24px;
     margin-bottom: 32px;
@@ -162,11 +160,11 @@
 
 /* Premium Card Design */
 .step-card {
-    background: white;
+    background: var(--surface);
     border-radius: 24px;
     padding: 32px;
     border: 1px solid var(--outline-variant);
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-md);
     margin: 16px 0 32px;
     transition: transform 0.3s ease;
 }
@@ -221,9 +219,9 @@
 }
 
 .step-badge.done {
-    background: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
+    background: var(--success-container);
+    color: var(--on-success-container);
+    border: 1px solid var(--outline-variant);
 }
 
 /* Form Styling */
@@ -238,14 +236,14 @@
 }
 
 ::ng-deep .mat-mdc-text-field-wrapper {
-    background-color: var(--surface-container-lowest, #fff) !important;
+    background-color: var(--surface-container-low) !important;
     border-radius: 12px !important;
 }
 
 /* Photo Section */
 .photo-section {
     margin-top: 32px;
-    background: var(--surface-container-low, #f8f9fa);
+    background: var(--surface-container-low);
     border-radius: 20px;
     padding: 24px;
     border: 1px dashed var(--outline-variant);
@@ -290,7 +288,7 @@
     overflow: hidden;
     height: 120px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 2px solid white;
+    border: 2px solid var(--surface);
 }
 
 .preview-card img {
@@ -303,12 +301,13 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(255, 255, 255, 0.9) !important;
+    background: var(--surface) !important;
     color: var(--error) !important;
     width: 28px !important;
     height: 28px !important;
     min-width: 28px !important;
     padding: 0 !important;
+    opacity: 0.9;
 }
 
 .btn-remove mat-icon {
@@ -333,7 +332,7 @@
     padding: 0 32px;
     font-weight: 700;
     font-size: 1rem;
-    box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .btn-nav-prev {
@@ -346,7 +345,7 @@
 
 /* Validation Specifics */
 .validation-card {
-    background: #fdfdfd;
+    background: var(--surface);
 }
 
 .status-callout {
@@ -361,15 +360,15 @@
 }
 
 .status-callout.success {
-    background: #e8f5e9;
-    color: #1b5e20;
-    border: 1px solid #c8e6c9;
+    background: var(--success-container);
+    color: var(--on-success-container);
+    border: 1px solid var(--outline-variant);
 }
 
 .status-callout.warning {
-    background: #fff3e0;
-    color: #e65100;
-    border: 1px solid #ffe0b2;
+    background: var(--warning-container);
+    color: var(--on-warning-container);
+    border: 1px solid var(--outline-variant);
 }
 
 .status-callout mat-icon {
@@ -382,6 +381,7 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {

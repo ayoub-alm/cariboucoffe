@@ -109,7 +109,8 @@ export class UserListComponent implements AfterViewInit {
 
     openAddDialog() {
         const dialogRef = this.dialog.open(UserDialogComponent, {
-            width: '600px',
+            width: '100%',
+            maxWidth: '600px',
             data: null
         });
 
@@ -136,7 +137,8 @@ export class UserListComponent implements AfterViewInit {
 
     editUser(user: User) {
         const dialogRef = this.dialog.open(UserDialogComponent, {
-            width: '600px',
+            width: '100%',
+            maxWidth: '600px',
             data: user
         });
 
@@ -170,7 +172,8 @@ export class UserListComponent implements AfterViewInit {
 
     resetPassword(user: User) {
         this.dialog.open(ResetPasswordDialogComponent, {
-            width: '400px',
+            width: '100%',
+            maxWidth: '400px',
             data: user
         }).afterClosed().subscribe(ok => {
             if (ok) this.loadUsers();

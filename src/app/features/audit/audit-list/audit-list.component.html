@@ -63,6 +63,7 @@
                     </mat-button-toggle>
                 </mat-button-toggle-group>
 
+
                 <button mat-flat-button color="primary" class="new-audit-btn desktop-only" (click)="openAddDialog()"
                     *ngIf="canCreate()">
                     <mat-icon>add</mat-icon> Nouveau
@@ -173,7 +174,7 @@
                                 <button mat-menu-item (click)="viewDetails(row)">
                                     <mat-icon>visibility</mat-icon> Voir Détails
                                 </button>
-                                <button mat-menu-item *ngIf="isAdmin()" (click)="continueAudit(row)">
+                                <button mat-menu-item *ngIf="canEditAudit(row)" (click)="continueAudit(row)">
                                     <mat-icon>edit</mat-icon> Modifier
                                 </button>
                                 <button mat-menu-item *ngIf="canDeleteAudit()" (click)="deleteAudit(row)">

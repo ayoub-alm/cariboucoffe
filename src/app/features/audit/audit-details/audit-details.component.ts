@@ -117,6 +117,18 @@ export class AuditDetailsComponent implements OnInit {
         return !!user && (user.role === UserRole.ADMIN || user.role === UserRole.BOSS);
     }
 
+    canEditAudit(): boolean {
+        const audit = this.audit();
+        const user = this.authService.currentUser();
+        if (!audit || !user) return false;
+        
+        // Admin or user with explicit update rights
+        if (user.role === UserRole.ADMIN || user.permissions?.audits?.update) return true;
+        
+        // Owner (auditor who created it)
+        return audit.auditorId === user.id;
+    }
+
     getScoreClass(score: number): string {
         if (score >= 85) return 'score-success';
         if (score >= 70) return 'score-warning';

@@ -53,8 +53,8 @@
 
 .coffee-ref {
     font-size: 11px;
-    background: #e8f5e9;
-    color: #006241;
+    background: var(--success-container);
+    color: var(--on-success-container);
     padding: 2px 8px;
     border-radius: 4px;
     font-family: monospace;

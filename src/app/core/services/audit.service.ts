@@ -4,12 +4,14 @@ import { Observable, map, forkJoin } from 'rxjs';
 import { API_URL, STATIC_URL } from '../constants';
 import { AuditDTO, AuditCreateDTO, AuditUI, AuditCategory, AuditWorkflowStatus } from '../models/audit.model';
 import { Category, Question } from '../models/category.model';
+import { ConfigService } from './config.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuditService {
     private http = inject(HttpClient);
+    private configService = inject(ConfigService);
 
     getAudits(): Observable<AuditUI[]> {
         return this.http.get<AuditDTO[]>(`${API_URL}/audits`).pipe(
@@ -152,10 +154,11 @@ export class AuditService {
             coffeeShop: dto.coffee.name,
             coffeeId: dto.coffee.id,
             auditorName: dto.auditor.full_name || dto.auditor.email,
+            auditorId: dto.auditor.id,
             score: dto.score,
             categories: categories,
             workflowStatus: (dto.status as AuditWorkflowStatus) || 'IN_PROGRESS',
-            status: dto.status === 'IN_PROGRESS' ? 'Partiel' : (dto.score >= 80 ? 'Conforme' : 'Non-conforme'),
+            status: dto.status === 'IN_PROGRESS' ? 'Partiel' : this.configService.getAuditStatus(dto.score),
             shift: dto.shift,
             staffPresent: dto.staff_present,
             actionsCorrectives: dto.actions_correctives,

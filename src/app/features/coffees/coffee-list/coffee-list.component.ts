@@ -77,8 +77,8 @@ export class CoffeeListComponent implements OnInit, AfterViewInit {
 
   openDialog(coffee?: Coffee) {
     const dialogRef = this.dialog.open(CoffeeDialogComponent, {
-      width: '500px',
-      maxWidth: '90vw',
+      width: '100%',
+      maxWidth: '500px',
       data: coffee ? { ...coffee } : null
     });
 

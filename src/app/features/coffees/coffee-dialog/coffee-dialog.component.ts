@@ -140,13 +140,46 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
     .modern-dialog-content {
       padding: 16px 24px !important;
-      min-width: 420px;
+      width: 100%;
     }
 
     .form-grid {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .dialog-header {
+        padding: 16px 16px 12px;
+      }
+      
+      .header-icon-container {
+        width: 40px;
+        height: 40px;
+        margin-right: 12px;
+      }
+      
+      .modern-dialog-content {
+        padding: 12px 16px !important;
+      }
+      
+      .dialog-footer {
+        padding: 12px 16px 20px !important;
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 8px;
+      }
+      
+      .btn-cancel {
+        margin: 0 !important;
+        width: 100%;
+      }
+      
+      .btn-save {
+        margin: 0 !important;
+        width: 100%;
+      }
     }
 
     .form-section {
@@ -154,6 +187,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
       flex-direction: column;
       gap: 16px;
     }
+
 
     .section-title {
       font-size: 14px;

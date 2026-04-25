@@ -95,10 +95,11 @@ import { Subscription } from 'rxjs';
   styles: [`
     .question-item {
       padding: 16px;
-      background: #fafafa;
-      border-radius: 8px;
-      border: 1px solid #eee;
+      background: var(--surface-variant);
+      border-radius: 12px;
+      border: 1px solid var(--outline-variant);
       margin-bottom: 16px;
+      transition: background-color 0.2s, border-color 0.2s;
     }
     .header-row {
       display: flex;
@@ -112,7 +113,7 @@ import { Subscription } from 'rxjs';
     .question-label {
       font-size: 1rem;
       font-weight: 500;
-      color: #333;
+      color: var(--on-surface);
       margin-bottom: 8px;
     }
     .icon-spacer {
@@ -122,13 +123,16 @@ import { Subscription } from 'rxjs';
     /* Toggle Colors */
     .custom-toggle-group {
       border: none !important;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      background: var(--surface-container) !important;
+      box-shadow: var(--shadow-sm);
       border-radius: 8px;
+      overflow: hidden;
     }
     .custom-toggle {
       border: none !important;
       padding: 0 16px;
       font-weight: 500;
+      color: var(--on-surface-variant);
       transition: all 0.2s;
     }
     .toggle-active-icon {
@@ -137,20 +141,20 @@ import { Subscription } from 'rxjs';
     }
     
     .custom-success.mat-button-toggle-checked {
-      background-color: #e8f5e9 !important;
-      color: #2e7d32 !important;
+      background-color: var(--success-container) !important;
+      color: var(--on-success-container) !important;
     }
     .custom-success.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
     
     .custom-error.mat-button-toggle-checked {
-      background-color: #ffebee !important;
-      color: #c62828 !important;
+      background-color: var(--error-container) !important;
+      color: var(--on-error-container) !important;
     }
     .custom-error.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
     
     .custom-na.mat-button-toggle-checked {
-      background-color: #f5f5f5 !important;
-      color: #616161 !important;
+      background-color: var(--surface-container-highest) !important;
+      color: var(--on-surface) !important;
     }
     .custom-na.mat-button-toggle-checked .toggle-active-icon { opacity: 1; transform: scale(1.1); }
 
@@ -163,8 +167,9 @@ import { Subscription } from 'rxjs';
       font-weight: 500;
       display: flex;
       align-items: center;
+      color: var(--on-surface);
     }
-    .text-danger { color: #c62828; }
+    .text-danger { color: var(--error); }
     
     .full-width {
       width: 100%;
@@ -192,24 +197,25 @@ import { Subscription } from 'rxjs';
         width: 100px;
         object-fit: cover;
         border-radius: 8px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--outline-variant);
     }
     .remove-btn {
         position: absolute;
         top: -10px;
         right: -10px;
-        background: white;
-        border: 1px solid #ddd;
+        background: var(--surface);
+        border: 1px solid var(--outline-variant);
         width: 24px;
         height: 24px;
         line-height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
+        color: var(--error);
     }
     .compressing-text {
         font-size: 0.8rem;
-        color: #666;
+        color: var(--on-surface-variant);
         margin-top: 4px;
     }
 

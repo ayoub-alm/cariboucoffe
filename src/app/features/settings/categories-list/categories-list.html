@@ -11,6 +11,11 @@
                 <mat-spinner diameter="16"></mat-spinner>
                 Sauvegarde...
             </span>
+            <button mat-stroked-button class="rounded-btn secondary-action" (click)="openConfigDialog()" *ngIf="isAdmin()"
+                style="margin-right: 8px;" matTooltip="Configuration des seuils de conformité">
+                <mat-icon>settings_suggest</mat-icon>
+                Configurer
+            </button>
             <button mat-flat-button color="primary" class="rounded-btn" (click)="openAddDialog()" *ngIf="isAdmin()">
                 <mat-icon>add</mat-icon>
                 Nouvelle Catégorie

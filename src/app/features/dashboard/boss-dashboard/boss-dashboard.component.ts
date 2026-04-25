@@ -11,6 +11,8 @@ import { KpiService } from '../../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
 import { DashboardDataService } from '../../../core/services/dashboard-data.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { effect } from '@angular/core';
 
 Chart.register(...registerables);
 
@@ -141,9 +143,9 @@ Chart.register(...registerables);
         .stat-card { border-radius: 12px; transition: transform 0.2s; box-shadow: var(--shadow-sm); background: var(--surface); color: var(--on-surface); }
         .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .stat-icon-container { border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
-        .stat-icon-container.blue { background-color: #e5eff2; color: #00637F; }
-        .stat-icon-container.gold { background-color: #faf6eb; color: #cda252; }
-        .stat-icon-container.brown { background-color: #efeceb; color: #5D4037; }
+        .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
+        .stat-icon-container.gold { background-color: var(--warning-container); color: var(--on-warning-container); }
+        .stat-icon-container.brown { background-color: var(--surface-container-highest); color: var(--on-surface); }
         .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
         .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
 
@@ -163,13 +165,13 @@ Chart.register(...registerables);
         .audit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .audit-card-body { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
         .score-display { font-size: 28px; font-weight: 700; }
-        .score-display.good { color: #4CAF50; }
-        .score-display.medium { color: #FF9800; }
-        .score-display.bad { color: #F44336; }
+        .score-display.good { color: var(--success); }
+        .score-display.medium { color: var(--warning); }
+        .score-display.bad { color: var(--error); }
         .status-chip { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .status-chip.conforme { background: #e8f5e9; color: #2e7d32; }
-        .status-chip.non-conforme { background: #ffebee; color: #c62828; }
-        .status-chip.en-cours { background: #fff3e0; color: #e65100; }
+        .status-chip.conforme { background: var(--success-container); color: var(--on-success-container); }
+        .status-chip.non-conforme { background: var(--error-container); color: var(--on-error-container); }
+        .status-chip.en-cours { background: var(--warning-container); color: var(--on-warning-container); }
         .empty-state { text-align: center; padding: 48px; border-radius: 16px; background: var(--surface); }
         .empty-icon { font-size: 64px; width: 64px; height: 64px; color: var(--on-surface-variant); margin-bottom: 16px; }
 
@@ -200,6 +202,7 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     private authService = inject(AuthService);
     private kpiService = inject(KpiService);
     private dashboardDataService = inject(DashboardDataService);
+    private themeService = inject(ThemeService);
     private router = inject(Router);
 
     @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
@@ -223,6 +226,16 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     topPerformer = 'N/A';
     worstPerformer = 'N/A';
     avgScoreMonth = 0;
+
+    constructor() {
+        effect(() => {
+            this.themeService.isDarkMode();
+            setTimeout(() => {
+                this.initCharts();
+                this.initRadarChart();
+            }, 100);
+        });
+    }
 
     ngOnInit() {
         const user = this.authService.currentUser();
@@ -276,6 +289,11 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
         if (this.barChart) this.barChart.destroy();
         if (this.pieChart) this.pieChart.destroy();
 
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
         const shops = [...new Set(this.audits.map(a => a.coffeeShop))];
         const shopScores = shops.map(shop => {
             const shopAudits = this.audits.filter(a => a.coffeeShop === shop);
@@ -286,11 +304,22 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
             type: 'bar',
             data: {
                 labels: shops.map(s => s.replace('Caribou ', '')),
-                datasets: [{ label: 'Score Moyen (%)', data: shopScores, backgroundColor: '#00637F', borderRadius: 4, barThickness: 40 }]
+                datasets: [{ label: 'Score Moyen (%)', data: shopScores, backgroundColor: primaryColor, borderRadius: 4, barThickness: 40 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        max: 100, 
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    }, 
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    } 
+                },
                 plugins: { legend: { display: false } }
             }
         });
@@ -302,9 +331,19 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
             type: 'doughnut',
             data: {
                 labels: ['Conforme', 'Non-conforme'],
-                datasets: [{ data: [conforming, nonConforming], backgroundColor: ['#00637F', '#5D4037'], borderWidth: 0, hoverOffset: 4 }]
+                datasets: [{ data: [conforming, nonConforming], backgroundColor: [primaryColor, secondaryColor], borderWidth: 0, hoverOffset: 4 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: textColor }
+                    } 
+                }, 
+                cutout: '70%' 
+            }
         });
     }
 
@@ -319,6 +358,10 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
         // Don't draw if no data yet to avoid empty chart glitch
         if (labels.length === 0) return;
 
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
         this.radarChart = new Chart(this.radarChartRef.nativeElement, {
             type: 'radar',
             data: {
@@ -326,12 +369,12 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
                 datasets: [{
                     label: 'Score Moyen (%)',
                     data: data,
-                    backgroundColor: 'rgba(0, 99, 127, 0.2)',
-                    borderColor: '#00637F',
-                    pointBackgroundColor: '#00637F',
+                    backgroundColor: primaryColor + '33', // 20% opacity
+                    borderColor: primaryColor,
+                    pointBackgroundColor: primaryColor,
                     pointBorderColor: '#fff',
                     pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#00637F'
+                    pointHoverBorderColor: primaryColor
                 }]
             },
             options: {
@@ -339,10 +382,16 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
                 maintainAspectRatio: false,
                 scales: {
                     r: {
-                        angleLines: { display: true },
+                        angleLines: { color: gridColor },
+                        grid: { color: gridColor },
+                        pointLabels: { color: textColor },
                         suggestedMin: 0,
                         suggestedMax: 100,
-                        ticks: { stepSize: 20 }
+                        ticks: { 
+                            stepSize: 20,
+                            backdropColor: 'transparent',
+                            color: textColor
+                        }
                     }
                 },
                 plugins: { legend: { display: false } }

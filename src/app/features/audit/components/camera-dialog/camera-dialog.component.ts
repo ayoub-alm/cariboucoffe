@@ -72,9 +72,9 @@ import { MatIconModule } from '@angular/material/icon';
     .cam-preview { width: 100%; display: block; border-radius: 8px; }
     .cam-error, .cam-loading {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
-      padding: 40px 20px; color: #666; text-align: center;
+      padding: 40px 20px; color: var(--on-surface-variant); text-align: center;
     }
-    .cam-error mat-icon, .cam-loading mat-icon { font-size: 48px; width: 48px; height: 48px; color: #999; }
+    .cam-error mat-icon, .cam-loading mat-icon { font-size: 48px; width: 48px; height: 48px; color: var(--outline); }
     .cam-error p, .cam-loading p { margin: 0; font-size: 14px; }
     .cam-actions { padding: 8px 24px 16px; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

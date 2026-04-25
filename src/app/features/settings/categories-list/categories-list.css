@@ -257,7 +257,7 @@
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .container {
         padding: 12px;
     }
@@ -266,47 +266,61 @@
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
     }
 
     .header-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-end;
+    }
+    
+    .page-header h1 {
+        font-size: 20px;
+    }
+
+    .search-wrapper {
+        position: sticky;
+        top: 60px; /* Below the main app bar if any */
+        z-index: 10;
+        margin-bottom: 12px;
+        background: var(--surface);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     
     .drag-item {
         padding: 12px;
-        gap: 8px;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .drag-handle {
+        padding-top: 4px;
     }
     
     .category-icon-chip {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .category-icon-chip mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        width: 36px;
+        height: 36px;
+        margin-top: 2px;
     }
     
     .category-name {
-        font-size: 14px;
+        font-size: 15px;
+        white-space: normal;
+        line-height: 1.3;
+    }
+    
+    .category-desc {
+        font-size: 12px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.4;
     }
     
     .score-badge {
         min-width: 44px;
         padding: 4px 8px;
     }
-    
-    .score-value {
-        font-size: 14px;
-    }
-    
-    .score-label {
-        font-size: 9px;
-    }
-    
-    .item-actions .mat-mdc-icon-button {
-        padding: 4px;
-    }
-}
+}

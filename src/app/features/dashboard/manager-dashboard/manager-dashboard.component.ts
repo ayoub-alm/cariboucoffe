@@ -11,6 +11,8 @@ import { KpiService } from '../../../core/services/kpi.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { FilterBarComponent, DashboardFilters } from '../../../shared/components/filter-bar/filter-bar.component';
 import { DashboardDataService } from '../../../core/services/dashboard-data.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { effect } from '@angular/core';
 
 Chart.register(...registerables);
 
@@ -122,9 +124,9 @@ Chart.register(...registerables);
         .stat-card { border-radius: 12px; transition: transform 0.2s; box-shadow: var(--shadow-sm); background: var(--surface); color: var(--on-surface); }
         .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .stat-icon-container { border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; }
-        .stat-icon-container.blue { background-color: #e5eff2; color: #00637F; }
-        .stat-icon-container.gold { background-color: #faf6eb; color: #cda252; }
-        .stat-icon-container.brown { background-color: #efeceb; color: #5D4037; }
+        .stat-icon-container.blue { background-color: var(--primary-container); color: var(--on-primary-container); }
+        .stat-icon-container.gold { background-color: var(--warning-container); color: var(--on-warning-container); }
+        .stat-icon-container.brown { background-color: var(--surface-container-highest); color: var(--on-surface); }
         .stat-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant); }
         .stat-value { font-size: 32px; font-weight: 700; color: var(--on-surface); margin-top: 8px; }
 
@@ -139,13 +141,13 @@ Chart.register(...registerables);
         .audit-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .audit-card-body { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
         .score-display { font-size: 28px; font-weight: 700; }
-        .score-display.good { color: #4CAF50; }
-        .score-display.medium { color: #FF9800; }
-        .score-display.bad { color: #F44336; }
+        .score-display.good { color: var(--success); }
+        .score-display.medium { color: var(--warning); }
+        .score-display.bad { color: var(--error); }
         .status-chip { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .status-chip.conforme { background: #e8f5e9; color: #2e7d32; }
-        .status-chip.non-conforme { background: #ffebee; color: #c62828; }
-        .status-chip.en-cours { background: #fff3e0; color: #e65100; }
+        .status-chip.conforme { background: var(--success-container); color: var(--on-success-container); }
+        .status-chip.non-conforme { background: var(--error-container); color: var(--on-error-container); }
+        .status-chip.en-cours { background: var(--warning-container); color: var(--on-warning-container); }
         .empty-state { text-align: center; padding: 48px; border-radius: 16px; background: var(--surface); }
         .empty-icon { font-size: 64px; width: 64px; height: 64px; color: var(--on-surface-variant); margin-bottom: 16px; }
 
@@ -173,10 +175,12 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
     private dashboardDataService = inject(DashboardDataService);
+    private themeService = inject(ThemeService);
     private router = inject(Router);
 
     @ViewChild('scoreChart') scoreChartRef!: ElementRef<HTMLCanvasElement>;
     private chart: Chart | undefined;
+    private themeSub: any;
 
     allAudits: Audit[] = [];
     audits: Audit[] = [];
@@ -187,6 +191,14 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
     averageScore = 0;
     complianceRate = 0;
     auditsThisMonth = 0;
+
+    constructor() {
+        effect(() => {
+            // Re-init chart when theme changes
+            this.themeService.isDarkMode();
+            setTimeout(() => this.initChart(), 100);
+        });
+    }
 
     ngOnInit() {
         const user = this.authService.currentUser();
@@ -230,6 +242,11 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
         
         if (this.chart) this.chart.destroy();
         
+        const isDark = this.themeService.isDarkMode();
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
         const last10 = this.audits.slice(0, 10).reverse();
         this.chart = new Chart(this.scoreChartRef.nativeElement, {
             type: 'line',
@@ -238,21 +255,39 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
                 datasets: [{
                     label: 'Score (%)',
                     data: last10.map(a => a.score),
-                    borderColor: '#326295',
-                    backgroundColor: 'rgba(50,98,149,0.1)',
+                    borderColor: primaryColor,
+                    backgroundColor: primaryColor + '1A', // 10% opacity
                     fill: true,
                     tension: 0.3,
-                    pointRadius: 4
+                    pointRadius: 4,
+                    pointBackgroundColor: primaryColor
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: true, 
+                        max: 100, 
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    }
                 },
-                plugins: { legend: { display: false } }
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#3c4043' : '#fff',
+                        titleColor: isDark ? '#fff' : '#202124',
+                        bodyColor: isDark ? '#e8eaed' : '#5f6368',
+                        borderColor: gridColor,
+                        borderWidth: 1
+                    }
+                }
             }
         });
     }

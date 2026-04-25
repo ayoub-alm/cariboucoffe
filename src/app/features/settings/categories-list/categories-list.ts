@@ -14,6 +14,7 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category.model';
 import { CategoryDialogComponent } from '../category-dialog/category-dialog';
+import { ConformityConfigDialogComponent } from '../conformity-config-dialog/conformity-config-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models/user.model';
 
@@ -109,12 +110,20 @@ export class CategoriesListComponent implements OnInit {
   }
 
   openAddDialog() {
-    this.dialog.open(CategoryDialogComponent, { width: '500px', data: null })
+    this.dialog.open(CategoryDialogComponent, { 
+      width: '100%',
+      maxWidth: '500px',
+      data: null 
+    })
       .afterClosed().subscribe(r => { if (r) this.loadCategories(); });
   }
 
   openEditDialog(category: Category) {
-    this.dialog.open(CategoryDialogComponent, { width: '500px', data: category })
+    this.dialog.open(CategoryDialogComponent, { 
+      width: '100%',
+      maxWidth: '500px',
+      data: category 
+    })
       .afterClosed().subscribe(r => { if (r) this.loadCategories(); });
   }
 
@@ -132,5 +141,12 @@ export class CategoriesListComponent implements OnInit {
 
   viewQuestions(category: Category) {
     this.router.navigate(['/settings/questions', category.id]);
+  }
+
+  openConfigDialog() {
+    this.dialog.open(ConformityConfigDialogComponent, {
+      width: '100%',
+      maxWidth: '450px'
+    });
   }
 }

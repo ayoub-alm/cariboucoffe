@@ -1,4 +1,4 @@
-<div class="details-container" *ngIf="audit() as a; else loading" #auditContent>
+<div class="details-container p-1" *ngIf="audit() as a; else loading" #auditContent>
 
     <!-- Image Lightbox Modal -->
     <div class="lightbox-overlay" *ngIf="lightboxImage" (click)="closeLightbox()">
@@ -52,13 +52,13 @@
             </div>
         </div>
 
-        <div class="header-right">
+        <div class="header-right p-5">
             <div class="header-score-badge" [ngClass]="getScoreClass(a.score)">
                 <span class="score-number">{{ a.score }}%</span>
                 <span class="total-points-label" *ngIf="getTotalPoints() as points">
                     ({{ points.obtained }} / {{ points.total }} pts)
                 </span>
-                <div class="status-badges-container">
+                <div class="status-badges-container" >
                     <span *ngIf="a.workflowStatus === 'IN_PROGRESS'" class="status-chip en-cours">Audit en cours</span>
                     <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
 
@@ -70,11 +70,11 @@
             </div>
 
             <div class="header-buttons-row">
-                <!-- Admin Edit Button -->
+                <!-- Edit Button -->
                 <button mat-flat-button color="primary" class="edit-audit-btn" 
-                    *ngIf="canSeeAuditor()"
+                    *ngIf="canEditAudit()"
                     [routerLink]="['/audits', a.id, 'edit']"
-                    matTooltip="Modifier cet audit (Admin)">
+                    matTooltip="Modifier cet audit">
                     <mat-icon>edit</mat-icon>
                     Modifier
                 </button>
@@ -90,7 +90,7 @@
     </div>
 
     <!-- General Info Bar -->
-    <div class="info-bar" *ngIf="a.staffPresent || a.shift">
+    <div class="info-bar p-5" *ngIf="a.staffPresent || a.shift">
         <div class="info-bar-item" *ngIf="a.shift">
             <mat-icon class="info-bar-icon">schedule</mat-icon>
             <div>

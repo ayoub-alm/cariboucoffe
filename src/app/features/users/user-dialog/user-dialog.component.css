@@ -1,9 +1,10 @@
 .user-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    min-width: 500px;
-    padding: 16px 0;
+    gap: 12px;
+    width: 100%;
+    max-width: 500px;
+    padding: 8px 0;
 }
 
 .form-row {
@@ -12,6 +13,28 @@
     gap: 16px;
 }
 
+@media (max-width: 600px) {
+    .user-form {
+        min-width: auto;
+    }
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    mat-dialog-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    mat-dialog-actions button {
+        margin: 0 !important;
+        width: 100%;
+    }
+}
+
 mat-form-field {
     width: 100%;
 }
+

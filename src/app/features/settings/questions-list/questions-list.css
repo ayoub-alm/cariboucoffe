@@ -34,8 +34,12 @@
 }
 
 .cat-icon {
-    font-size: 22px;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: var(--primary);
 }
+
 
 .subtitle {
     font-size: 13px;
@@ -291,7 +295,7 @@
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .container {
         padding: 12px;
     }
@@ -299,48 +303,70 @@
     .page-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 16px;
+        gap: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+
+    .header-left {
+        gap: 4px;
+    }
+
+    .back-btn {
+        margin-left: -8px;
+    }
+
+    .page-header h1 {
+        font-size: 18px;
     }
 
     .header-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-end;
+    }
+
+    .search-wrapper {
+        position: sticky;
+        top: 60px;
+        z-index: 10;
+        margin-bottom: 12px;
+        background: var(--surface);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     
     .drag-item {
         padding: 12px;
-        gap: 8px;
+        gap: 10px;
+        align-items: flex-start;
     }
     
+    .drag-handle {
+        padding-top: 4px;
+    }
+
     .index-badge {
         min-width: 24px;
         height: 24px;
         font-size: 11px;
+        margin-top: 2px;
     }
     
     .question-text {
-        font-size: 13px;
-        margin-bottom: 4px;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     
     .weight-badge {
-        min-width: 40px;
-        padding: 4px 6px;
-    }
-    
-    .weight-value {
-        font-size: 13px;
-    }
-    
-    .weight-label {
-        font-size: 9px;
-    }
-    
-    .item-actions .mat-mdc-icon-button {
-        padding: 4px;
+        min-width: 44px;
+        padding: 4px 8px;
     }
     
     .meta-chip {
         font-size: 10px;
+        padding: 1px 6px;
     }
-}
+}

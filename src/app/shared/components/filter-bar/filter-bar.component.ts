@@ -86,10 +86,10 @@ export interface DashboardFilters {
       gap: 16px;
       margin-bottom: 24px;
       align-items: center;
-      background: var(--surface, #ffffff);
+      background: var(--surface);
       padding: 16px 24px;
       border-radius: 12px;
-      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.1));
+      box-shadow: var(--shadow-sm);
     }
     .filter-field {
       flex: 1 1 200px;
