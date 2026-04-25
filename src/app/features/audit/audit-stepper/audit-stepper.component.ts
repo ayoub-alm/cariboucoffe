@@ -507,15 +507,18 @@ export class AuditStepperComponent {
     }
 
     onStepChange(event: StepperSelectionEvent) {
-        // Small timeout lets Angular finish rendering the expanded step content
-        // before we scroll — otherwise we land at the bottom of the section.
+        // Wait for Material's vertical-stepper expand animation (~300ms) to finish
+        // so the layout has settled before we measure positions. Otherwise we'd
+        // scroll to a stale position and the user lands on the bottom (last
+        // question) of the newly opened step instead of the top (first question).
         setTimeout(() => {
             const stepHeaders = document.querySelectorAll('.mat-step-header');
             const header = stepHeaders[event.selectedIndex] as HTMLElement;
             if (header) {
+                // Relies on scroll-margin-top in CSS to avoid the sticky header
                 header.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }, 50);
+        }, 300);
     }
 
     submitAudit() {
