@@ -19,6 +19,20 @@
 </head>
 
 <body class="mat-typography">
+  <script>
+    // Capture the PWA install prompt as early as possible (before Angular bootstraps).
+    // Otherwise the event fires before our PwaInstallService is instantiated and we miss it.
+    window.__pwaDeferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      window.__pwaDeferredPrompt = e;
+      window.dispatchEvent(new CustomEvent('pwa-install-available'));
+    });
+    window.addEventListener('appinstalled', function () {
+      window.__pwaDeferredPrompt = null;
+      window.dispatchEvent(new CustomEvent('pwa-installed'));
+    });
+  </script>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>

@@ -10,9 +10,22 @@ interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+/**
+ * Globals stashed by the early-capture script in index.html.
+ * That script captures `beforeinstallprompt` BEFORE Angular bootstraps so we don't miss it.
+ */
+declare global {
+    interface Window {
+        __pwaDeferredPrompt: BeforeInstallPromptEvent | null;
+    }
+}
+
 @Injectable({ providedIn: 'root' })
 export class PwaInstallService {
-    private deferredPrompt = signal<BeforeInstallPromptEvent | null>(null);
+    private deferredPrompt = signal<BeforeInstallPromptEvent | null>(
+        // Pick up any prompt that was captured before Angular booted
+        (typeof window !== 'undefined' && window.__pwaDeferredPrompt) || null
+    );
     private installed = signal(this.detectStandalone());
 
     /** True when the browser fired beforeinstallprompt and we can show the native prompt. */
@@ -35,12 +48,28 @@ export class PwaInstallService {
     readonly showInstallButton = computed(() => !this.installed());
 
     constructor() {
+        // Direct listener (in case the event fires AFTER Angular is up — covers late triggers).
         window.addEventListener('beforeinstallprompt', (e: Event) => {
             e.preventDefault();
             this.deferredPrompt.set(e as BeforeInstallPromptEvent);
+            window.__pwaDeferredPrompt = e as BeforeInstallPromptEvent;
+        });
+
+        // Custom event from the early-capture script in index.html (covers events fired
+        // before Angular bootstrapped but after the page loaded).
+        window.addEventListener('pwa-install-available', () => {
+            if (window.__pwaDeferredPrompt) {
+                this.deferredPrompt.set(window.__pwaDeferredPrompt);
+            }
         });
 
         window.addEventListener('appinstalled', () => {
+            this.deferredPrompt.set(null);
+            window.__pwaDeferredPrompt = null;
+            this.installed.set(true);
+        });
+
+        window.addEventListener('pwa-installed', () => {
             this.deferredPrompt.set(null);
             this.installed.set(true);
         });
@@ -57,6 +86,7 @@ export class PwaInstallService {
         await prompt.prompt();
         const choice = await prompt.userChoice;
         this.deferredPrompt.set(null);
+        window.__pwaDeferredPrompt = null;
         return choice.outcome;
     }
 
