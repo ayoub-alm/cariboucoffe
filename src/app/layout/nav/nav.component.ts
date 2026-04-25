@@ -1,4 +1,4 @@
-import { Component, inject, computed, isDevMode } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AsyncPipe, NgIf, Location } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -15,12 +15,9 @@ import { map, shareReplay, filter } from 'rxjs/operators';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { PwaInstallService } from '../../core/services/pwa-install.service';
 import { UserRole, getRoleDisplayName } from '../../core/models/user.model';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChangePasswordDialogComponent } from '../../features/users/change-password-dialog/change-password-dialog.component';
-import { PwaInstallIosDialogComponent } from '../pwa-install-ios-dialog/pwa-install-ios-dialog.component';
 
 @Component({
     selector: 'app-nav',
@@ -48,9 +45,7 @@ export class NavComponent {
     private router = inject(Router);
     private authService = inject(AuthService);
     themeService = inject(ThemeService);
-    pwaInstall = inject(PwaInstallService);
     private dialog = inject(MatDialog);
-    private snackBar = inject(MatSnackBar);
     private location = inject(Location);
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
@@ -135,43 +130,6 @@ export class NavComponent {
     openChangePasswordDialog() {
 
         this.dialog.open(ChangePasswordDialogComponent, { width: '400px' });
-    }
-
-    async installPwa() {
-        if (this.pwaInstall.isIosSafari) {
-            this.dialog.open(PwaInstallIosDialogComponent, { width: '420px', autoFocus: false });
-            return;
-        }
-
-        if (this.pwaInstall.isIos) {
-            // iOS Chrome/Firefox can't install PWAs — direct user to Safari.
-            this.snackBar.open(
-                "Sur iOS, ouvrez ce site dans Safari pour installer l'application",
-                'OK',
-                { duration: 5000 }
-            );
-            return;
-        }
-
-        if (this.pwaInstall.canInstall()) {
-            const outcome = await this.pwaInstall.promptInstall();
-            if (outcome === 'accepted') {
-                this.snackBar.open('Application installée', 'OK', { duration: 3000 });
-            } else if (outcome === 'dismissed') {
-                this.snackBar.open('Installation annulée', 'OK', { duration: 2000 });
-            }
-            return;
-        }
-
-        // No native prompt fired yet. Common reasons:
-        //   - Dev mode (service worker is disabled, so PWA criteria aren't met)
-        //   - Browser doesn't support PWA install (Firefox desktop)
-        //   - Site is served over HTTP (not HTTPS) in production
-        //   - First page load — Chrome may need a few seconds + user engagement before firing the event
-        const msg = isDevMode()
-            ? "Installation indisponible en mode développement. Lancez une build de production pour tester."
-            : "L'installation n'est pas disponible sur ce navigateur. Essayez Chrome, Edge ou Safari (iOS).";
-        this.snackBar.open(msg, 'OK', { duration: 5000 });
     }
 
     goBack() {

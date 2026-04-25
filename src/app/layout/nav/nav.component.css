@@ -247,30 +247,6 @@
   font-weight: 500;
 }
 
-/* PWA Install button (mobile sidebar — under logout) */
-.install-pwa-item {
-  cursor: pointer;
-  color: var(--primary) !important;
-  transition: background-color 0.2s ease;
-}
-
-.install-pwa-item:hover {
-  background-color: var(--primary-container) !important;
-}
-
-.install-pwa-item .install-icon {
-  color: var(--primary) !important;
-}
-
-/* PWA Install entry inside the desktop user dropdown menu */
-::ng-deep .install-pwa-menu-item {
-  color: var(--primary) !important;
-}
-
-::ng-deep .install-pwa-menu-item mat-icon {
-  color: var(--primary) !important;
-}
-
 /* Sidebar Footer Illustration */
 .sidebar-footer-illustration {
   margin-top: auto;
