@@ -4,6 +4,8 @@ export interface Coffee {
     name: string;
     location: string;
     active: boolean;
+    opening_time?: string;
+    closing_time?: string;
 }
 
 export interface CoffeeCreate {
@@ -11,6 +13,8 @@ export interface CoffeeCreate {
     name: string;
     location: string;
     active: boolean;
+    opening_time?: string;
+    closing_time?: string;
 }
 
 export interface CoffeeUpdate {
@@ -18,4 +22,6 @@ export interface CoffeeUpdate {
     name?: string;
     location?: string;
     active?: boolean;
+    opening_time?: string;
+    closing_time?: string;
 }

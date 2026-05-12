@@ -6,6 +6,7 @@ import { AuditorDashboardComponent } from '../auditor-dashboard/auditor-dashboar
 import { ManagerDashboardComponent } from '../manager-dashboard/manager-dashboard.component';
 import { BossDashboardComponent } from '../boss-dashboard/boss-dashboard.component';
 import { ViewerDashboardComponent } from '../viewer-dashboard/viewer-dashboard.component';
+import { ControllerDashboardComponent } from '../controller-dashboard/controller-dashboard.component';
 
 @Component({
     selector: 'app-role-dashboard',
@@ -15,7 +16,8 @@ import { ViewerDashboardComponent } from '../viewer-dashboard/viewer-dashboard.c
         AuditorDashboardComponent,
         ManagerDashboardComponent,
         BossDashboardComponent,
-        ViewerDashboardComponent
+        ViewerDashboardComponent,
+        ControllerDashboardComponent
     ],
     template: `
         @switch (userRole()) {
@@ -33,6 +35,9 @@ import { ViewerDashboardComponent } from '../viewer-dashboard/viewer-dashboard.c
             }
             @case ('VIEWER') {
                 <app-viewer-dashboard />
+            }
+            @case ('CONTROLLER') {
+                <app-controller-dashboard />
             }
             @default {
                 <app-viewer-dashboard />

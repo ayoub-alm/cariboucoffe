@@ -14,6 +14,7 @@ export interface KPIData {
     audits_this_month: number;
     average_score_this_month: number;
     scores_per_category: { [key: string]: number };
+    timing_scores: { [key: string]: number };
 }
 
 /** KPI card for UI display */

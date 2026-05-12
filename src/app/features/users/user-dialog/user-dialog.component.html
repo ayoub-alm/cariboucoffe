@@ -45,6 +45,7 @@
                     <mat-option value="MANAGER">Manager</mat-option>
                     <mat-option value="BOSS">Directeur</mat-option>
                     <mat-option value="VIEWER">Visualiseur</mat-option>
+                    <mat-option value="CONTROLLER">Contrôleur</mat-option>
                 </mat-select>
                 <mat-error *ngIf="userForm.get('role')?.hasError('required')">Requis</mat-error>
             </mat-form-field>
@@ -59,8 +60,8 @@
             </mat-form-field>
         </div>
 
-        <!-- Single coffee for Viewer -->
-        <mat-form-field appearance="outline" class="full-width" *ngIf="selectedRole === 'VIEWER'">
+        <!-- Single coffee for Viewer & Controller -->
+        <mat-form-field appearance="outline" class="full-width" *ngIf="selectedRole === 'VIEWER' || selectedRole === 'CONTROLLER'">
             <mat-label>Café Assigné</mat-label>
             <mat-select formControlName="coffee_id">
                 <mat-option [value]="null">— Aucun café —</mat-option>
@@ -79,7 +80,7 @@
                 </mat-option>
                 }
             </mat-select>
-            <mat-hint>Café dont le visualiseur voit les audits</mat-hint>
+            <mat-hint>Café assigné à cet utilisateur</mat-hint>
         </mat-form-field>
 
         <!-- Multiple coffees for Manager -->

@@ -141,6 +141,17 @@ Chart.register(...registerables);
                </div>
             </mat-card-content>
          </mat-card>
+
+         <mat-card class="chart-card">
+            <mat-card-header>
+                <mat-card-title>Score Ouverture/Fermeture (Mois)</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+               <div class="chart-container">
+                   <canvas #timingScoresCanvas></canvas>
+               </div>
+            </mat-card-content>
+         </mat-card>
       </div>
     </div>
   `,
@@ -232,11 +243,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('pieCanvas') pieCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('categoryCanvas') categoryCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('cafeComplianceCanvas') cafeComplianceCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('timingScoresCanvas') timingScoresCanvas!: ElementRef<HTMLCanvasElement>;
 
   private barChart: Chart | undefined;
   private pieChart: Chart | undefined;
   private categoryChart: Chart | undefined;
   private cafeComplianceChart: Chart | undefined;
+  private timingChart: Chart | undefined;
 
   totalAudits = 0;
   averageScore = 0;
@@ -246,6 +259,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   topPerformer = '';
   allAudits: Audit[] = [];
   audits: Audit[] = [];
+  timingScores: { [key: string]: number } = {};
   currentFilters: DashboardFilters = { startDate: null, endDate: null, coffeeShop: null, auditorName: null, categoryName: null };
 
   constructor() {
@@ -267,12 +281,19 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.pieChart) this.pieChart.destroy();
     if (this.categoryChart) this.categoryChart.destroy();
     if (this.cafeComplianceChart) this.cafeComplianceChart.destroy();
+    if (this.timingChart) this.timingChart.destroy();
   }
 
   loadData() {
     this.auditService.getAudits().subscribe(data => {
       this.allAudits = data;
       this.applyFilters();
+    });
+    this.kpiService.getKPI().subscribe(kpiData => {
+       if (kpiData && kpiData.timing_scores) {
+          this.timingScores = kpiData.timing_scores;
+          setTimeout(() => this.initTimingChart(), 100);
+       }
     });
   }
 
@@ -462,6 +483,55 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           data: cafeCompliance,
           backgroundColor: cafeCompliance.map(rate =>
             rate >= 85 ? primaryColor : rate >= 70 ? secondaryColor : errorColor
+          ),
+          borderRadius: 4,
+          barThickness: 40
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { 
+            beginAtZero: true, 
+            max: 100, 
+            grid: { color: gridColor },
+            ticks: { color: textColor }
+          },
+          x: { 
+            grid: { display: false },
+            ticks: { color: textColor }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  initTimingChart() {
+    if (!this.timingScoresCanvas) return;
+    if (this.timingChart) this.timingChart.destroy();
+
+    const labels = Object.keys(this.timingScores);
+    const data = Object.values(this.timingScores);
+
+    if (labels.length === 0) return;
+
+    const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+    const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+    const errorColor = this.themeService.getColor('--error') || '#d93025';
+    const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+    const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
+    this.timingChart = new Chart(this.timingScoresCanvas.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Score Horaires (%)',
+          data: data,
+          backgroundColor: data.map(rate =>
+            rate >= 80 ? primaryColor : rate >= 50 ? secondaryColor : errorColor
           ),
           borderRadius: 4,
           barThickness: 40

@@ -8,7 +8,8 @@ export enum UserRole {
     AUDITOR = 'AUDITOR',
     MANAGER = 'MANAGER',
     BOSS = 'BOSS',
-    VIEWER = 'VIEWER'
+    VIEWER = 'VIEWER',
+    CONTROLLER = 'CONTROLLER'
 }
 
 /** Per-action permissions for a single module */
@@ -94,6 +95,8 @@ export function getRoleDisplayName(role: UserRole): string {
             return 'Directeur';
         case UserRole.VIEWER:
             return 'Visualiseur';
+        case UserRole.CONTROLLER:
+            return 'Contrôleur';
         default:
             return role;
     }
@@ -112,6 +115,8 @@ export function getRoleColor(role: UserRole): string {
             return 'accent';
         case UserRole.VIEWER:
             return 'warn';
+        case UserRole.CONTROLLER:
+            return 'accent';
         default:
             return 'default';
     }

@@ -61,6 +61,23 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
         </div>
 
         <div class="form-section">
+          <h3 class="section-title">Horaires Standard</h3>
+          <div style="display: flex; gap: 16px;">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Heure d'ouverture</mat-label>
+              <mat-icon matPrefix>schedule</mat-icon>
+              <input matInput type="time" formControlName="opening_time">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Heure de fermeture</mat-label>
+              <mat-icon matPrefix>schedule</mat-icon>
+              <input matInput type="time" formControlName="closing_time">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="form-section">
           <h3 class="section-title">Localisation & Statut</h3>
           
           <mat-form-field appearance="outline" class="full-width">
@@ -264,7 +281,9 @@ export class CoffeeDialogComponent {
       ref: [data?.ref || ''],
       name: [data?.name || '', Validators.required],
       location: [data?.location || '', Validators.required],
-      active: [data?.active ?? true]
+      active: [data?.active ?? true],
+      opening_time: [data?.opening_time || ''],
+      closing_time: [data?.closing_time || '']
     });
   }
 

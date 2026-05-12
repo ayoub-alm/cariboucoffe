@@ -94,6 +94,11 @@ Chart.register(...registerables);
                 <mat-card-header><mat-card-title>Scores par Catégorie</mat-card-title></mat-card-header>
                 <mat-card-content><div class="chart-container"><canvas #radarChart></canvas></div></mat-card-content>
             </mat-card>
+
+            <mat-card class="chart-card">
+                <mat-card-header><mat-card-title>Score Ouverture/Fermeture (Mois)</mat-card-title></mat-card-header>
+                <mat-card-content><div class="chart-container"><canvas #timingScoresCanvas></canvas></div></mat-card-content>
+            </mat-card>
         </div>
 
         <div class="section-header">
@@ -208,11 +213,14 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
     @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
     @ViewChild('pieChart') pieChartRef!: ElementRef<HTMLCanvasElement>;
     @ViewChild('radarChart') radarChartRef!: ElementRef<HTMLCanvasElement>;
+    @ViewChild('timingScoresCanvas') timingScoresCanvas!: ElementRef<HTMLCanvasElement>;
     private barChart: Chart | undefined;
     private pieChart: Chart | undefined;
     private radarChart: Chart | undefined;
+    private timingChart: Chart | undefined;
 
     categoryScores: { [key: string]: number } = {};
+    timingScores: { [key: string]: number } = {};
 
     allAudits: Audit[] = [];
     audits: Audit[] = [];
@@ -249,12 +257,19 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
         if (this.barChart) this.barChart.destroy();
         if (this.pieChart) this.pieChart.destroy();
         if (this.radarChart) this.radarChart.destroy();
+        if (this.timingChart) this.timingChart.destroy();
     }
 
     loadData() {
         this.auditService.getAudits().subscribe(data => {
             this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             this.applyFilters();
+        });
+        this.kpiService.getKPI().subscribe(kpiData => {
+           if (kpiData && kpiData.timing_scores) {
+              this.timingScores = kpiData.timing_scores;
+              setTimeout(() => this.initTimingChart(), 100);
+           }
         });
     }
 
@@ -405,5 +420,54 @@ export class BossDashboardComponent implements OnInit, AfterViewInit, OnDestroy 
 
     viewAudit(audit: Audit) {
         this.router.navigate(['/audits', audit.id]);
+    }
+
+    initTimingChart() {
+        if (!this.timingScoresCanvas) return;
+        if (this.timingChart) this.timingChart.destroy();
+
+        const labels = Object.keys(this.timingScores);
+        const data = Object.values(this.timingScores);
+
+        if (labels.length === 0) return;
+
+        const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
+        const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+        const errorColor = this.themeService.getColor('--error') || '#d93025';
+        const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+        const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+
+        this.timingChart = new Chart(this.timingScoresCanvas.nativeElement, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Score Horaires (%)',
+              data: data,
+              backgroundColor: data.map(rate =>
+                rate >= 80 ? primaryColor : rate >= 50 ? secondaryColor : errorColor
+              ),
+              borderRadius: 4,
+              barThickness: 40
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { 
+                beginAtZero: true, 
+                max: 100, 
+                grid: { color: gridColor },
+                ticks: { color: textColor }
+              },
+              x: { 
+                grid: { display: false },
+                ticks: { color: textColor }
+              }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
     }
 }
