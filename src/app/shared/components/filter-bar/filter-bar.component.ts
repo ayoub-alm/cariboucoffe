@@ -13,9 +13,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AuditService } from '../../../core/services/audit.service';
+import { UserService } from '../../../core/services/user.service';
 
 import { Coffee } from '../../../core/models/coffee.model';
 import { Category } from '../../../core/models/category.model';
+import { UserRole } from '../../../core/models/user.model';
 
 export interface DashboardFilters {
   startDate: Date | null;
@@ -106,6 +108,7 @@ export class FilterBarComponent implements OnInit {
   private coffeeService = inject(CoffeeService);
   private categoryService = inject(CategoryService);
   private auditService = inject(AuditService);
+  private userService = inject(UserService);
 
   coffees: Coffee[] = [];
   auditors: string[] = [];
@@ -122,15 +125,16 @@ export class FilterBarComponent implements OnInit {
   ngOnInit() {
     this.categoryService.getCategories().subscribe(c => this.categories = c);
     
-    // We fetch audits to extract only the coffees and auditors the user has access to
-    this.auditService.getAudits().subscribe(audits => {
-      // Unique coffees
-      const uniqueCoffees = Array.from(new Set(audits.map(a => a.coffeeShop))).filter(Boolean);
-      this.coffees = uniqueCoffees.map(name => ({ name, id: 0, location: '', active: true } as Coffee));
+    // Load ALL coffees from database
+    this.coffeeService.getCoffees().subscribe(coffees => {
+      this.coffees = coffees;
+    });
 
-      // Unique auditors
-      const uniqueAuditors = Array.from(new Set(audits.map(a => a.auditorName))).filter(Boolean);
-      this.auditors = uniqueAuditors;
+    // Load ALL auditors from database
+    this.userService.getUsers().subscribe(users => {
+      const allowedRoles = [UserRole.AUDITOR, UserRole.ADMIN, UserRole.BOSS];
+      const filteredUsers = users.filter(u => allowedRoles.includes(u.role));
+      this.auditors = filteredUsers.map(u => u.full_name || u.email).filter(Boolean);
     });
   }
 

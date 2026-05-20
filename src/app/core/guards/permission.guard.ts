@@ -42,7 +42,7 @@ export function permissionGuard(
         // This ensures AUDITOR can toujours manage audits even without explicit UserRights entry
         const hasModuleRole = checks.some(({ module, action }) => {
             if (module === 'audits') {
-                if (user.role === UserRole.AUDITOR && (action === 'create' || action === 'update' || action === 'read')) return true;
+                if ((user.role === UserRole.AUDITOR || user.role === UserRole.CONTROLLER) && (action === 'create' || action === 'update' || action === 'read')) return true;
                 if (user.role === UserRole.BOSS && action === 'read') return true;
             }
             if (module === 'coffees') {

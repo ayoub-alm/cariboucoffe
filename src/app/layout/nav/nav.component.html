@@ -24,7 +24,7 @@
                     <div matListItemTitle>Dashboard</div>
                 </a>
 
-                <a mat-list-item routerLink="/audits" routerLinkActive="active-link">
+                <a mat-list-item routerLink="/audits" routerLinkActive="active-link" *ngIf="canSeeAudits()">
                     <mat-icon matListItemIcon class="nav-icon">list</mat-icon>
                     <div matListItemTitle>Audits</div>
                 </a>
@@ -33,6 +33,12 @@
                 <a mat-list-item routerLink="/coffees" routerLinkActive="active-link" *ngIf="canSeeCoffees()">
                     <mat-icon matListItemIcon class="nav-icon">store</mat-icon>
                     <div matListItemTitle>Cafés</div>
+                </a>
+
+                <!-- Horaires d'Ouverture: admin, boss, or controller -->
+                <a mat-list-item routerLink="/schedules" routerLinkActive="active-link" *ngIf="canSeeSchedules()">
+                    <mat-icon matListItemIcon class="nav-icon">schedule</mat-icon>
+                    <div matListItemTitle>Horaires Cafés</div>
                 </a>
 
                 <!-- Grille d'Audit: admin OR categories/questions read permission -->

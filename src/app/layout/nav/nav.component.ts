@@ -71,6 +71,18 @@ export class NavComponent {
         return !!this.currentUser()?.permissions?.coffees?.read;
     });
 
+    /** Schedules visible to ADMIN, BOSS, and CONTROLLER */
+    canSeeSchedules = computed(() => {
+        const role = this.currentUser()?.role;
+        return role ? [UserRole.ADMIN, UserRole.BOSS, UserRole.CONTROLLER].includes(role) : false;
+    });
+
+    /** Audits visible to anyone except CONTROLLER in sidebar */
+    canSeeAudits = computed(() => {
+        const role = this.currentUser()?.role;
+        return role ? role !== UserRole.CONTROLLER : false;
+    });
+
     /** Grille d'Audit visible if admin OR has categories/questions read permission */
     canSeeSettings = computed(() => {
         if (this.isAdmin()) return true;
@@ -108,6 +120,8 @@ export class NavComponent {
             this.pageTitle = 'Utilisateurs';
         } else if (url.includes('/coffees')) {
             this.pageTitle = 'Cafés';
+        } else if (url.includes('/schedules')) {
+            this.pageTitle = 'Horaires d\'Ouverture';
         } else if (url.includes('/settings')) {
             this.pageTitle = "Grille d'Audit";
         } else {

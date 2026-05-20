@@ -101,6 +101,14 @@ export class UserDialogComponent {
 
             const formValue = this.userForm.getRawValue();
 
+            // Ensure roles other than VIEWER have no assigned coffee_id
+            if (formValue.role !== 'VIEWER') {
+                formValue.coffee_id = null;
+            }
+            if (formValue.role !== 'MANAGER') {
+                formValue.managed_coffee_ids = [];
+            }
+
             // If editing and password empty, remove it to avoid overwriting with empty string
             if (this.data && !formValue.password) {
                 delete formValue.password;

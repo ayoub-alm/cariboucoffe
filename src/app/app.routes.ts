@@ -61,6 +61,13 @@ export const routes: Routes = [
                 canActivate: [permissionGuard({ module: 'coffees', action: 'read' })]
             },
 
+            // ── Schedules — ADMIN, BOSS or CONTROLLER ────────────────────
+            {
+                path: 'schedules',
+                loadComponent: () => import('./features/schedules/schedules.component').then(m => m.SchedulesComponent),
+                canActivate: [roleGuard(UserRole.ADMIN, UserRole.BOSS, UserRole.CONTROLLER)]
+            },
+
             // ── KPI ───────────────────────────────────────────────────────
             {
                 path: 'kpi',

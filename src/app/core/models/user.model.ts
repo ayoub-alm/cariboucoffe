@@ -128,7 +128,7 @@ export function isAdmin(user: User | null): boolean {
 
 export function canCreateAudits(user: User | null): boolean {
     if (!user) return false;
-    if (user.role === UserRole.ADMIN || user.role === UserRole.AUDITOR) return true;
+    if (user.role === UserRole.ADMIN || user.role === UserRole.AUDITOR || user.role === UserRole.CONTROLLER) return true;
     if (user.permissions?.audits?.create) return true;
     return false;
 }
