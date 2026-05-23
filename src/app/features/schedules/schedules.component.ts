@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -24,7 +25,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { Coffee } from '../../core/models/coffee.model';
 import { User, UserRole } from '../../core/models/user.model';
 import { ThemeService } from '../../core/services/theme.service';
+import { ConfigService, ScheduleThreshold } from '../../core/services/config.service';
 import { ScheduleDialogComponent } from './schedule-dialog/schedule-dialog.component';
+import { ThresholdConfigDialogComponent } from './threshold-config-dialog/threshold-config-dialog.component';
 
 Chart.register(...registerables);
 
@@ -48,7 +51,8 @@ Chart.register(...registerables);
     MatSnackBarModule,
     MatTooltipModule,
     MatProgressBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatButtonToggleModule
   ],
   templateUrl: './schedules.component.html',
   styleUrl: './schedules.component.css'
@@ -61,6 +65,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private configService = inject(ConfigService);
   themeService = inject(ThemeService);
 
   @ViewChild('trendChartCanvas') trendChartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -73,6 +78,12 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     const user = this.currentUser();
     return user ? [UserRole.ADMIN, UserRole.BOSS].includes(user.role) : false;
   });
+  isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN);
+
+  // Schedule thresholds (loaded from backend – used for color coding)
+  thresholds: ScheduleThreshold | null = null;
+  get conformeMin(): number { return this.thresholds?.green_min ?? 100; }
+  get partielMin(): number { return this.thresholds?.orange_min ?? 90; }
 
   // State lists
   coffees: Coffee[] = [];
@@ -94,6 +105,12 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   lateOpeningsCount = 0;
   earlyClosuresCount = 0;
 
+  // Calendar State
+  viewMode: 'list' | 'calendar' = 'list';
+  currentMonth = new Date();
+  calendarDays: { date: Date, isCurrentMonth: boolean, logs: any[] }[] = [];
+  weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
   // Charts
   private chart: Chart | undefined;
   
@@ -113,7 +130,13 @@ export class SchedulesComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isLoading = true;
-    
+
+    // Load schedule thresholds
+    this.configService.getScheduleThresholds().subscribe({
+      next: (t) => { this.thresholds = t; },
+      error: () => { /* use defaults */ }
+    });
+
     // Load Coffees
     this.coffeeService.getCoffees().subscribe({
       next: (coffees) => {
@@ -174,50 +197,12 @@ export class SchedulesComponent implements OnInit, OnDestroy {
 
     this.dailyLogService.getLogs(queryParams).subscribe({
       next: (logs) => {
-        // Enriched logs with range-based calculations
+        // Backend now returns score and status — just enrich with names
         const enriched = logs.map(log => {
           const coffee = this.coffees.find(c => c.id === log.coffee_id);
           const coffeeName = coffee ? coffee.name : `Café #${log.coffee_id}`;
-          
-          let score = 0;
-          if (coffee) {
-            let oScore = 0;
-            let cScore = 0;
-            
-            const parseTimeToMinutes = (t: string): number => {
-              const [h, m] = t.split(':').map(Number);
-              return h * 60 + m;
-            };
-
-            // 1. Opening Score (Max 50 points)
-            if (coffee.opening_time && log.opening_time) {
-              const diffO = parseTimeToMinutes(log.opening_time) - parseTimeToMinutes(coffee.opening_time);
-              // Perfect opening if diffO <= 0 (exactly on-time or early).
-              // Otherwise, penalize linearly over a 30-minute range.
-              oScore = diffO <= 0 ? 50 : 50 * (1 - Math.min(diffO / 30, 1));
-            }
-
-            // 2. Closing Score (Max 50 points)
-            if (coffee.closing_time && log.closing_time) {
-              const diffC = parseTimeToMinutes(coffee.closing_time) - parseTimeToMinutes(log.closing_time);
-              // Perfect closing if diffC <= 0 (closed on time or stayed open longer).
-              // Otherwise, penalize linearly over a 30-minute range.
-              cScore = diffC <= 0 ? 50 : 50 * (1 - Math.min(diffC / 30, 1));
-            }
-
-            score = Math.round(oScore + cScore);
-          } else {
-            score = 100; // Fallback
-          }
-          
           const controllerName = this.userMap[log.controller_id] || (log.controller_id === this.currentUser()?.id ? 'Moi' : `Utilisateur #${log.controller_id}`);
-
-          return {
-            ...log,
-            coffeeName,
-            score,
-            controllerName
-          };
+          return { ...log, coffeeName, controllerName };
         });
 
         this.dataSource.data = enriched;
@@ -228,6 +213,11 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         });
 
         this.calculateStats(enriched);
+        
+        if (this.viewMode === 'calendar') {
+           this.generateCalendar();
+        }
+        
         this.isLoading = false;
       },
       error: (err) => {
@@ -346,24 +336,23 @@ export class SchedulesComponent implements OnInit, OnDestroy {
 
       const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
       const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+      const warningColor = '#f57c00';
       const errorColor = this.themeService.getColor('--error') || '#d93025';
       const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
       const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
 
       this.chart = new Chart(this.trendChartCanvas.nativeElement, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: labels.length > 0 ? labels : ['Aucune donnée'],
           datasets: [{
             label: 'Score de Conformité (%)',
             data: scores.length > 0 ? scores : [0],
-            borderColor: primaryColor,
-            backgroundColor: 'rgba(26, 115, 232, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 3,
-            pointBackgroundColor: primaryColor,
-            pointRadius: 4
+            backgroundColor: scores.length > 0 
+                ? scores.map(s => s >= this.conformeMin ? primaryColor : (s >= this.partielMin ? warningColor : errorColor)) 
+                : [primaryColor],
+            borderRadius: 4,
+            barThickness: 40
           }]
         },
         options: {
@@ -381,13 +370,33 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
+  // Open Threshold Config Modal (Admin only)
+  openThresholdConfig() {
+    const ref = this.dialog.open(ThresholdConfigDialogComponent, {
+      width: '600px',
+      data: { current: this.thresholds }
+    });
+    ref.afterClosed().subscribe((updated: ScheduleThreshold | undefined) => {
+      if (updated) {
+        this.thresholds = updated;
+        // Reload logs so backend recomputes scores with new thresholds
+        this.loadLogs();
+      }
+    });
+  }
+
   // Open Reusable dialog modal for Creating or Updating schedules
-  openScheduleDialog(log: DailyTimeRecord | null = null) {
+  openScheduleDialog(log: DailyTimeRecord | null = null, defaultDate: Date | null = null) {
+    const filters = this.filterForm.value;
+    const defaultCoffeeId = (filters && filters.coffee_id && filters.coffee_id !== 'all') ? Number(filters.coffee_id) : null;
+
     const dialogRef = this.dialog.open(ScheduleDialogComponent, {
       width: '600px',
       data: {
         log: log,
-        coffees: this.coffees
+        coffees: this.coffees,
+        defaultDate: defaultDate,
+        defaultCoffeeId: defaultCoffeeId
       }
     });
 
@@ -436,5 +445,60 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     const year = d.getFullYear();
 
     return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
+  }
+
+  // Calendar logic
+  toggleView(mode: 'list' | 'calendar') {
+     this.viewMode = mode;
+     if (mode === 'calendar') {
+        this.generateCalendar();
+     }
+  }
+
+  generateCalendar() {
+     const year = this.currentMonth.getFullYear();
+     const month = this.currentMonth.getMonth();
+     const firstDay = new Date(year, month, 1);
+     const lastDay = new Date(year, month + 1, 0);
+
+     const daysInMonth = lastDay.getDate();
+     const startDayOfWeek = firstDay.getDay();
+
+     this.calendarDays = [];
+
+     for (let i = 0; i < startDayOfWeek; i++) {
+        const d = new Date(year, month, 1 - (startDayOfWeek - i));
+        this.calendarDays.push({ date: d, isCurrentMonth: false, logs: this.getLogsForDate(d) });
+     }
+
+     for (let i = 1; i <= daysInMonth; i++) {
+        const date = new Date(year, month, i);
+        this.calendarDays.push({ date, isCurrentMonth: true, logs: this.getLogsForDate(date) });
+     }
+
+     const remaining = 7 - (this.calendarDays.length % 7);
+     if (remaining < 7) {
+        for (let i = 1; i <= remaining; i++) {
+           const d = new Date(year, month + 1, i);
+           this.calendarDays.push({ date: d, isCurrentMonth: false, logs: this.getLogsForDate(d) });
+        }
+     }
+  }
+
+  getLogsForDate(date: Date): any[] {
+     return this.dataSource.data.filter(log => {
+        const d = new Date(log.date);
+        return d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+     });
+  }
+
+  prevMonth() {
+     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
+     this.generateCalendar();
+  }
+
+  nextMonth() {
+     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+     this.generateCalendar();
   }
 }

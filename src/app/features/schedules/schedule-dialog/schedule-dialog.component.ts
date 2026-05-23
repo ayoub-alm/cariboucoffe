@@ -223,14 +223,16 @@ export class ScheduleDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: {
       log: DailyTimeRecord | null;
       coffees: Coffee[];
+      defaultDate?: Date;
+      defaultCoffeeId?: number | string;
     }
   ) {
     this.coffees = data.coffees;
     this.isEdit = !!data.log;
 
     this.form = this.fb.group({
-      coffee_id: [data.log?.coffee_id || '', Validators.required],
-      date: [data.log ? new Date(data.log.date) : new Date(), Validators.required],
+      coffee_id: [data.log?.coffee_id || data.defaultCoffeeId || '', Validators.required],
+      date: [data.log ? new Date(data.log.date) : (data.defaultDate || new Date()), Validators.required],
       opening_time: [data.log?.opening_time || ''],
       closing_time: [data.log?.closing_time || '']
     }, { validators: this.atLeastOneTimeValidator });

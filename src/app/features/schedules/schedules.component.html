@@ -7,8 +7,22 @@
     </div>
     
     <div class="header-actions">
+      <mat-button-toggle-group [value]="viewMode" (change)="toggleView($event.value)" class="view-toggle">
+        <mat-button-toggle value="list" aria-label="List View">
+          <mat-icon>list</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="calendar" aria-label="Calendar View">
+          <mat-icon>calendar_today</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
       <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
         <mat-icon>refresh</mat-icon> Réinitialiser
+      </button>
+      <!-- Admin-only threshold config button -->
+      <button *ngIf="isAdmin()" mat-stroked-button class="config-btn"
+              (click)="openThresholdConfig()"
+              matTooltip="Configurer les seuils de conformité">
+        <mat-icon>tune</mat-icon> Seuils
       </button>
       <button mat-flat-button color="primary" class="ajouter-btn" (click)="openScheduleDialog()">
         <mat-icon>add</mat-icon> Ajouter
@@ -30,7 +44,10 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-title">Taux de Conformité</span>
-            <h2 class="kpi-value" [class.success]="complianceRate >= 80" [class.warning]="complianceRate < 80 && complianceRate >= 50" [class.error]="complianceRate < 50">
+            <h2 class="kpi-value"
+                [class.success]="complianceRate >= conformeMin"
+                [class.warning]="complianceRate >= partielMin && complianceRate < conformeMin"
+                [class.error]="complianceRate < partielMin">
               {{ complianceRate }}%
             </h2>
             <span class="kpi-desc">Respect global des horaires</span>
@@ -88,7 +105,10 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-title">Conformité (Mois)</span>
-            <h2 class="kpi-value" [class.success]="monthlyComplianceRate >= 80" [class.warning]="monthlyComplianceRate < 80 && monthlyComplianceRate >= 50" [class.error]="monthlyComplianceRate < 50">
+            <h2 class="kpi-value"
+                [class.success]="monthlyComplianceRate >= conformeMin"
+                [class.warning]="monthlyComplianceRate >= partielMin && monthlyComplianceRate < conformeMin"
+                [class.error]="monthlyComplianceRate < partielMin">
               {{ monthlyComplianceRate }}%
             </h2>
             <span class="kpi-desc">Moyenne du mois en cours</span>
@@ -104,7 +124,10 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-title">Conformité (Semaine)</span>
-            <h2 class="kpi-value" [class.success]="weeklyComplianceRate >= 80" [class.warning]="weeklyComplianceRate < 80 && weeklyComplianceRate >= 50" [class.error]="weeklyComplianceRate < 50">
+            <h2 class="kpi-value"
+                [class.success]="weeklyComplianceRate >= conformeMin"
+                [class.warning]="weeklyComplianceRate >= partielMin && weeklyComplianceRate < conformeMin"
+                [class.error]="weeklyComplianceRate < partielMin">
               {{ weeklyComplianceRate }}%
             </h2>
             <span class="kpi-desc">Moyenne de la semaine en cours</span>
@@ -165,7 +188,7 @@
   </mat-card>
 
   <!-- LOGS REGISTRY TABLE (Universal full-page view) -->
-  <mat-card class="table-card">
+  <mat-card class="table-card" *ngIf="viewMode === 'list'">
     <mat-card-header class="table-card-header">
       <mat-card-title>Registre Général des Horaires</mat-card-title>
     </mat-card-header>
@@ -209,12 +232,12 @@
           <ng-container matColumnDef="score">
             <th mat-header-cell *matHeaderCellDef mat-sort-header> Score / Statut </th>
             <td mat-cell *matCellDef="let log">
-              <span class="score-badge" 
-                [class.good]="log.score >= 80" 
-                [class.partial]="log.score >= 50 && log.score < 80" 
-                [class.bad]="log.score < 50">
+              <span class="score-badge"
+                [class.good]="log.score >= conformeMin"
+                [class.partial]="log.score >= partielMin && log.score < conformeMin"
+                [class.bad]="log.score < partielMin">
                 <mat-icon class="badge-icon">
-                  {{ log.score >= 80 ? 'check_circle' : (log.score >= 50 ? 'info' : 'warning') }}
+                  {{ log.score >= conformeMin ? 'check_circle' : (log.score >= partielMin ? 'info' : 'warning') }}
                 </mat-icon>
                 <span>{{ log.score }}%</span>
               </span>
@@ -257,4 +280,43 @@
       <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons class="table-paginator"></mat-paginator>
     </mat-card-content>
   </mat-card>
+
+  <!-- Calendar View -->
+  <div class="calendar-view" *ngIf="viewMode === 'calendar'">
+      <div class="calendar-header">
+          <button mat-icon-button (click)="prevMonth()">
+              <mat-icon>chevron_left</mat-icon>
+          </button>
+          <div class="current-month-label">{{ currentMonth | date:'MMMM yyyy' | titlecase }}</div>
+          <button mat-icon-button (click)="nextMonth()">
+              <mat-icon>chevron_right</mat-icon>
+          </button>
+      </div>
+
+      <div class="calendar-grid">
+          <!-- Week Header -->
+          <div class="calendar-week-header">
+              <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
+          </div>
+          <!-- Days -->
+          <div class="calendar-days">
+              <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.isCurrentMonth"
+                  [class.has-events]="day.logs.length > 0"
+                  (click)="openScheduleDialog(null, day.date)">
+                  <div class="day-number">{{ day.date | date:'d' }}</div>
+                  <div class="day-events">
+                      <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
+                                  'status-active': log.score >= conformeMin,
+                                  'status-warning': log.score >= partielMin && log.score < conformeMin,
+                                  'status-inactive': log.score < partielMin
+                              }" (click)="openScheduleDialog(log); $event.stopPropagation()"
+                          [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
+                          <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--' }}</span>
+                          <span class="event-title">{{ log.coffeeName }}</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
 </div>

@@ -10,6 +10,8 @@ export interface DailyTimeRecord {
     closing_time: string;
     coffee_id: number;
     controller_id: number;
+    score: number;          // computed by backend
+    status: 'green' | 'orange' | 'red'; // computed by backend
 }
 
 export interface DailyTimeRecordCreate {
