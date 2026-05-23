@@ -262,6 +262,9 @@
               <button mat-icon-button color="primary" (click)="openScheduleDialog(log)" matTooltip="Modifier les horaires">
                 <mat-icon>edit</mat-icon>
               </button>
+              <button *ngIf="isAdmin()" mat-icon-button color="warn" (click)="deleteLog(log.id)" matTooltip="Supprimer cet horaire">
+                <mat-icon>delete</mat-icon>
+              </button>
             </td>
           </ng-container>
 

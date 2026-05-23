@@ -52,4 +52,8 @@ export class DailyLogService {
     createLog(log: DailyTimeRecordCreate): Observable<DailyTimeRecord> {
         return this.http.post<DailyTimeRecord>(`${API_URL}/daily-logs`, log);
     }
+
+    deleteLog(id: number): Observable<any> {
+        return this.http.delete(`${API_URL}/daily-logs/${id}`);
+    }
 }

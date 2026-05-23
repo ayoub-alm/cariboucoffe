@@ -422,6 +422,24 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Delete a daily log (Admin only)
+  deleteLog(id: number) {
+    if (confirm('Voulez-vous vraiment supprimer cet horaire ?')) {
+      this.isLoading = true;
+      this.dailyLogService.deleteLog(id).subscribe({
+        next: () => {
+          this.snackBar.open('🗑️ Horaire supprimé avec succès !', 'Fermer', { duration: 3000 });
+          this.loadLogs();
+        },
+        error: (err) => {
+          console.error('Error deleting daily log', err);
+          this.snackBar.open('Erreur lors de la suppression de l\'horaire.', 'Fermer', { duration: 3000 });
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
   // Reset Filters
   resetFilters() {
     const startOfMonth = new Date();
