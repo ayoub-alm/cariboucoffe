@@ -63,8 +63,8 @@
                     <span *ngIf="a.workflowStatus !== 'IN_PROGRESS'" class="status-chip termine">Audit Terminé</span>
 
                     <span class="status-chip"
-                        [ngClass]="a.status === 'Conforme' ? 'conforme' : (a.status === 'Partiel' ? 'partiel' : 'non-conforme')">
-                        État: {{ a.status }}
+                        [ngClass]="getAuditStatus(a.score) === 'Conforme' ? 'conforme' : (getAuditStatus(a.score) === 'Partiel' ? 'partiel' : 'non-conforme')">
+                        État: {{ getAuditStatus(a.score) }}
                     </span>
                 </div>
             </div>

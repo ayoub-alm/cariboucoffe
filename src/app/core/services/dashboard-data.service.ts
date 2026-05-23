@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { AuditUI, AuditCategory } from '../models/audit.model';
 import { DashboardFilters } from '../../shared/components/filter-bar/filter-bar.component';
+import { ConfigService } from './config.service';
 
 export interface DashboardKPIs {
   totalAudits: number;
@@ -17,6 +18,7 @@ export interface DashboardKPIs {
   providedIn: 'root'
 })
 export class DashboardDataService {
+  private configService = inject(ConfigService);
 
   processDashboardData(allAudits: AuditUI[], filters: DashboardFilters): { filteredAudits: AuditUI[], kpis: DashboardKPIs } {
     let filteredAudits = [...allAudits];
@@ -80,8 +82,9 @@ export class DashboardDataService {
       const sumScores = filteredAudits.reduce((acc, a) => acc + a.score, 0);
       averageScore = sumScores / totalAudits;
 
-      // compliance rate (score >= 80)
-      const compliantCount = filteredAudits.filter(a => a.score >= 80).length;
+      // compliance rate (score >= conforme_min)
+      const conformeMin = this.configService.thresholds()?.conforme_min ?? 90;
+      const compliantCount = filteredAudits.filter(a => a.score >= conformeMin).length;
       complianceRate = (compliantCount / totalAudits) * 100;
 
       // this month

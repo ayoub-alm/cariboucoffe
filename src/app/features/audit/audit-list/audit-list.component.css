@@ -241,6 +241,11 @@
     color: var(--on-warning-container);
 }
 
+.status-warning {
+    background-color: var(--warning-container, #ffe0b2);
+    color: var(--on-warning-container, #e65100);
+}
+
 /* View Toggle */
 .view-toggle {
     margin-right: 16px;
@@ -418,6 +423,12 @@
     border-left: 3px solid var(--warning-container);
 }
 
+.status-warning.audit-event-pill {
+    background-color: var(--warning, #f9ab00);
+    color: #fff;
+    border-left: 3px solid var(--warning-container, #ffe0b2);
+}
+
 /* Floating Action Button (FAB) for Mobile */
 .fab-mobile {
     position: fixed;
@@ -513,6 +524,11 @@
 
 .score-high {
     color: var(--success);
+    font-weight: 600;
+}
+
+.score-warning {
+    color: var(--warning, #e65100);
     font-weight: 600;
 }
 

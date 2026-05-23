@@ -2,9 +2,10 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError, firstValueFrom, of } from 'rxjs';
-import { tap, catchError, switchMap, shareReplay } from 'rxjs/operators';
+import { tap, catchError, switchMap, shareReplay, map } from 'rxjs/operators';
 import { API_URL } from '../constants';
 import { User, LoginResponse, UserRole } from '../models/user.model';
+import { ConfigService } from './config.service';
 
 @Injectable({
     providedIn: 'root'
@@ -12,6 +13,7 @@ import { User, LoginResponse, UserRole } from '../models/user.model';
 export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
+    private configService = inject(ConfigService);
 
     currentUser = signal<User | null>(null);
     token = signal<string | null>(localStorage.getItem('access_token'));
@@ -65,6 +67,14 @@ export class AuthService {
         }
         return this.http.get<User>(`${API_URL}/users/me`).pipe(
             tap(user => this.currentUser.set(user)),
+            switchMap(user => {
+                if (!user) return of(null);
+                // Pre-fetch thresholds so they are always ready when user is loaded
+                return this.configService.getThresholds().pipe(
+                    map(() => user),
+                    catchError(() => of(user))
+                );
+            }),
             catchError((err: HttpErrorResponse) => {
                 if (err.status === 401 || err.status === 403) {
                     localStorage.removeItem('access_token');

@@ -14,6 +14,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfigService } from '../../../core/services/config.service';
 import { AuditUI as Audit } from '../../../core/models/audit.model';
 import { canCreateAudits, isAdmin, UserRole } from '../../../core/models/user.model';
 import { Router, RouterModule } from '@angular/router';
@@ -56,8 +57,20 @@ export class AuditListComponent {
 
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
+    public configService = inject(ConfigService);
     private dialog = inject(MatDialog);
     private router = inject(Router);
+
+    getAuditStatus(score: number): string {
+        return this.configService.getAuditStatus(score);
+    }
+
+    getScoreClass(score: number): string {
+        const status = this.configService.getAuditStatus(score);
+        if (status === 'Conforme') return 'score-high';
+        if (status === 'Partiel') return 'score-warning';
+        return 'score-low';
+    }
 
     canCreate() {
         return canCreateAudits(this.authService.currentUser());

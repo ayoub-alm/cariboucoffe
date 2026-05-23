@@ -143,21 +143,7 @@ export interface AuditQuestion {
  */
 
 /** Calculate audit status from score */
-export function getAuditStatus(score: number): AuditStatus {
-  if (score >= 90) return 'Conforme';
-  if (score >= 70) return 'Partiel';
-  return 'Non-conforme';
-}
 
-/** Get status color for UI */
-export function getStatusColor(status: AuditStatus): string {
-  switch (status) {
-    case 'Conforme': return 'success';
-    case 'Non-conforme': return 'error';
-    case 'Partiel': return 'warning';
-    default: return 'default';
-  }
-}
 
 /** Calculate category score */
 export function calculateCategoryScore(category: AuditCategory): number {

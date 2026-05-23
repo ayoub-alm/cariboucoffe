@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfigService } from '../../../core/services/config.service';
 import { UserRole } from '../../../core/models/user.model';
 import { AuditUI as Audit, AuditCategory, AuditQuestion } from '../../../core/models/audit.model';
 
@@ -39,6 +40,7 @@ export class AuditDetailsComponent implements OnInit {
     private router = inject(Router);
     private auditService = inject(AuditService);
     private authService = inject(AuthService);
+    public configService = inject(ConfigService);
     private cdr = inject(ChangeDetectorRef);
     private snackBar = inject(MatSnackBar);
 
@@ -129,9 +131,14 @@ export class AuditDetailsComponent implements OnInit {
         return audit.auditorId === user.id;
     }
 
+    getAuditStatus(score: number): string {
+        return this.configService.getAuditStatus(score);
+    }
+
     getScoreClass(score: number): string {
-        if (score >= 85) return 'score-success';
-        if (score >= 70) return 'score-warning';
+        const status = this.configService.getAuditStatus(score);
+        if (status === 'Conforme') return 'score-success';
+        if (status === 'Partiel') return 'score-warning';
         return 'score-danger';
     }
 

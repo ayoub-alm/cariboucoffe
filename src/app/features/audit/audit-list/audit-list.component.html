@@ -132,7 +132,7 @@
                     <ng-container matColumnDef="score">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header> Score </th>
                         <td mat-cell *matCellDef="let row"> 
-                            <span class="score-text" [ngClass]="{'score-high': row.score >= 80, 'score-low': row.score < 80}">
+                            <span class="score-text" [ngClass]="getScoreClass(row.score)">
                                 {{row.score}}% 
                             </span>
                         </td>
@@ -146,10 +146,11 @@
                                 En cours
                             </span>
                             <span *ngIf="row.workflowStatus !== 'IN_PROGRESS'" class="status-pill" [ngClass]="{
-                                'status-active': row.status === 'Conforme',
-                                'status-inactive': row.status !== 'Conforme'
+                                'status-active': getAuditStatus(row.score) === 'Conforme',
+                                'status-warning': getAuditStatus(row.score) === 'Partiel',
+                                'status-inactive': getAuditStatus(row.score) === 'Non-conforme'
                             }">
-                                {{ row.status === 'Conforme' ? 'Conforme' : 'Non-conforme' }}
+                                {{ getAuditStatus(row.score) }}
                             </span>
                         </td>
                     </ng-container>
@@ -204,10 +205,11 @@
                                 En cours
                             </span>
                             <span *ngIf="row.workflowStatus !== 'IN_PROGRESS'" class="status-pill" [ngClass]="{
-                                'status-active': row.status === 'Conforme',
-                                'status-inactive': row.status !== 'Conforme'
+                                'status-active': getAuditStatus(row.score) === 'Conforme',
+                                'status-warning': getAuditStatus(row.score) === 'Partiel',
+                                'status-inactive': getAuditStatus(row.score) === 'Non-conforme'
                             }">
-                                {{ row.status === 'Conforme' ? 'Conforme' : 'Non-conforme' }}
+                                {{ getAuditStatus(row.score) }}
                             </span>
                         </div>
                     </div>
@@ -218,7 +220,7 @@
                         </div>
                         <div class="info-item">
                             <mat-icon>speed</mat-icon>
-                            <span [ngClass]="{'score-high': row.score >= 80, 'score-low': row.score < 80}">
+                            <span [ngClass]="getScoreClass(row.score)">
                                 Score: {{row.score}}%
                             </span>
                         </div>
@@ -271,8 +273,9 @@
                         <div class="day-events">
                             <div class="audit-event-pill" *ngFor="let audit of day.audits" [ngClass]="{
                                         'status-draft': audit.workflowStatus === 'IN_PROGRESS',
-                                        'status-active': audit.workflowStatus !== 'IN_PROGRESS' && audit.status === 'Conforme',
-                                        'status-inactive': audit.workflowStatus !== 'IN_PROGRESS' && audit.status !== 'Conforme'
+                                        'status-active': audit.workflowStatus !== 'IN_PROGRESS' && getAuditStatus(audit.score) === 'Conforme',
+                                        'status-warning': audit.workflowStatus !== 'IN_PROGRESS' && getAuditStatus(audit.score) === 'Partiel',
+                                        'status-inactive': audit.workflowStatus !== 'IN_PROGRESS' && getAuditStatus(audit.score) === 'Non-conforme'
                                     }" (click)="viewDetails(audit); $event.stopPropagation()"
                                 [matTooltip]="audit.coffeeShop + (audit.workflowStatus === 'IN_PROGRESS' ? ' - En cours' : ' - ' + audit.score + '%')">
                                 <span class="event-time">{{ audit.date | date:'HH:mm' }}</span>
