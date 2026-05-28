@@ -6,6 +6,15 @@ import { AuditDTO, AuditCreateDTO, AuditUI, AuditCategory, AuditWorkflowStatus }
 import { Category, Question } from '../models/category.model';
 import { ConfigService } from './config.service';
 
+export interface AuditListResponse {
+    items: AuditUI[];
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+    average_score: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -13,36 +22,58 @@ export class AuditService {
     private http = inject(HttpClient);
     private configService = inject(ConfigService);
 
-    getAudits(filters?: {
+
+    getAudits(
+        filters?: {
+            startDate?: Date | null;
+            endDate?: Date | null;
+            coffeeShop?: string | null;
+            auditorName?: string | null;
+        },
+        page = 1,
+        size = 25,
+        search?: string,
+    ): Observable<AuditListResponse> {
+        let params: any = { page, size };
+        if (search?.trim()) params.search = search.trim();
+        if (filters) {
+            if (filters.startDate) {
+                params.start_date = filters.startDate instanceof Date
+                    ? filters.startDate.toISOString().split('T')[0]
+                    : filters.startDate;
+            }
+            if (filters.endDate) {
+                params.end_date = filters.endDate instanceof Date
+                    ? filters.endDate.toISOString().split('T')[0]
+                    : filters.endDate;
+            }
+            if (filters.coffeeShop)  params.coffee_shop  = filters.coffeeShop;
+            if (filters.auditorName) params.auditor_name = filters.auditorName;
+        }
+        return this.http.get<{ items: AuditDTO[]; total: number; page: number; size: number; pages: number; average_score: number }>(
+            `${API_URL}/audits`, { params }
+        ).pipe(
+            map(response => ({
+                items:         response.items.map(dto => this.mapToUI(dto, false)),
+                total:         response.total,
+                page:          response.page,
+                size:          response.size,
+                pages:         response.pages,
+                average_score: response.average_score,
+            }))
+        );
+    }
+
+    /** Fetch all audits (no pagination) – used for calendar view and CSV export. */
+    getAllAudits(filters?: {
         startDate?: Date | null;
         endDate?: Date | null;
         coffeeShop?: string | null;
         auditorName?: string | null;
     }): Observable<AuditUI[]> {
-        let params: any = {};
-        if (filters) {
-            if (filters.startDate) {
-                params.start_date = filters.startDate instanceof Date 
-                    ? filters.startDate.toISOString().split('T')[0] 
-                    : filters.startDate;
-            }
-            if (filters.endDate) {
-                params.end_date = filters.endDate instanceof Date 
-                    ? filters.endDate.toISOString().split('T')[0] 
-                    : filters.endDate;
-            }
-            if (filters.coffeeShop) {
-                params.coffee_shop = filters.coffeeShop;
-            }
-            if (filters.auditorName) {
-                params.auditor_name = filters.auditorName;
-            }
-        }
-        return this.http.get<AuditDTO[]>(`${API_URL}/audits`, { params }).pipe(
-            // Pass includeImages=false for list view – avoids loading large blobs for all audits
-            map(dtos => dtos.map(dto => this.mapToUI(dto, false)))
-        );
+        return this.getAudits(filters, 1, 10000).pipe(map(r => r.items));
     }
+
 
     getAudit(id: number): Observable<AuditUI> {
         return this.http.get<AuditDTO>(`${API_URL}/audits/${id}`).pipe(

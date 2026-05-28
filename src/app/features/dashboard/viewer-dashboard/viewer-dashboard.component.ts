@@ -234,7 +234,7 @@ export class ViewerDashboardComponent implements OnInit, OnDestroy {
     }
 
     loadAudits() {
-        this.auditService.getAudits().subscribe(data => {
+        this.auditService.getAllAudits().subscribe(data => {
             // Sort audits chronologically desc
             this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             this.applyFilters();

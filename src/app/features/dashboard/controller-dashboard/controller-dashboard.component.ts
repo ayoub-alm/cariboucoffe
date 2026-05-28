@@ -162,35 +162,14 @@ export class ControllerDashboardComponent implements OnInit, OnDestroy {
   }
 
   loadLogs() {
-    this.dailyLogService.getLogs().subscribe(logs => {
-      const myCoffeeId = this.form.get('coffee_id')?.value;
-      const coffee = this.coffees.find(c => c.id === myCoffeeId);
-      
-      const enrichedLogs = logs.filter(l => l.coffee_id === myCoffeeId).map(log => {
-         let score = 0;
-         if (coffee && coffee.opening_time && coffee.closing_time && log.opening_time && log.closing_time) {
-            const parseTimeToMinutes = (t: string): number => {
-              const [h, m] = t.split(':').map(Number);
-              return h * 60 + m;
-            };
+    const myCoffeeId = this.form.get('coffee_id')?.value;
+    if (!myCoffeeId) return;
 
-            const configStart = parseTimeToMinutes(coffee.opening_time);
-            const configEnd = parseTimeToMinutes(coffee.closing_time);
-            const configRange = configEnd - configStart;
-
-            const realStart = parseTimeToMinutes(log.opening_time);
-            const realEnd = parseTimeToMinutes(log.closing_time);
-            const realRange = realEnd - realStart;
-
-            const percentage = configRange > 0 ? (realRange / configRange) * 100 : 100;
-            score = Math.min(Math.round(percentage), 100);
-         } else if (coffee && (!coffee.opening_time || !coffee.closing_time)) {
-            score = 100; // No config, default to 100
-         }
-         return { ...log, score };
-      }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      this.logs = enrichedLogs;
+    // getAllLogs passes coffee_id to the backend — no client-side filtering needed
+    this.dailyLogService.getAllLogs({ coffee_id: myCoffeeId }).subscribe(logs => {
+      // Backend already computes score; just sort desc by date
+      this.logs = (logs as any[])
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
   }
 }

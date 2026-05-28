@@ -29,8 +29,13 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
   ],
   template: `
     <h2 mat-dialog-title class="dialog-title">
-      <mat-icon>{{ isEdit ? 'edit_calendar' : 'add_moderator' }}</mat-icon>
-      <span>{{ isEdit ? 'Modifier les Horaires' : 'Enregistrer de Nouveaux Horaires' }}</span>
+      <div class="title-content">
+        <mat-icon>{{ isEdit ? 'edit_calendar' : 'add_moderator' }}</mat-icon>
+        <span>{{ isEdit ? 'Modifier les Horaires' : 'Enregistrer de Nouveaux Horaires' }}</span>
+      </div>
+      <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Fermer la boîte de dialogue">
+        <mat-icon>close</mat-icon>
+      </button>
     </h2>
 
     <mat-dialog-content class="dialog-content font-sans">
@@ -60,10 +65,12 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
         <!-- Theoretical Operating Hours Helper -->
         <div class="theoretical-info" *ngIf="selectedTheoreticalOpening">
           <mat-icon class="info-icon">info_outline</mat-icon>
-          <span>Horaires théoriques de ce café : </span>
-          <strong>Ouverture {{ selectedTheoreticalOpening }}</strong>
-          <span> &bull; </span>
-          <strong>Fermeture {{ selectedTheoreticalClosing }}</strong>
+          <div class="theoretical-text">
+            <span>Horaires théoriques de ce café : </span>
+            <strong>Ouverture {{ selectedTheoreticalOpening }}</strong>
+            <span> &bull; </span>
+            <strong>Fermeture {{ selectedTheoreticalClosing }}</strong>
+          </div>
         </div>
 
         <!-- Validation Warning Banner -->
@@ -108,16 +115,29 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
     .dialog-title {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       font-size: 20px;
       font-weight: 600;
       color: var(--primary);
-      padding: 20px 24px;
+      padding: 16px 20px;
       margin: 0;
       font-family: 'Outfit', sans-serif;
+      border-bottom: 1px solid var(--outline-variant);
+    }
+    .title-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .close-btn {
+      color: var(--on-surface-variant);
+      margin: -8px -8px -8px auto;
     }
     .dialog-content {
-      padding: 8px 24px 24px 24px !important;
+      padding: 16px 20px !important;
+      max-height: 60vh;
+      overflow-y: auto;
     }
     .form-container {
       display: flex;
@@ -142,12 +162,17 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
       font-size: 13px;
       color: var(--on-surface-variant);
       border-left: 4px solid var(--primary);
+      line-height: 1.4;
+    }
+    .theoretical-text {
+      flex: 1;
     }
     .info-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
       color: var(--primary);
+      flex-shrink: 0;
     }
     .inputs-row {
       margin-top: 8px;
@@ -174,7 +199,7 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
       width: 100%;
     }
     .dialog-actions {
-      padding: 16px 24px !important;
+      padding: 12px 20px !important;
       border-top: 1px solid var(--outline-variant);
     }
     .action-btn {
@@ -200,9 +225,23 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
       color: #d93025;
     }
     @media (max-width: 576px) {
+      .dialog-title {
+        font-size: 17px;
+        padding: 12px 16px;
+      }
+      .dialog-content {
+        padding: 12px 16px !important;
+        max-height: 50vh;
+      }
+      .dialog-actions {
+        padding: 12px 16px !important;
+      }
       .form-row {
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
+      }
+      .time-box {
+        padding: 12px;
       }
     }
   `]

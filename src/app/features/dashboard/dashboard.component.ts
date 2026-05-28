@@ -276,7 +276,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadData() {
-    this.auditService.getAudits(this.currentFilters).subscribe(data => {
+    this.auditService.getAllAudits(this.currentFilters).subscribe(data => {
       this.allAudits = data;
       this.applyFilters();
     });

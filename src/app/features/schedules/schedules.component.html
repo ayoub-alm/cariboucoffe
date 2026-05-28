@@ -32,7 +32,7 @@
 
   <mat-progress-bar mode="indeterminate" *ngIf="isLoading" class="loading-bar"></mat-progress-bar>
 
-  <!-- DASHBOARD METRICS & CHARTS (Admin & Boss Only) -->
+  <!-- DASHBOARD KPI METRICS (Admin & Boss Only) -->
   <div *ngIf="isAdminOrBoss()" class="dashboard-analytics-section">
     <!-- KPI METRICS GRID -->
     <div class="kpi-grid">
@@ -135,9 +135,48 @@
         </mat-card-content>
       </mat-card>
     </div>
+  </div>
 
-    <!-- TREND CHART -->
+  <!-- FILTERS BAR -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <form [formGroup]="filterForm" (ngSubmit)="loadLogs()" class="filter-form">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Filtrer par Café</mat-label>
+          <mat-select formControlName="coffee_id" (selectionChange)="loadLogs(true)">
+            <mat-option value="all">Tous les Cafés</mat-option>
+            <mat-option *ngFor="let coffee of coffees" [value]="coffee.id">
+              {{ coffee.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de Début</mat-label>
+          <input matInput [matDatepicker]="startPicker" formControlName="start_date" (dateChange)="loadLogs(true)">
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de Fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" formControlName="end_date" (dateChange)="loadLogs(true)">
+          <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" class="search-btn">
+          <mat-icon>search</mat-icon> Actualiser
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- DASHBOARD VISUALS (Admin & Boss Only) -->
+  <div *ngIf="isAdminOrBoss()" class="dashboard-analytics-section">
+    <!-- TREND CHARTS -->
     <div class="dashboard-visuals">
+      <!-- Monthly Trend -->
       <mat-card class="chart-card">
         <mat-card-header>
           <mat-card-title>Courbe de Conformité Mensuelle</mat-card-title>
@@ -149,43 +188,21 @@
           </div>
         </mat-card-content>
       </mat-card>
+
+      <!-- Weekly Trend Per Coffee -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Performance Hebdomadaire par Café</mat-card-title>
+          <mat-card-subtitle>Scores de conformité hebdomadaires par établissement</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #weeklyCoffeeChartCanvas></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
-
-  <!-- FILTERS BAR -->
-  <mat-card class="filter-card">
-    <mat-card-content>
-      <form [formGroup]="filterForm" (ngSubmit)="loadLogs()" class="filter-form">
-        <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>Filtrer par Café</mat-label>
-          <mat-select formControlName="coffee_id" (selectionChange)="loadLogs()">
-            <mat-option value="all">Tous les Cafés</mat-option>
-            <mat-option *ngFor="let coffee of coffees" [value]="coffee.id">
-              {{ coffee.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>Date de Début</mat-label>
-          <input matInput [matDatepicker]="startPicker" formControlName="start_date" (dateChange)="loadLogs()">
-          <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-          <mat-datepicker #startPicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>Date de Fin</mat-label>
-          <input matInput [matDatepicker]="endPicker" formControlName="end_date" (dateChange)="loadLogs()">
-          <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-          <mat-datepicker #endPicker></mat-datepicker>
-        </mat-form-field>
-
-        <button mat-flat-button color="primary" type="submit" class="search-btn">
-          <mat-icon>search</mat-icon> Actualiser
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
 
   <!-- LOGS REGISTRY TABLE (Universal full-page view) -->
   <mat-card class="table-card" *ngIf="viewMode === 'list'">
@@ -259,12 +276,19 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let log">
-              <button mat-icon-button color="primary" (click)="openScheduleDialog(log)" matTooltip="Modifier les horaires">
-                <mat-icon>edit</mat-icon>
+              <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu d'actions">
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <button *ngIf="isAdmin()" mat-icon-button color="warn" (click)="deleteLog(log.id)" matTooltip="Supprimer cet horaire">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <mat-menu #menu="matMenu" xPosition="before">
+                <button mat-menu-item (click)="openScheduleDialog(log)">
+                  <mat-icon color="primary" style="margin-right: 8px; vertical-align: middle;">edit</mat-icon>
+                  <span>Modifier</span>
+                </button>
+                <button mat-menu-item *ngIf="isAdmin()" (click)="deleteLog(log.id)">
+                  <mat-icon color="warn" style="margin-right: 8px; vertical-align: middle;">delete</mat-icon>
+                  <span style="color: var(--error);">Supprimer</span>
+                </button>
+              </mat-menu>
             </td>
           </ng-container>
 
@@ -280,7 +304,16 @@
         </div>
       </div>
       
-      <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons class="table-paginator"></mat-paginator>
+      <mat-paginator
+          [length]="totalItems"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+          class="table-paginator"
+          aria-label="Sélectionner une page">
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 
@@ -296,26 +329,35 @@
           </button>
       </div>
 
-      <div class="calendar-grid">
-          <!-- Week Header -->
-          <div class="calendar-week-header">
-              <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
-          </div>
-          <!-- Days -->
-          <div class="calendar-days">
-              <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.isCurrentMonth"
-                  [class.has-events]="day.logs.length > 0"
-                  (click)="openScheduleDialog(null, day.date)">
-                  <div class="day-number">{{ day.date | date:'d' }}</div>
-                  <div class="day-events">
-                      <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
-                                  'status-active': log.score >= conformeMin,
-                                  'status-warning': log.score >= partielMin && log.score < conformeMin,
-                                  'status-inactive': log.score < partielMin
-                              }" (click)="openScheduleDialog(log); $event.stopPropagation()"
-                          [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
-                          <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--' }}</span>
-                          <span class="event-title">{{ log.coffeeName }}</span>
+      <!-- Scroll Tip (Mobile Only) -->
+      <div class="calendar-scroll-tip">
+          <mat-icon>swap_horiz</mat-icon>
+          <span>Faites glisser horizontalement pour voir toute la semaine</span>
+      </div>
+
+      <!-- Scrollable Grid Container -->
+      <div class="calendar-grid-container">
+          <div class="calendar-grid">
+              <!-- Week Header -->
+              <div class="calendar-week-header">
+                  <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
+              </div>
+              <!-- Days -->
+              <div class="calendar-days">
+                  <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.isCurrentMonth"
+                      [class.has-events]="day.logs.length > 0"
+                      (click)="openScheduleDialog(null, day.date)">
+                      <div class="day-number">{{ day.date | date:'d' }}</div>
+                      <div class="day-events">
+                          <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
+                                      'status-active': log.score >= conformeMin,
+                                      'status-warning': log.score >= partielMin && log.score < conformeMin,
+                                      'status-inactive': log.score < partielMin
+                                  }" (click)="openScheduleDialog(log); $event.stopPropagation()"
+                              [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
+                              <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--' }}</span>
+                              <span class="event-title">{{ log.coffeeName }}</span>
+                          </div>
                       </div>
                   </div>
               </div>

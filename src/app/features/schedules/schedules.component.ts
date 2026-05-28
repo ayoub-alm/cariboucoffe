@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,13 +10,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { Chart, registerables } from 'chart.js';
 import { DailyLogService, DailyTimeRecord } from '../../core/services/daily-log.service';
 import { CoffeeService } from '../../core/services/coffee.service';
@@ -30,6 +31,8 @@ import { ScheduleDialogComponent } from './schedule-dialog/schedule-dialog.compo
 import { ThresholdConfigDialogComponent } from './threshold-config-dialog/threshold-config-dialog.component';
 
 Chart.register(...registerables);
+
+type EnrichedLog = DailyTimeRecord & { coffeeName?: string; controllerName?: string };
 
 @Component({
   selector: 'app-schedules',
@@ -52,7 +55,8 @@ Chart.register(...registerables);
     MatTooltipModule,
     MatProgressBarModule,
     MatDialogModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatMenuModule
   ],
   templateUrl: './schedules.component.html',
   styleUrl: './schedules.component.css'
@@ -69,10 +73,11 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   themeService = inject(ThemeService);
 
   @ViewChild('trendChartCanvas') trendChartCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('weeklyCoffeeChartCanvas') weeklyCoffeeChartCanvas!: ElementRef<HTMLCanvasElement>;
+  /** Sort wired to client-side sorting within the current page */
+  @ViewChild(MatSort) set sort(s: MatSort) { this.dataSource.sort = s; }
 
-  // Roles & Permissions
+  // ── Roles & Permissions ────────────────────────────────────────────────
   currentUser = this.authService.currentUser;
   isAdminOrBoss = computed(() => {
     const user = this.currentUser();
@@ -80,74 +85,76 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   });
   isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN);
 
-  // Schedule thresholds (loaded from backend – used for color coding)
+  // ── Thresholds ──────────────────────────────────────────────────────────
   thresholds: ScheduleThreshold | null = null;
-  get conformeMin(): number { return this.thresholds?.green_min ?? 100; }
-  get partielMin(): number { return this.thresholds?.orange_min ?? 90; }
+  get conformeMin(): number { return this.thresholds?.green_min  ?? 100; }
+  get partielMin():  number { return this.thresholds?.orange_min ??  90; }
 
-  // State lists
+  // ── State lists ─────────────────────────────────────────────────────────
   coffees: Coffee[] = [];
   users: User[] = [];
   userMap: { [id: number]: string } = {};
 
-  // Filters Form
+  // ── Filters form ─────────────────────────────────────────────────────────
   filterForm: FormGroup;
 
-  // Table Data Source
-  dataSource = new MatTableDataSource<DailyTimeRecord & { coffeeName?: string, score?: number, controllerName?: string }>([]);
+  // ── Table data source ────────────────────────────────────────────────────
+  dataSource = new MatTableDataSource<EnrichedLog>([]);
   displayedColumns: string[] = ['date', 'coffeeName', 'opening', 'closing', 'score', 'controllerName', 'actions'];
 
-  // Stats Counters
-  complianceRate = 0;
-  monthlyComplianceRate = 0;
-  weeklyComplianceRate = 0;
-  totalLogsCount = 0;
-  lateOpeningsCount = 0;
-  earlyClosuresCount = 0;
+  // ── Server-side pagination ───────────────────────────────────────────────
+  totalItems = 0;
+  pageSize   = 25;
+  pageIndex  = 0;
+  pageSizeOptions = [10, 25, 50, 100];
 
-  // Calendar State
+  // ── KPI stats (from server) ──────────────────────────────────────────────
+  complianceRate        = 0;
+  monthlyComplianceRate = 0;
+  weeklyComplianceRate  = 0;
+  totalLogsCount        = 0;
+  lateOpeningsCount     = 0;
+  earlyClosuresCount    = 0;
+
+  // ── Calendar ────────────────────────────────────────────────────────────
   viewMode: 'list' | 'calendar' = 'list';
   currentMonth = new Date();
-  calendarDays: { date: Date, isCurrentMonth: boolean, logs: any[] }[] = [];
   weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  calendarDays: { date: Date; isCurrentMonth: boolean; logs: EnrichedLog[] }[] = [];
+  private calendarAllLogs: EnrichedLog[] = [];
 
-  // Charts
+  // ── Charts ───────────────────────────────────────────────────────────────
   private chart: Chart | undefined;
-  
-  // Loading flags
+  private weeklyChart: Chart | undefined;
+
+  // ── Loading flag ─────────────────────────────────────────────────────────
   isLoading = false;
 
   constructor() {
-    // Filters form
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     this.filterForm = this.fb.group({
-      coffee_id: ['all'],
+      coffee_id:  ['all'],
       start_date: [startOfMonth],
-      end_date: [new Date()]
+      end_date:   [new Date()]
     });
   }
 
   ngOnInit() {
     this.isLoading = true;
 
-    // Load schedule thresholds
     this.configService.getScheduleThresholds().subscribe({
-      next: (t) => { this.thresholds = t; },
-      error: () => { /* use defaults */ }
+      next:  (t) => { this.thresholds = t; },
+      error: ()  => { /* use defaults */ }
     });
 
-    // Load Coffees
     this.coffeeService.getCoffees().subscribe({
       next: (coffees) => {
         this.coffees = coffees;
-        
-        // Setup initial controller coffee if not Admin/Boss
         const user = this.currentUser();
         if (user && user.role === UserRole.CONTROLLER && user.coffee_id) {
           this.filterForm.patchValue({ coffee_id: user.coffee_id });
         }
-        
         this.loadLogs();
       },
       error: (err) => {
@@ -156,68 +163,55 @@ export class SchedulesComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Load Users
     this.userService.getUsers().subscribe({
       next: (users) => {
         this.users = users;
-        users.forEach(u => {
-          this.userMap[u.id] = u.full_name || u.email;
-        });
+        users.forEach(u => { this.userMap[u.id] = u.full_name || u.email; });
       },
-      error: (err) => {
-        console.warn('Could not load user list (using fallbacks).', err);
-      }
+      error: (err) => console.warn('Could not load user list.', err)
     });
   }
 
   ngOnDestroy() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
+    if (this.chart) this.chart.destroy();
+    if (this.weeklyChart) this.weeklyChart.destroy();
   }
 
-  // Load daily logs based on filters
-  loadLogs() {
+  // ── Data loading ──────────────────────────────────────────────────────────
+
+  /** Load one page of logs from the server. */
+  loadLogs(resetPage = false) {
     this.isLoading = true;
+    if (resetPage) this.pageIndex = 0;
+
     const filters = this.filterForm.value;
-    
-    const queryParams: any = {
-      limit: 1000
-    };
+    const queryParams: { coffee_id?: number; start_date?: string; end_date?: string } = {};
 
     if (filters.coffee_id && filters.coffee_id !== 'all') {
       queryParams.coffee_id = Number(filters.coffee_id);
     }
-    if (filters.start_date) {
-      queryParams.start_date = this.formatDate(filters.start_date);
-    }
-    if (filters.end_date) {
-      queryParams.end_date = this.formatDate(filters.end_date);
-    }
+    if (filters.start_date) queryParams.start_date = this.formatDate(filters.start_date);
+    if (filters.end_date)   queryParams.end_date   = this.formatDate(filters.end_date);
 
-    this.dailyLogService.getLogs(queryParams).subscribe({
-      next: (logs) => {
-        // Backend now returns score and status — just enrich with names
-        const enriched = logs.map(log => {
-          const coffee = this.coffees.find(c => c.id === log.coffee_id);
-          const coffeeName = coffee ? coffee.name : `Café #${log.coffee_id}`;
-          const controllerName = this.userMap[log.controller_id] || (log.controller_id === this.currentUser()?.id ? 'Moi' : `Utilisateur #${log.controller_id}`);
-          return { ...log, coffeeName, controllerName };
-        });
+    this.dailyLogService.getLogs(queryParams, this.pageIndex + 1, this.pageSize).subscribe({
+      next: (response) => {
+        // Enrich current page items with human-readable names
+        this.dataSource.data = response.items.map(log => this.enrichLog(log));
 
-        this.dataSource.data = enriched;
-        
-        setTimeout(() => {
-          this.dataSource.paginator = this.paginator;
-          this.dataSource.sort = this.sort;
-        });
+        // Server-side pagination totals
+        this.totalItems = response.total;
 
-        this.calculateStats(enriched);
-        
-        if (this.viewMode === 'calendar') {
-           this.generateCalendar();
-        }
-        
+        // KPI stats (computed by backend over ALL filtered records)
+        this.totalLogsCount        = response.total;
+        this.complianceRate        = Math.round(response.average_score);
+        this.lateOpeningsCount     = response.late_openings;
+        this.earlyClosuresCount    = response.early_closures;
+        this.monthlyComplianceRate = Math.round(response.monthly_average);
+        this.weeklyComplianceRate  = Math.round(response.weekly_average);
+
+        // Rebuild chart from visible page data (trend)
+        this.drawChart(this.dataSource.data);
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -228,131 +222,190 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Calculate statistics
-  calculateStats(records: any[]) {
-    this.totalLogsCount = records.length;
-    
-    if (this.totalLogsCount === 0) {
-      this.complianceRate = 0;
-      this.monthlyComplianceRate = 0;
-      this.weeklyComplianceRate = 0;
-      this.lateOpeningsCount = 0;
-      this.earlyClosuresCount = 0;
-      this.drawChart([]);
-      return;
+  /** Load ALL logs for the calendar month (ignores table pagination). */
+  loadCalendarLogs() {
+    const year  = this.currentMonth.getFullYear();
+    const month = this.currentMonth.getMonth();
+    const start = new Date(year, month, 1);
+    const end   = new Date(year, month + 1, 0);
+
+    const filters = this.filterForm.value;
+    const queryParams: { coffee_id?: number; start_date: string; end_date: string } = {
+      start_date: this.formatDate(start),
+      end_date:   this.formatDate(end),
+    };
+    if (filters.coffee_id && filters.coffee_id !== 'all') {
+      queryParams.coffee_id = Number(filters.coffee_id);
     }
 
-    const today = new Date();
-    
-    // Start of current ISO week (Monday)
-    const currentWeekStart = new Date(today);
-    const day = currentWeekStart.getDay();
-    const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
-    currentWeekStart.setDate(diff);
-    currentWeekStart.setHours(0, 0, 0, 0);
-    
-    // Start of current calendar month
-    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0);
-
-    let totalScoreSum = 0;
-    let lateOpenings = 0;
-    let earlyClosures = 0;
-
-    let monthScoreSum = 0;
-    let monthLogsCount = 0;
-
-    let weekScoreSum = 0;
-    let weekLogsCount = 0;
-
-    records.forEach(r => {
-      totalScoreSum += r.score;
-      const logDate = new Date(r.date);
-
-      // Check current Month
-      if (logDate >= currentMonthStart) {
-        monthScoreSum += r.score;
-        monthLogsCount++;
-      }
-
-      // Check current Week
-      if (logDate >= currentWeekStart) {
-        weekScoreSum += r.score;
-        weekLogsCount++;
-      }
-
-      const coffee = this.coffees.find(c => c.id === r.coffee_id);
-      if (coffee) {
-        if (coffee.opening_time && r.opening_time && r.opening_time > coffee.opening_time) {
-          lateOpenings++;
-        }
-        if (coffee.closing_time && r.closing_time && r.closing_time < coffee.closing_time) {
-          earlyClosures++;
-        }
-      }
+    this.dailyLogService.getAllLogs(queryParams).subscribe({
+      next: (logs) => {
+        this.calendarAllLogs = logs.map(log => this.enrichLog(log));
+        this.generateCalendar();
+      },
+      error: (err) => console.error('Error loading calendar logs', err)
     });
-
-    this.complianceRate = Math.round(totalScoreSum / this.totalLogsCount);
-    this.monthlyComplianceRate = monthLogsCount > 0 ? Math.round(monthScoreSum / monthLogsCount) : 0;
-    this.weeklyComplianceRate = weekLogsCount > 0 ? Math.round(weekScoreSum / weekLogsCount) : 0;
-    this.lateOpeningsCount = lateOpenings;
-    this.earlyClosuresCount = earlyClosures;
-
-    this.drawChart(records);
   }
 
-  // Draw trend chart
-  drawChart(records: any[]) {
+  private enrichLog(log: DailyTimeRecord): EnrichedLog {
+    const coffee = this.coffees.find(c => c.id === log.coffee_id);
+    const coffeeName     = coffee ? coffee.name : `Café #${log.coffee_id}`;
+    const controllerName = this.userMap[log.controller_id]
+      || (log.controller_id === this.currentUser()?.id ? 'Moi' : `Utilisateur #${log.controller_id}`);
+    return { ...log, coffeeName, controllerName };
+  }
+
+  // ── Pagination ────────────────────────────────────────────────────────────
+
+  onPageChange(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize  = event.pageSize;
+    this.loadLogs();
+  }
+
+  // ── Filter helpers ────────────────────────────────────────────────────────
+
+  resetFilters() {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    this.filterForm.patchValue({ coffee_id: 'all', start_date: startOfMonth, end_date: new Date() });
+    this.loadLogs(true);
+  }
+
+  // ── Chart ─────────────────────────────────────────────────────────────────
+
+  drawChart(records: EnrichedLog[]) {
     setTimeout(() => {
       if (!this.trendChartCanvas) return;
       if (this.chart) this.chart.destroy();
 
+      // ── 1. MONTHLY CHART (BAR) ──
       const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-      const dataMap: { [key: string]: { sum: number, count: number } } = {};
+      const monthlyMap: { [key: string]: { sum: number; count: number } } = {};
 
-      // Fill in data points
       records.forEach(r => {
-        const d = new Date(r.date);
+        const d     = new Date(r.date);
         const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-        if (!dataMap[label]) {
-          dataMap[label] = { sum: 0, count: 0 };
-        }
-        dataMap[label].sum += r.score;
-        dataMap[label].count += 1;
+        if (!monthlyMap[label]) monthlyMap[label] = { sum: 0, count: 0 };
+        monthlyMap[label].sum   += r.score;
+        monthlyMap[label].count += 1;
       });
 
-      // Sort chronological labels
-      const labels = Object.keys(dataMap).sort((a, b) => {
-        const partsA = a.split(' ');
-        const partsB = b.split(' ');
-        const monthA = monthNames.indexOf(partsA[0]);
-        const monthB = monthNames.indexOf(partsB[0]);
-        const yearA = parseInt(partsA[1]);
-        const yearB = parseInt(partsB[1]);
-        if (yearA !== yearB) return yearA - yearB;
-        return monthA - monthB;
+      const monthlyLabels = Object.keys(monthlyMap).sort((a, b) => {
+        const [mA, yA] = [monthNames.indexOf(a.split(' ')[0]), parseInt(a.split(' ')[1])];
+        const [mB, yB] = [monthNames.indexOf(b.split(' ')[0]), parseInt(b.split(' ')[1])];
+        return yA !== yB ? yA - yB : mA - mB;
       });
+      const monthlyScores = monthlyLabels.map(lbl => Math.round(monthlyMap[lbl].sum / monthlyMap[lbl].count));
 
-      const scores = labels.map(lbl => Math.round(dataMap[lbl].sum / dataMap[lbl].count));
-
-      const primaryColor = this.themeService.getColor('--primary') || '#1a73e8';
-      const secondaryColor = this.themeService.getColor('--secondary') || '#5f6368';
+      const primaryColor = this.themeService.getColor('--primary')  || '#1a73e8';
       const warningColor = '#f57c00';
-      const errorColor = this.themeService.getColor('--error') || '#d93025';
-      const textColor = this.themeService.getColor('--on-surface-variant') || '#5f6368';
-      const gridColor = this.themeService.getColor('--outline-variant') || '#e8eaed';
+      const errorColor   = this.themeService.getColor('--error')     || '#d93025';
+      const textColor    = this.themeService.getColor('--on-surface-variant') || '#5f6368';
+      const gridColor    = this.themeService.getColor('--outline-variant')    || '#e8eaed';
 
       this.chart = new Chart(this.trendChartCanvas.nativeElement, {
         type: 'bar',
         data: {
-          labels: labels.length > 0 ? labels : ['Aucune donnée'],
+          labels: monthlyLabels.length > 0 ? monthlyLabels : ['Aucune donnée'],
           datasets: [{
             label: 'Score de Conformité (%)',
-            data: scores.length > 0 ? scores : [0],
-            backgroundColor: scores.length > 0 
-                ? scores.map(s => s >= this.conformeMin ? primaryColor : (s >= this.partielMin ? warningColor : errorColor)) 
-                : [primaryColor],
+            data: monthlyScores.length > 0 ? monthlyScores : [0],
+            backgroundColor: monthlyScores.length > 0
+              ? monthlyScores.map(s => s >= this.conformeMin ? primaryColor : (s >= this.partielMin ? warningColor : errorColor))
+              : [primaryColor],
             borderRadius: 4,
-            barThickness: 40
+            barThickness: 32
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { max: 100, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
+            x: { ticks: { color: textColor }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // ── 2. WEEKLY CHART PER COFFEE (LINE) ──
+      if (!this.weeklyCoffeeChartCanvas) return;
+      if (this.weeklyChart) this.weeklyChart.destroy();
+
+      const weeklyMap: { [week: string]: { [coffee: string]: { sum: number; count: number } } } = {};
+      const uniqueCoffees = new Set<string>();
+
+      records.forEach(r => {
+        const d = new Date(r.date);
+        
+        // Calculate ISO Week Number
+        const target = new Date(d.valueOf());
+        const dayNr = (d.getDay() + 6) % 7;
+        target.setDate(target.getDate() - dayNr + 3);
+        const firstThursday = target.valueOf();
+        target.setMonth(0, 1);
+        if (target.getDay() !== 4) {
+          target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+        }
+        const weekNo = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+        const weekLabel = `Semaine ${weekNo}`;
+        const coffeeName = r.coffeeName || `Café #${r.coffee_id}`;
+
+        uniqueCoffees.add(coffeeName);
+
+        if (!weeklyMap[weekLabel]) weeklyMap[weekLabel] = {};
+        if (!weeklyMap[weekLabel][coffeeName]) weeklyMap[weekLabel][coffeeName] = { sum: 0, count: 0 };
+
+        weeklyMap[weekLabel][coffeeName].sum += r.score;
+        weeklyMap[weekLabel][coffeeName].count += 1;
+      });
+
+      const weeklyLabels = Object.keys(weeklyMap).sort((a, b) => {
+        const weekA = parseInt(a.replace('Semaine ', ''));
+        const weekB = parseInt(b.replace('Semaine ', ''));
+        return weekA - weekB;
+      });
+
+      const colorPalette = [
+        '#1a73e8', // Blue
+        '#ab47bc', // Purple
+        '#00acc1', // Cyan
+        '#ff7043', // Coral
+        '#43a047', // Green
+        '#fdd835', // Yellow
+        '#ec407a', // Pink
+        '#8d6e63'  // Brown
+      ];
+
+      const weeklyDatasets = Array.from(uniqueCoffees).map((coffeeName, idx) => {
+        const data = weeklyLabels.map(week => {
+          const stats = weeklyMap[week][coffeeName];
+          return stats ? Math.round(stats.sum / stats.count) : null;
+        });
+        const color = colorPalette[idx % colorPalette.length];
+        return {
+          label: coffeeName,
+          data: data,
+          borderColor: color,
+          backgroundColor: color,
+          tension: 0.3,
+          fill: false,
+          spanGaps: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        };
+      });
+
+      this.weeklyChart = new Chart(this.weeklyCoffeeChartCanvas.nativeElement, {
+        type: 'line',
+        data: {
+          labels: weeklyLabels.length > 0 ? weeklyLabels : ['Aucune donnée'],
+          datasets: weeklyDatasets.length > 0 ? weeklyDatasets : [{
+            label: 'Aucun établissement',
+            data: [0],
+            borderColor: primaryColor,
+            tension: 0.3
           }]
         },
         options: {
@@ -363,14 +416,25 @@ export class SchedulesComponent implements OnInit, OnDestroy {
             x: { ticks: { color: textColor }, grid: { display: false } }
           },
           plugins: {
-            legend: { display: false }
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: textColor,
+                boxWidth: 10,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: { size: 11, family: 'sans-serif' }
+              }
+            }
           }
         }
       });
     }, 100);
   }
 
-  // Open Threshold Config Modal (Admin only)
+  // ── Dialogs ───────────────────────────────────────────────────────────────
+
   openThresholdConfig() {
     const ref = this.dialog.open(ThresholdConfigDialogComponent, {
       width: '600px',
@@ -379,25 +443,18 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     ref.afterClosed().subscribe((updated: ScheduleThreshold | undefined) => {
       if (updated) {
         this.thresholds = updated;
-        // Reload logs so backend recomputes scores with new thresholds
-        this.loadLogs();
+        this.loadLogs(true);
       }
     });
   }
 
-  // Open Reusable dialog modal for Creating or Updating schedules
   openScheduleDialog(log: DailyTimeRecord | null = null, defaultDate: Date | null = null) {
     const filters = this.filterForm.value;
-    const defaultCoffeeId = (filters && filters.coffee_id && filters.coffee_id !== 'all') ? Number(filters.coffee_id) : null;
+    const defaultCoffeeId = (filters?.coffee_id && filters.coffee_id !== 'all') ? Number(filters.coffee_id) : null;
 
     const dialogRef = this.dialog.open(ScheduleDialogComponent, {
       width: '600px',
-      data: {
-        log: log,
-        coffees: this.coffees,
-        defaultDate: defaultDate,
-        defaultCoffeeId: defaultCoffeeId
-      }
+      data: { log, coffees: this.coffees, defaultDate, defaultCoffeeId }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -407,10 +464,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open(
               log ? '📝 Horaires mis à jour avec succès !' : '🆕 Nouveaux horaires enregistrés !',
-              'Fermer',
-              { duration: 3000 }
+              'Fermer', { duration: 3000 }
             );
             this.loadLogs();
+            if (this.viewMode === 'calendar') this.loadCalendarLogs();
           },
           error: (err) => {
             console.error('Error saving schedule via modal', err);
@@ -422,7 +479,6 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Delete a daily log (Admin only)
   deleteLog(id: number) {
     if (confirm('Voulez-vous vraiment supprimer cet horaire ?')) {
       this.isLoading = true;
@@ -430,93 +486,79 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         next: () => {
           this.snackBar.open('🗑️ Horaire supprimé avec succès !', 'Fermer', { duration: 3000 });
           this.loadLogs();
+          if (this.viewMode === 'calendar') this.loadCalendarLogs();
         },
         error: (err) => {
           console.error('Error deleting daily log', err);
-          this.snackBar.open('Erreur lors de la suppression de l\'horaire.', 'Fermer', { duration: 3000 });
+          this.snackBar.open('Erreur lors de la suppression.', 'Fermer', { duration: 3000 });
           this.isLoading = false;
         }
       });
     }
   }
 
-  // Reset Filters
-  resetFilters() {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    
-    this.filterForm.patchValue({
-      coffee_id: 'all',
-      start_date: startOfMonth,
-      end_date: new Date()
-    });
+  // ── Calendar ──────────────────────────────────────────────────────────────
 
-    this.loadLogs();
-  }
-
-  // Helper date formatter: YYYY-MM-DD
-  formatDate(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    const month = '' + (d.getMonth() + 1);
-    const day = '' + d.getDate();
-    const year = d.getFullYear();
-
-    return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
-  }
-
-  // Calendar logic
   toggleView(mode: 'list' | 'calendar') {
-     this.viewMode = mode;
-     if (mode === 'calendar') {
-        this.generateCalendar();
-     }
+    this.viewMode = mode;
+    if (mode === 'calendar') {
+      this.loadCalendarLogs();
+    }
   }
 
   generateCalendar() {
-     const year = this.currentMonth.getFullYear();
-     const month = this.currentMonth.getMonth();
-     const firstDay = new Date(year, month, 1);
-     const lastDay = new Date(year, month + 1, 0);
+    const year  = this.currentMonth.getFullYear();
+    const month = this.currentMonth.getMonth();
+    const firstDay    = new Date(year, month, 1);
+    const lastDay     = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDay    = firstDay.getDay();
 
-     const daysInMonth = lastDay.getDate();
-     const startDayOfWeek = firstDay.getDay();
+    this.calendarDays = [];
 
-     this.calendarDays = [];
-
-     for (let i = 0; i < startDayOfWeek; i++) {
-        const d = new Date(year, month, 1 - (startDayOfWeek - i));
+    for (let i = 0; i < startDay; i++) {
+      const d = new Date(year, month, 1 - (startDay - i));
+      this.calendarDays.push({ date: d, isCurrentMonth: false, logs: this.getLogsForDate(d) });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, month, i);
+      this.calendarDays.push({ date, isCurrentMonth: true, logs: this.getLogsForDate(date) });
+    }
+    const remaining = 7 - (this.calendarDays.length % 7);
+    if (remaining < 7) {
+      for (let i = 1; i <= remaining; i++) {
+        const d = new Date(year, month + 1, i);
         this.calendarDays.push({ date: d, isCurrentMonth: false, logs: this.getLogsForDate(d) });
-     }
-
-     for (let i = 1; i <= daysInMonth; i++) {
-        const date = new Date(year, month, i);
-        this.calendarDays.push({ date, isCurrentMonth: true, logs: this.getLogsForDate(date) });
-     }
-
-     const remaining = 7 - (this.calendarDays.length % 7);
-     if (remaining < 7) {
-        for (let i = 1; i <= remaining; i++) {
-           const d = new Date(year, month + 1, i);
-           this.calendarDays.push({ date: d, isCurrentMonth: false, logs: this.getLogsForDate(d) });
-        }
-     }
+      }
+    }
   }
 
-  getLogsForDate(date: Date): any[] {
-     return this.dataSource.data.filter(log => {
-        const d = new Date(log.date);
-        return d.getDate() === date.getDate() && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
-     });
+  getLogsForDate(date: Date): EnrichedLog[] {
+    return this.calendarAllLogs.filter(log => {
+      const d = new Date(log.date);
+      return d.getDate()     === date.getDate()     &&
+             d.getMonth()    === date.getMonth()    &&
+             d.getFullYear() === date.getFullYear();
+    });
   }
 
   prevMonth() {
-     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
-     this.generateCalendar();
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
+    this.loadCalendarLogs();
   }
 
   nextMonth() {
-     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
-     this.generateCalendar();
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+    this.loadCalendarLogs();
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+
+  formatDate(date: any): string {
+    if (!date) return '';
+    const d     = new Date(date);
+    const month = '' + (d.getMonth() + 1);
+    const day   = '' + d.getDate();
+    return [d.getFullYear(), month.padStart(2, '0'), day.padStart(2, '0')].join('-');
   }
 }

@@ -214,7 +214,7 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     loadAudits() {
-        this.auditService.getAudits().subscribe(data => {
+        this.auditService.getAllAudits().subscribe(data => {
             this.allAudits = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             this.applyFilters();
         });

@@ -244,8 +244,15 @@
                 </div>
             </div>
 
-            <mat-paginator [pageSizeOptions]="[25, 50, 100, 1000]" showFirstLastButtons
-                aria-label="Select page"></mat-paginator>
+            <mat-paginator
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageIndex]="pageIndex"
+                [pageSizeOptions]="pageSizeOptions"
+                (page)="onPageChange($event)"
+                showFirstLastButtons
+                aria-label="Select page">
+            </mat-paginator>
         </div>
 
         <!-- Calendar View -->

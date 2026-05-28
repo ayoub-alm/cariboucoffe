@@ -1,5 +1,5 @@
 import { Component, ViewChild, inject } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
@@ -51,15 +51,22 @@ export class AuditListComponent {
     }
     dataSource: MatTableDataSource<Audit>;
     selection = new SelectionModel<Audit>(true, []);
-    
+
     showFilter = false;
     currentFilters: any = {};
 
+    // ── Server-side pagination state ───────────────────────────────────────
+    totalItems = 0;
+    pageSize   = 25;
+    pageIndex  = 0;
+    searchTerm = '';
+    pageSizeOptions = [10, 25, 50, 100];
+
     private auditService = inject(AuditService);
-    private authService = inject(AuthService);
-    public configService = inject(ConfigService);
-    private dialog = inject(MatDialog);
-    private router = inject(Router);
+    private authService  = inject(AuthService);
+    public  configService = inject(ConfigService);
+    private dialog       = inject(MatDialog);
+    private router       = inject(Router);
 
     getAuditStatus(score: number): string {
         return this.configService.getAuditStatus(score);
@@ -68,7 +75,7 @@ export class AuditListComponent {
     getScoreClass(score: number): string {
         const status = this.configService.getAuditStatus(score);
         if (status === 'Conforme') return 'score-high';
-        if (status === 'Partiel') return 'score-warning';
+        if (status === 'Partiel')  return 'score-warning';
         return 'score-low';
     }
 
@@ -89,11 +96,7 @@ export class AuditListComponent {
     canEditAudit(audit: Audit): boolean {
         const user = this.authService.currentUser();
         if (!user) return false;
-        
-        // Admin or user with explicit update rights
         if (isAdmin(user) || user.permissions?.audits?.update) return true;
-        
-        // Owner (auditor who created it)
         return audit.auditorId === user.id;
     }
 
@@ -102,10 +105,7 @@ export class AuditListComponent {
         return !!user && (isAdmin(user) || !!user.permissions?.audits?.delete);
     }
 
-    // Use setters for ViewChild to handle *ngIf re-creation
-    @ViewChild(MatPaginator) set paginator(paginator: MatPaginator) {
-        this.dataSource.paginator = paginator;
-    }
+    // Connect sort to client-side sorting within the current page
     @ViewChild(MatSort) set sort(sort: MatSort) {
         this.dataSource.sort = sort;
     }
@@ -116,79 +116,66 @@ export class AuditListComponent {
     calendarDays: { date: Date, isCurrentMonth: boolean, audits: Audit[] }[] = [];
     weekDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
+    // KPI stats (from server totals)
+    totalAudits  = 0;
+    averageScore = 0;
+
     constructor() {
         this.dataSource = new MatTableDataSource<Audit>([]);
-        
-        // Custom filter predicate for the FilterBarComponent
-        this.dataSource.filterPredicate = (data: Audit, filter: string) => {
-            const searchStr = (data.coffeeShop + data.auditorName + data.status).toLowerCase();
-            const matchesText = searchStr.includes(filter);
-
-            let matchesAdvanced = true;
-            if (this.currentFilters) {
-                if (this.currentFilters.coffeeShop && data.coffeeShop !== this.currentFilters.coffeeShop) matchesAdvanced = false;
-                if (this.currentFilters.auditorName && data.auditorName !== this.currentFilters.auditorName) matchesAdvanced = false;
-                if (this.currentFilters.startDate) {
-                    const d = new Date(data.date);
-                    if (d < new Date(this.currentFilters.startDate)) matchesAdvanced = false;
-                }
-                if (this.currentFilters.endDate) {
-                    const d = new Date(data.date);
-                    if (d > new Date(this.currentFilters.endDate)) matchesAdvanced = false;
-                }
-                // Category filtering is tricky since it's inside items, skipping for simple audit list if not joined natively, or could be skipped
-            }
-
-            return matchesText && matchesAdvanced;
-        };
-
         this.loadAudits();
     }
 
-    totalAudits = 0;
-    averageScore = 0;
+    // ── Data loading ────────────────────────────────────────────────────────
 
-    loadAudits() {
-        this.auditService.getAudits().subscribe(data => {
-            this.dataSource.data = data;
-            this.calculateStats(data);
-            if (this.viewMode === 'calendar') {
-                this.generateCalendar();
-            }
-        });
-    }
-
-    calculateStats(data: Audit[]) {
-        this.totalAudits = data.length;
-        if (this.totalAudits > 0) {
-            const sum = data.reduce((acc, curr) => acc + curr.score, 0);
-            this.averageScore = Math.round(sum / this.totalAudits);
-        } else {
-            this.averageScore = 0;
+    loadAudits(resetPage = false) {
+        if (resetPage) {
+            this.pageIndex = 0;
         }
+
+        const filters = this.currentFilters ?? {};
+
+        this.auditService
+            .getAudits(filters, this.pageIndex + 1, this.pageSize, this.searchTerm)
+            .subscribe(response => {
+                this.dataSource.data = response.items;
+                this.totalItems      = response.total;
+                this.totalAudits     = response.total;
+                this.averageScore    = Math.round(response.average_score);
+                this.selection.clear();
+                if (this.viewMode === 'calendar') {
+                    this.generateCalendar();
+                }
+            });
     }
+
+    // ── Search & Filter ─────────────────────────────────────────────────────
 
     applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value;
-        this.dataSource.filter = filterValue.trim().toLowerCase();
-        if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+        this.searchTerm = (event.target as HTMLInputElement).value.trim();
+        this.loadAudits(true);   // reset to page 1 on new search
     }
 
     onAdvancedFilterChange(filters: any) {
         this.currentFilters = filters;
-        // Trigger filter predicate execution by reassigning filter (a hack)
-        this.dataSource.filter = this.dataSource.filter || ' ';
-        if (this.dataSource.paginator) this.dataSource.paginator.firstPage();
+        this.loadAudits(true);
     }
 
     toggleFilterBar() {
         this.showFilter = !this.showFilter;
     }
 
+    // ── Pagination ──────────────────────────────────────────────────────────
+
+    onPageChange(event: PageEvent) {
+        this.pageIndex = event.pageIndex;
+        this.pageSize  = event.pageSize;
+        this.loadAudits();
+    }
+
+    // ── Selection helpers ───────────────────────────────────────────────────
+
     isAllSelected() {
-        const numSelected = this.selection.selected.length;
-        const numRows = this.dataSource.data.length;
-        return numSelected === numRows;
+        return this.selection.selected.length === this.dataSource.data.length;
     }
 
     toggleAllRows() {
@@ -205,6 +192,8 @@ export class AuditListComponent {
         }
         return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.id}`;
     }
+
+    // ── CRUD Actions ────────────────────────────────────────────────────────
 
     openAddDialog() {
         this.router.navigate(['/audits/new']);
@@ -227,10 +216,7 @@ export class AuditListComponent {
         dialogRef.afterClosed().subscribe(result => {
             if (result && audit.id) {
                 this.auditService.updateAudit(audit.id, result).subscribe({
-                    next: (updatedAudit) => {
-                        console.log('Audit updated:', updatedAudit);
-                        this.loadAudits();
-                    },
+                    next:  () => this.loadAudits(),
                     error: (err) => console.error('Error updating audit', err)
                 });
             }
@@ -241,9 +227,7 @@ export class AuditListComponent {
         if (audit.id && confirm(`Êtes-vous sûr de vouloir supprimer l'audit #${audit.id} ?`)) {
             const id = audit.id;
             this.auditService.deleteAudit(id).subscribe(() => {
-                this.dataSource.data = this.dataSource.data.filter(a => a.id !== id);
-                this.calculateStats(this.dataSource.data);
-                if (this.viewMode === 'calendar') this.generateCalendar();
+                this.loadAudits();
             });
         }
     }
@@ -251,76 +235,92 @@ export class AuditListComponent {
     bulkDelete() {
         if (this.selection.selected.length === 0) return;
         if (confirm(`Êtes-vous sûr de vouloir supprimer ${this.selection.selected.length} audit(s) sélectionnés ?`)) {
-            const idsToDelete = this.selection.selected.map(a => a.id).filter((id): id is number => id !== undefined);
-            
+            const idsToDelete = this.selection.selected
+                .map(a => a.id)
+                .filter((id): id is number => id !== undefined);
+
             this.auditService.deleteAudits(idsToDelete).subscribe(() => {
-                 this.dataSource.data = this.dataSource.data.filter(a => a.id !== undefined && !idsToDelete.includes(a.id));
-                 this.selection.clear();
-                 this.calculateStats(this.dataSource.data);
-                 if (this.viewMode === 'calendar') this.generateCalendar();
+                this.selection.clear();
+                this.loadAudits();
             });
         }
     }
 
     exportExcel() {
-        const data = this.dataSource.filteredData.map(a => ({
-            'ID': a.id,
-            'Café': a.coffeeShop,
-            'Auditeur': a.auditorName,
-            'Date': new DatePipe('en-US').transform(a.date, 'dd/MM/yyyy'),
-            'Score': a.score + '%',
-            'Statut': a.status,
-            'Conclusion': a.conclusion || a.actionsCorrectives || '',
-            'Etat Workflow': a.workflowStatus
-        }));
+        // Fetch ALL filtered results (not just the current page) for export
+        this.auditService.getAllAudits(this.currentFilters).subscribe(allAudits => {
+            if (!allAudits.length) return;
 
-        const replacer = (key: string, value: any) => value === null ? '' : value;
-        const header = Object.keys(data[0]);
-        const csv = data.map(row => header.map(fieldName => JSON.stringify((row as any)[fieldName], replacer)).join(','));
-        csv.unshift(header.join(','));
-        const csvArray = csv.join('\r\n');
+            const rows = allAudits.map(a => ({
+                'ID':             a.id,
+                'Café':           a.coffeeShop,
+                'Auditeur':       a.auditorName,
+                'Date':           new DatePipe('en-US').transform(a.date, 'dd/MM/yyyy'),
+                'Score':          a.score + '%',
+                'Statut':         a.status,
+                'Conclusion':     a.conclusion || a.actionsCorrectives || '',
+                'Etat Workflow':  a.workflowStatus
+            }));
 
-        const blob = new Blob([csvArray], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `audits_export_${new Date().getTime()}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+            const replacer = (_key: string, value: any) => value === null ? '' : value;
+            const header = Object.keys(rows[0]);
+            const csv = rows.map(row =>
+                header.map(field => JSON.stringify((row as any)[field], replacer)).join(',')
+            );
+            csv.unshift(header.join(','));
+
+            const blob = new Blob([csv.join('\r\n')], { type: 'text/csv' });
+            const url  = window.URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = `audits_export_${new Date().getTime()}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
     }
 
-    // Calendar Methods
+    // ── Calendar view ───────────────────────────────────────────────────────
+
     toggleView(mode: 'list' | 'calendar') {
         this.viewMode = mode;
         if (mode === 'calendar') {
-            this.generateCalendar();
+            // Load ALL audits for the calendar (no pagination)
+            this.loadCalendarAudits();
         }
     }
 
-    generateCalendar() {
-        const year = this.currentMonth.getFullYear();
-        const month = this.currentMonth.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
+    private calendarAllAudits: Audit[] = [];
 
+    loadCalendarAudits() {
+        const year  = this.currentMonth.getFullYear();
+        const month = this.currentMonth.getMonth();
+        const start = new Date(year, month, 1);
+        const end   = new Date(year, month + 1, 0);
+
+        this.auditService.getAllAudits({ startDate: start, endDate: end }).subscribe(audits => {
+            this.calendarAllAudits = audits;
+            this.generateCalendar();
+        });
+    }
+
+    generateCalendar() {
+        const year        = this.currentMonth.getFullYear();
+        const month       = this.currentMonth.getMonth();
+        const firstDay    = new Date(year, month, 1);
+        const lastDay     = new Date(year, month + 1, 0);
         const daysInMonth = lastDay.getDate();
-        const startDayOfWeek = firstDay.getDay();
+        const startDay    = firstDay.getDay();
 
         this.calendarDays = [];
 
-        // Previous month padding
-        for (let i = 0; i < startDayOfWeek; i++) {
-            const d = new Date(year, month, 1 - (startDayOfWeek - i));
+        for (let i = 0; i < startDay; i++) {
+            const d = new Date(year, month, 1 - (startDay - i));
             this.calendarDays.push({ date: d, isCurrentMonth: false, audits: this.getAuditsForDate(d) });
         }
-
-        // Current month
         for (let i = 1; i <= daysInMonth; i++) {
             const date = new Date(year, month, i);
             this.calendarDays.push({ date, isCurrentMonth: true, audits: this.getAuditsForDate(date) });
         }
-
-        // Next month padding
         const remaining = 7 - (this.calendarDays.length % 7);
         if (remaining < 7) {
             for (let i = 1; i <= remaining; i++) {
@@ -331,22 +331,22 @@ export class AuditListComponent {
     }
 
     getAuditsForDate(date: Date): Audit[] {
-        return this.dataSource.data.filter(a => this.isSameDate(new Date(a.date), date));
+        return this.calendarAllAudits.filter(a => this.isSameDate(new Date(a.date), date));
     }
 
     isSameDate(d1: Date, d2: Date): boolean {
-        return d1.getDate() === d2.getDate() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getFullYear() === d2.getFullYear();
+        return d1.getDate()     === d2.getDate()     &&
+               d1.getMonth()    === d2.getMonth()    &&
+               d1.getFullYear() === d2.getFullYear();
     }
 
     prevMonth() {
         this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
-        this.generateCalendar();
+        this.loadCalendarAudits();
     }
 
     nextMonth() {
         this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
-        this.generateCalendar();
+        this.loadCalendarAudits();
     }
 }
