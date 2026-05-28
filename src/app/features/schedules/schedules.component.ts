@@ -212,6 +212,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         // Rebuild chart from visible page data (trend)
         this.drawChart(this.dataSource.data);
 
+        if (this.viewMode === 'calendar') {
+          this.loadCalendarLogs();
+        }
+
         this.isLoading = false;
       },
       error: (err) => {
