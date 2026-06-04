@@ -123,6 +123,13 @@ export class FilterBarComponent implements OnInit {
   };
 
   ngOnInit() {
+    // Default to last month
+    const now = new Date();
+    const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    this.filters.startDate = firstDayLastMonth;
+    this.filters.endDate = lastDayLastMonth;
+
     this.categoryService.getCategories().subscribe(c => this.categories = c);
     
     // Load ALL coffees from database
@@ -136,6 +143,9 @@ export class FilterBarComponent implements OnInit {
       const filteredUsers = users.filter(u => allowedRoles.includes(u.role));
       this.auditors = filteredUsers.map(u => u.full_name || u.email).filter(Boolean);
     });
+
+    // Emit the default filter so dashboards load last month's data immediately
+    setTimeout(() => this.onFilterChange(), 0);
   }
 
   onFilterChange() {

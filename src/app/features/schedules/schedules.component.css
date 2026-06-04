@@ -227,14 +227,27 @@
 /* VISUALS & CHARTS */
 .dashboard-visuals {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(12, 1fr);
   gap: 24px;
 }
 
 .chart-card {
+  grid-column: span 12;
   border-radius: 16px;
   border: 1px solid var(--outline-variant);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+@media (min-width: 769px) {
+  .chart-card.bar-chart {
+    grid-column: span 6;
+  }
+  .chart-card.line-chart {
+    grid-column: span 6;
+  }
+  .chart-card.bar-chart-full {
+    grid-column: span 12;
+  }
 }
 
 .chart-container {
@@ -781,4 +794,141 @@ td.mat-mdc-cell {
   background-color: rgba(217, 48, 37, 0.1);
   border-left-color: #d93025;
   color: #d93025;
+}
+
+/* CSV EXPORT BUTTON (Premium Excel Gradient styling) */
+.export-btn {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+  padding: 4px 18px !important;
+  height: 40px !important;
+  background: linear-gradient(135deg, #107c41, #1f9a55) !important;
+  color: white !important;
+  border: 1px solid #0e6c38 !important;
+  box-shadow: 0 2px 6px rgba(16, 124, 65, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.export-btn:hover {
+  background: linear-gradient(135deg, #0f703b, #1b8a4b) !important;
+  box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+.export-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(16, 124, 65, 0.2) !important;
+}
+
+/* NEW KPI CARDS CUSTOM COLOR THEMES */
+.kpi-card.perfect .kpi-icon-wrapper {
+  background-color: rgba(103, 58, 183, 0.1);
+  color: #673ab7;
+}
+
+.kpi-card.active-cafes .kpi-icon-wrapper {
+  background-color: rgba(0, 150, 136, 0.1);
+  color: #009688;
+}
+
+.kpi-card.top-cafe .kpi-icon-wrapper {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.kpi-card.worst-cafe .kpi-icon-wrapper {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.kpi-card.status-distribution .kpi-icon-wrapper {
+  background-color: rgba(96, 125, 139, 0.1);
+  color: #607d8b;
+}
+
+/* TABS STYLING */
+.schedules-tabs {
+  margin-top: 16px;
+  background: transparent;
+}
+
+.schedules-tabs ::ng-deep .mat-mdc-tab-body-wrapper {
+  padding-top: 16px;
+}
+
+.schedules-tabs ::ng-deep .mat-mdc-tab-header {
+  border-bottom: 1px solid var(--outline-variant);
+  margin-bottom: 8px;
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* MOBILE OPTIMIZATIONS FOR ULTRA-FRIENDLY RESPONSIVENESS */
+@media (max-width: 600px) {
+  /* Header actions layout optimization */
+  .header-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  .ajouter-btn {
+    grid-column: span 2 !important;
+  }
+
+  /* Compact KPI layout for mobile */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .kpi-card mat-card-content {
+    padding: 12px !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .kpi-card.status-distribution {
+    grid-column: span 2 !important;
+  }
+  
+  .kpi-card.status-distribution mat-card-content {
+    flex-direction: column !important;
+  }
+
+  .kpi-icon-wrapper {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  .kpi-icon-wrapper mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .kpi-title {
+    font-size: 11px !important;
+  }
+
+  .kpi-value {
+    font-size: 20px !important;
+  }
+  
+  .kpi-desc {
+    font-size: 10px !important;
+  }
+
+  /* Compact Charts containers */
+  .chart-container {
+    height: 250px !important;
+  }
 }

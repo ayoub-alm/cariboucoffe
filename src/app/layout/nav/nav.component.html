@@ -106,12 +106,16 @@
             </button>
 
             <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
+                <span class="user-avatar">{{ userInitials() }}</span>
                 <span class="user-name">{{ currentUser()?.full_name }}</span>
                 <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
             </button>
             <mat-menu #userMenu="matMenu" class="user-menu">
-                <div class="user-menu-header d-flex">
-                    <div class="user-info col">
+                <div class="user-menu-header">
+                    <div class="user-avatar-large">
+                        <span style="font-family:'Google Sans',Roboto,sans-serif;font-size:22px;font-weight:500;color:white;">{{ userInitials() }}</span>
+                    </div>
+                    <div class="user-info">
                         <div class="user-name-large">{{ currentUser()?.full_name }}</div>
                         <div class="user-email">{{ currentUser()?.email }}</div>
                     </div>
@@ -124,7 +128,7 @@
                 <mat-divider></mat-divider>
                 <button mat-menu-item (click)="resetAndReload()">
                     <mat-icon>refresh</mat-icon>
-                    <span>Réinitialiser & Recharger</span>
+                    <span>Réinitialiser &amp; Recharger</span>
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item (click)="logout()" class="logout-btn">

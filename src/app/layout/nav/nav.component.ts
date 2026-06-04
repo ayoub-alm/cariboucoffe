@@ -71,10 +71,10 @@ export class NavComponent {
         return !!this.currentUser()?.permissions?.coffees?.read;
     });
 
-    /** Schedules visible to ADMIN, BOSS, and CONTROLLER */
+    /** Schedules visible to ADMIN, BOSS, CONTROLLER, and MANAGER */
     canSeeSchedules = computed(() => {
         const role = this.currentUser()?.role;
-        return role ? [UserRole.ADMIN, UserRole.BOSS, UserRole.CONTROLLER].includes(role) : false;
+        return role ? [UserRole.ADMIN, UserRole.BOSS, UserRole.CONTROLLER, UserRole.MANAGER].includes(role) : false;
     });
 
     /** Audits visible to anyone except CONTROLLER in sidebar */
@@ -93,6 +93,14 @@ export class NavComponent {
     roleDisplay = computed(() => {
         const user = this.currentUser();
         return user ? getRoleDisplayName(user.role) : '';
+    });
+
+    /** First letter of user name for avatar circle */
+    userInitials = computed(() => {
+        const user = this.currentUser();
+        if (!user) return '?';
+        const name = user.full_name || user.email || '';
+        return name.charAt(0).toUpperCase();
     });
 
     pageTitle = 'Dashboard';

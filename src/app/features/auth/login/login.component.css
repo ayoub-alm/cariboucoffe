@@ -1,212 +1,225 @@
+/* =========================================================
+   LOGIN PAGE — Google Account Sign-In Style
+   Clean, centered card, no glassmorphism
+   ========================================================= */
+
+/* ── Page container ── */
 .login-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 100vh;
     background-image: url('/auth.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
-    overflow: hidden;
-    padding: 20px;
-
-    /* Caribou Brand Colors Override */
-    --primary: #00637F;
-    /* Caribou Teal */
-    --primary-container: #004d63;
-    --on-primary: #ffffff;
-    --surface: #FFFAF0;
-    /* Floral White / Cream */
-    --on-surface-variant: #5D4037;
-    /* Coffee brown text */
+    padding: 24px;
 }
 
-/* Dark overlay for better contrast - Tinted with Coffee/Teal */
+/* Subtle dark overlay for text readability */
 .login-container::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 30, 40, 0.4);
-    /* Dark Teal tint */
+    inset: 0;
+    background: rgba(0, 20, 40, 0.35);
     z-index: 0;
-    backdrop-filter: blur(3px);
 }
 
 :host-context(.dark-theme) .login-container::before {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.55);
 }
 
-/* Center glow effect */
-.login-container::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 700px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* Login Card */
+/* ── Login Card — Google account sign-in style ── */
 .login-card {
-    width: 100%;
-    max-width: 420px;
-    background: rgba(255, 255, 255, 0.9);
-    /* High opacity for readability */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 28px;
-    padding: 48px 40px;
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.2);
     position: relative;
     z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 40px 40px 32px;
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.12),
+        0 8px 32px rgba(0, 0, 0, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 :host-context(.dark-theme) .login-card {
-    background: rgba(30, 30, 30, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #202124;
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* Logo Section */
+/* ── Logo section ── */
 .logo-section {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
 }
 
 .login-logo {
-    max-width: 180px;
+    max-width: 160px;
     height: auto;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12));
 }
 
-/* Title */
+/* ── Title ── */
 .login-title {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 24px;
+    font-weight: 400;                      /* Google titles are regular weight */
+    color: #202124;
     text-align: center;
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--primary);
-    /* Use brand color */
-    margin: 0 0 32px 0;
-    letter-spacing: 0.5px;
+    margin: 0 0 8px;
+    letter-spacing: -0.2px;
 }
 
 :host-context(.dark-theme) .login-title {
-    color: var(--on-surface);
+    color: #e8eaed;
 }
 
-/* Form */
+/* Subtitle line (like "Sign in with your Google Account") */
+.login-subtitle {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #5f6368;
+    text-align: center;
+    margin: 0 0 28px;
+}
+
+:host-context(.dark-theme) .login-subtitle {
+    color: #9aa0a6;
+}
+
+/* ── Error message ── */
+.error-message {
+    background-color: #fce8e6;
+    color: #c5221f;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+:host-context(.dark-theme) .error-message {
+    background-color: #5f2120;
+    color: #f28b82;
+}
+
+/* ── Login form ── */
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
 .full-width {
     width: 100%;
 }
 
-/* Submit Button */
-.submit-btn {
-    width: 100%;
-    height: 48px;
-    font-size: 16px;
-    font-weight: 600;
-    margin-top: 16px;
-    border-radius: 24px;
-    text-transform: none;
-    /* Gradient from Teal to Coffee Brown/Darker Teal */
-    background: linear-gradient(135deg, #00637F 0%, #004d63 100%);
-    color: var(--on-primary);
-    box-shadow: 0 4px 10px rgba(0, 99, 127, 0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
+/* ── Material form field refinement ── */
+::ng-deep .login-form .mat-mdc-form-field {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
 }
 
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0, 99, 127, 0.4);
+/* Outlined style fields */
+::ng-deep .login-form .mdc-notched-outline__leading {
+    border-radius: 4px 0 0 4px;
+}
+::ng-deep .login-form .mdc-notched-outline__trailing {
+    border-radius: 0 4px 4px 0;
+}
+
+/* ── Submit button — Google blue filled ── */
+.submit-btn {
+    width: 100%;
+    height: 48px !important;
+    font-family: 'Google Sans', 'Roboto', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.25px;
+    margin-top: 8px;
+    border-radius: 24px !important;
+    text-transform: none !important;
+    background: #1a73e8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(26, 115, 232, 0.3) !important;
+    transition: background 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.submit-btn:hover:not([disabled]) {
+    background: #1557b0 !important;
+    box-shadow: 0 2px 6px rgba(26, 115, 232, 0.4) !important;
 }
 
 .submit-btn:active {
-    transform: translateY(0);
+    background: #0d47a1 !important;
+    box-shadow: none !important;
+}
+
+.submit-btn[disabled] {
+    background: #f1f3f4 !important;
+    color: #80868b !important;
+    box-shadow: none !important;
+}
+
+:host-context(.dark-theme) .submit-btn[disabled] {
+    background: #3c4043 !important;
+    color: #80868b !important;
 }
 
 .button-spinner {
     display: inline-block;
 }
 
-/* Footer */
+/* ── Footer ── */
 .login-footer {
     text-align: center;
-    margin-top: 40px;
-    padding-top: 24px;
-    border-top: 1px solid rgba(0, 99, 127, 0.1);
-    /* Subtle teal divider */
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e8eaed;
 }
 
 :host-context(.dark-theme) .login-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #3c4043;
 }
 
 .copyright {
-    font-size: 13px;
-    color: var(--on-surface-variant);
-    margin: 0 0 4px 0;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 12px;
+    color: #80868b;
+    margin: 0 0 2px;
 }
 
 .company-name {
-    font-size: 13px;
-    color: var(--primary);
-    /* Brand color */
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 12px;
+    color: #1a73e8;
     margin: 0;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
-/* Material Form Field Customization */
-::ng-deep .login-form .mat-mdc-form-field {
-    font-size: 14px;
-}
-
-::ng-deep .login-form .mat-mdc-text-field-wrapper {
-    background-color: rgba(255, 255, 255, 0.5) !important;
-    /* Slightly distinct input bg */
-    border: 1px solid rgba(0, 99, 127, 0.2);
-    border-radius: 12px;
-}
-
-:host-context(.dark-theme) ::ng-deep .login-form .mat-mdc-text-field-wrapper {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-::ng-deep .login-form .mat-mdc-form-field-focus-overlay {
-    background-color: transparent;
-}
-
-/* Responsive Design */
-@media (max-width: 576px) {
+/* ── Responsive ── */
+@media (max-width: 480px) {
     .login-card {
-        padding: 36px 28px;
-        background: rgba(255, 255, 255, 0.95);
-    }
-
-    :host-context(.dark-theme) .login-card {
-        background: var(--surface-container);
-    }
-
-    .login-logo {
-        max-width: 150px;
+        padding: 32px 24px 28px;
+        border-radius: 20px;
+        max-width: 100%;
     }
 
     .login-title {
         font-size: 22px;
+    }
+
+    .login-logo {
+        max-width: 130px;
     }
 }

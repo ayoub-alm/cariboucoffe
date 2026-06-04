@@ -18,6 +18,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTabsModule } from '@angular/material/tabs';
 import { Chart, registerables } from 'chart.js';
 import { DailyLogService, DailyTimeRecord } from '../../core/services/daily-log.service';
 import { CoffeeService } from '../../core/services/coffee.service';
@@ -56,7 +57,8 @@ type EnrichedLog = DailyTimeRecord & { coffeeName?: string; controllerName?: str
     MatProgressBarModule,
     MatDialogModule,
     MatButtonToggleModule,
-    MatMenuModule
+    MatMenuModule,
+    MatTabsModule
   ],
   templateUrl: './schedules.component.html',
   styleUrl: './schedules.component.css'
@@ -74,6 +76,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
 
   @ViewChild('trendChartCanvas') trendChartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('weeklyCoffeeChartCanvas') weeklyCoffeeChartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('cafeComplianceChartCanvas') cafeComplianceChartCanvas!: ElementRef<HTMLCanvasElement>;
   /** Sort wired to client-side sorting within the current page */
   @ViewChild(MatSort) set sort(s: MatSort) { this.dataSource.sort = s; }
 
@@ -81,9 +84,17 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   currentUser = this.authService.currentUser;
   isAdminOrBoss = computed(() => {
     const user = this.currentUser();
-    return user ? [UserRole.ADMIN, UserRole.BOSS].includes(user.role) : false;
+    return user ? [UserRole.ADMIN, UserRole.BOSS, UserRole.MANAGER].includes(user.role) : false;
   });
   isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN);
+  canExport = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === UserRole.ADMIN || role === UserRole.BOSS;
+  });
+  canAddOrEdit = computed(() => {
+    const role = this.currentUser()?.role;
+    return role ? [UserRole.ADMIN, UserRole.CONTROLLER].includes(role) : false;
+  });
 
   // ── Thresholds ──────────────────────────────────────────────────────────
   thresholds: ScheduleThreshold | null = null;
@@ -116,6 +127,18 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   lateOpeningsCount     = 0;
   earlyClosuresCount    = 0;
 
+  // ── New Data-Engineered KPIs ─────────────────────────────────────────────
+  allFilteredLogs: EnrichedLog[] = [];
+  perfectDaysRate        = 0;
+  activeCafesCount       = 0;
+  greenDaysCount         = 0;
+  orangeDaysCount        = 0;
+  redDaysCount           = 0;
+  lateOpeningsRate       = 0;
+  earlyClosuresRate      = 0;
+  bestCoffeeSchedules    = { name: 'N/A', score: 0 };
+  worstCoffeeSchedules   = { name: 'N/A', score: 0 };
+
   // ── Calendar ────────────────────────────────────────────────────────────
   viewMode: 'list' | 'calendar' = 'list';
   currentMonth = new Date();
@@ -126,6 +149,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   // ── Charts ───────────────────────────────────────────────────────────────
   private chart: Chart | undefined;
   private weeklyChart: Chart | undefined;
+  private cafeComplianceChart: Chart | undefined;
 
   // ── Loading flag ─────────────────────────────────────────────────────────
   isLoading = false;
@@ -142,6 +166,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isLoading = true;
+
+    if (!this.canAddOrEdit() && !this.isAdmin()) {
+      this.displayedColumns = ['date', 'coffeeName', 'opening', 'closing', 'score', 'controllerName'];
+    }
 
     this.configService.getScheduleThresholds().subscribe({
       next:  (t) => { this.thresholds = t; },
@@ -175,6 +203,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.chart) this.chart.destroy();
     if (this.weeklyChart) this.weeklyChart.destroy();
+    if (this.cafeComplianceChart) this.cafeComplianceChart.destroy();
   }
 
   // ── Data loading ──────────────────────────────────────────────────────────
@@ -209,8 +238,20 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         this.monthlyComplianceRate = Math.round(response.monthly_average);
         this.weeklyComplianceRate  = Math.round(response.weekly_average);
 
-        // Rebuild chart from visible page data (trend)
-        this.drawChart(this.dataSource.data);
+        // Fetch all matching logs (unpaginated) to draw correct trends/averages across all records
+        this.dailyLogService.getAllLogs(queryParams).subscribe({
+          next: (allLogs) => {
+            this.allFilteredLogs = allLogs.map(log => this.enrichLog(log));
+            this.computeAdditionalKPIs(this.allFilteredLogs);
+            this.drawChart(this.allFilteredLogs);
+          },
+          error: (err) => {
+            console.error('Error loading all logs for charts', err);
+            this.allFilteredLogs = this.dataSource.data;
+            this.computeAdditionalKPIs(this.allFilteredLogs);
+            this.drawChart(this.allFilteredLogs);
+          }
+        });
 
         if (this.viewMode === 'calendar') {
           this.loadCalendarLogs();
@@ -224,6 +265,109 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     });
+  }
+
+  onTabChange(event: any) {
+    if (event.index === 1) {
+      this.drawChart(this.allFilteredLogs);
+    }
+  }
+
+  exportCSV() {
+    if (!this.canExport()) return;
+
+    const headers = [
+      'Date',
+      'Café',
+      'Ouverture Réelle',
+      'Fermeture Réelle',
+      'Score (%)',
+      'Statut',
+      'Saisi par'
+    ];
+
+    const rows = this.allFilteredLogs.map(log => [
+      log.date,
+      log.coffeeName || '',
+      log.opening_time || '',
+      log.closing_time || '',
+      log.score.toString(),
+      log.status || '',
+      log.controllerName || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const bom = '\ufeff';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `export_horaires_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  computeAdditionalKPIs(records: EnrichedLog[]) {
+    const total = records.length;
+    
+    // 1. Ponctualité Parfaite (%)
+    const perfectCount = records.filter(r => r.score === 100).length;
+    this.perfectDaysRate = total > 0 ? Math.round((perfectCount / total) * 100) : 0;
+    
+    // 2. Établissements Actifs
+    this.activeCafesCount = new Set(records.map(r => r.coffee_id)).size;
+    
+    // 3. Status distribution
+    this.greenDaysCount = records.filter(r => r.score >= this.conformeMin).length;
+    this.orangeDaysCount = records.filter(r => r.score >= this.partielMin && r.score < this.conformeMin).length;
+    this.redDaysCount = records.filter(r => r.score < this.partielMin).length;
+    
+    // 4. Late Openings & Early Closures rates
+    this.lateOpeningsRate = total > 0 ? Math.round((this.lateOpeningsCount / total) * 100) : 0;
+    this.earlyClosuresRate = total > 0 ? Math.round((this.earlyClosuresCount / total) * 100) : 0;
+
+    // 5. Best & Worst Coffee Schedules
+    const cafeScores: { [name: string]: { sum: number; count: number } } = {};
+    records.forEach(r => {
+      const name = r.coffeeName || `Café #${r.coffee_id}`;
+      if (!cafeScores[name]) cafeScores[name] = { sum: 0, count: 0 };
+      cafeScores[name].sum += r.score;
+      cafeScores[name].count += 1;
+    });
+
+    let bestName = 'N/A';
+    let bestVal = -1;
+    let worstName = 'N/A';
+    let worstVal = 101;
+
+    Object.entries(cafeScores).forEach(([name, stats]) => {
+      const avg = stats.count > 0 ? stats.sum / stats.count : 0;
+      if (avg > bestVal) {
+        bestVal = avg;
+        bestName = name;
+      }
+      if (avg < worstVal) {
+        worstVal = avg;
+        worstName = name;
+      }
+    });
+
+    this.bestCoffeeSchedules = {
+      name: bestName,
+      score: bestVal !== -1 ? Math.round(bestVal) : 0
+    };
+    this.worstCoffeeSchedules = {
+      name: worstName,
+      score: worstVal !== 101 ? Math.round(worstVal) : 0
+    };
   }
 
   /** Load ALL logs for the calendar month (ignores table pagination). */
@@ -434,6 +578,55 @@ export class SchedulesComponent implements OnInit, OnDestroy {
           }
         }
       });
+
+      // ── 3. CAFE SCORE CHART (BAR) ──
+      if (this.cafeComplianceChartCanvas) {
+        if (this.cafeComplianceChart) this.cafeComplianceChart.destroy();
+
+        const coffeeScoreMap: { [coffeeName: string]: { total: number; sum: number } } = {};
+        
+        records.forEach(r => {
+          const coffeeName = r.coffeeName || `Café #${r.coffee_id}`;
+          if (!coffeeScoreMap[coffeeName]) {
+            coffeeScoreMap[coffeeName] = { total: 0, sum: 0 };
+          }
+          coffeeScoreMap[coffeeName].total += 1;
+          coffeeScoreMap[coffeeName].sum += r.score;
+        });
+
+        const coffeeLabels = Object.keys(coffeeScoreMap).sort();
+        const averageScores = coffeeLabels.map(name => {
+          const stats = coffeeScoreMap[name];
+          return stats.total > 0 ? Math.round(stats.sum / stats.total) : 0;
+        });
+
+        const errorColor = this.themeService.getColor('--error') || '#d93025';
+
+        this.cafeComplianceChart = new Chart(this.cafeComplianceChartCanvas.nativeElement, {
+          type: 'bar',
+          data: {
+            labels: coffeeLabels.length > 0 ? coffeeLabels.map(s => s.replace('Caribou ', '')) : ['Aucune donnée'],
+            datasets: [{
+              label: 'Score Moyen (%)',
+              data: averageScores.length > 0 ? averageScores : [0],
+              backgroundColor: averageScores.length > 0
+                ? averageScores.map(score => score >= this.conformeMin ? primaryColor : (score >= this.partielMin ? warningColor : errorColor))
+                : [primaryColor],
+              borderRadius: 4,
+              barThickness: 32
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { max: 100, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
+              x: { ticks: { color: textColor }, grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
     }, 100);
   }
 
@@ -453,6 +646,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   }
 
   openScheduleDialog(log: DailyTimeRecord | null = null, defaultDate: Date | null = null) {
+    if (!this.canAddOrEdit() && !this.isAdmin()) return;
     const filters = this.filterForm.value;
     const defaultCoffeeId = (filters?.coffee_id && filters.coffee_id !== 'all') ? Number(filters.coffee_id) : null;
 

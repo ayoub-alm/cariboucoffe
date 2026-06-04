@@ -9,49 +9,52 @@ body {
 }
 
 body {
-    font-family: 'Poppins', 'Google Sans', 'Roboto', 'Helvetica Neue', sans-serif;
+    font-family: 'Google Sans', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 /* ========== LIGHT THEME (Default) ========== */
 :root {
-    /* Surface Colors */
+    /* M3 Surface Tonal Colors */
     --surface: #ffffff;
     --surface-variant: #f8f9fa;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f8f9fa;    /* Cards background - like Google Drive cards */
     --surface-container: #f1f3f4;
     --surface-container-high: #e8eaed;
     --surface-container-highest: #dee1e6;
-    --background: #fafafa;
+    --background: #f0f4f9;               /* Google Workspace page bg - subtle blue-grey */
 
     /* Text Colors */
     --on-surface: #202124;
     --on-surface-variant: #5f6368;
     --on-background: #202124;
 
-    /* Primary Colors */
+    /* Primary - Google Blue */
     --primary: #1a73e8;
+    --primary-hover: #1557b0;
     --on-primary: #ffffff;
-    --primary-container: #d3e3fd;
+    --primary-container: #d3e3fd;        /* Light blue tonal container */
     --on-primary-container: #041e49;
 
-    /* Secondary Colors */
+    /* Secondary */
     --secondary: #5f6368;
     --on-secondary: #ffffff;
 
-    /* Error Colors */
+    /* Error */
     --error: #d93025;
     --on-error: #ffffff;
     --error-container: #fce8e6;
     --on-error-container: #410002;
 
-    /* Success Colors */
+    /* Success */
     --success: #1e8e3e;
     --on-success: #ffffff;
-    --success-container: #c4eed0;
+    --success-container: #e6f4ea;        /* Google green tonal */
     --on-success-container: #003a12;
 
-    /* Warning Colors */
+    /* Warning */
     --warning: #f9ab00;
     --on-warning: #000000;
     --warning-container: #fef7e0;
@@ -61,15 +64,26 @@ body {
     --outline: #dadce0;
     --outline-variant: #e8eaed;
 
-    /* Glassmorphism Defaults */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.4);
 
-    /* Shadow */
-    --shadow: rgba(0, 0, 0, 0.1);
-    --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-    --shadow-md: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
-    --shadow-lg: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 8px 24px 4px rgba(60, 64, 67, 0.15);
+    /* M3 Elevation shadows (Google style - very subtle) */
+    --shadow: rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    --shadow-md: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 1px 2px rgba(60, 64, 67, 0.3);
+    --shadow-lg: 0 4px 8px 3px rgba(60, 64, 67, 0.15), 0 1px 3px rgba(60, 64, 67, 0.3);
+
+    /* Typography scale — Google Workspace */
+    --font-display: 'Google Sans Display', 'Google Sans', 'Roboto', sans-serif;
+    --font-body: 'Google Sans', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+
+    /* Border radius tokens */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-pill: 50px;
 }
 
 body {
@@ -77,11 +91,13 @@ body {
     color: var(--on-background);
 }
 
-/* ========== DARK THEME ========== */
+/* Dark theme background */
 body.dark-theme {
     /* Surface Colors */
     --surface: #202124;
     --surface-variant: #292a2d;
+    --surface-container-lowest: #17181a;
+    --surface-container-low: #202124;
     --surface-container: #2d2e30;
     --surface-container-high: #35363a;
     --surface-container-highest: #3c4043;
@@ -145,28 +161,55 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Text Consistency Reset */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: 'Poppins', 'Google Sans', 'Roboto', sans-serif;
+/* ========== GOOGLE-STYLE TYPOGRAPHY ========== */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
     font-weight: 400;
     color: var(--on-background);
+    margin: 0;
+    line-height: 1.3;
 }
 
-p,
-label,
-li {
+h1 { font-size: 24px; font-weight: 400; letter-spacing: -0.2px; }
+h2 { font-size: 20px; font-weight: 500; }
+h3 { font-size: 16px; font-weight: 500; }
+h4 { font-size: 14px; font-weight: 500; }
+
+p, label, li {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
     color: var(--on-surface);
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-span,
-div {
-    /* Inherit by default, but ensure if they are root text they use theme */
-    color: inherit;
+span, div { color: inherit; }
+
+/* ========== GOOGLE SCROLLBARS ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--outline);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--on-surface-variant);
+    background-clip: content-box;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--outline) transparent;
 }
 
 /* Form Controls */
@@ -198,14 +241,20 @@ select {
     /* Inactive steps */
 }
 
-/* ========== MATERIAL COMPONENT OVERRIDES ========== */
+/* ========== MATERIAL COMPONENT OVERRIDES — GOOGLE M3 STYLE ========== */
 
-/* Cards */
+/* Cards — M3 Elevated style */
 .mat-mdc-card {
     background-color: var(--surface) !important;
     color: var(--on-surface) !important;
-    box-shadow: var(--shadow-sm) !important;
-    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px rgba(60,64,67,.1) !important;
+    border-radius: var(--radius-md) !important;
+    border: none !important;
+    transition: box-shadow 0.2s ease !important;
+}
+
+.mat-mdc-card:hover {
+    box-shadow: 0 2px 6px rgba(60,64,67,.3), 0 6px 12px rgba(60,64,67,.15) !important;
 }
 
 /* Tables */
@@ -256,11 +305,12 @@ select {
     color: var(--on-surface) !important;
 }
 
-/* Toolbar */
+/* Toolbar — Google Workspace flat style */
 .mat-toolbar {
     background-color: var(--surface) !important;
     color: var(--on-surface) !important;
-    box-shadow: var(--shadow-sm) !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--outline-variant) !important;
 }
 
 /* Sidenav */
@@ -1313,3 +1363,287 @@ body.dark-theme .empty-state {
         border-color 0.2s ease,
         box-shadow 0.2s ease !important;
 }
+
+/* =====================================================================
+   GOOGLE WORKSPACE-STYLE UTILITY CLASSES
+   ===================================================================== */
+
+/* ── Google-style page header ── */
+.goog-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.goog-page-title {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--on-background);
+    letter-spacing: -0.2px;
+    margin: 0;
+}
+
+/* ── Section label (uppercase, small, like Google's section headers) ── */
+.goog-section-label {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--on-surface-variant);
+    padding: 4px 0;
+}
+
+/* ── M3 Tonal Card ── */
+.goog-card {
+    background-color: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    border: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.goog-card:hover {
+    box-shadow: 0 2px 6px rgba(60,64,67,.3), 0 4px 8px rgba(60,64,67,.15);
+}
+
+/* ── Google KPI stat card ── */
+.goog-stat-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 1px 2px rgba(60,64,67,.2), 0 1px 3px rgba(60,64,67,.1);
+    transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.goog-stat-card:hover {
+    box-shadow: 0 2px 6px rgba(60,64,67,.3), 0 4px 8px rgba(60,64,67,.12);
+    transform: translateY(-1px);
+}
+
+.goog-stat-value {
+    font-family: 'Google Sans Display', 'Google Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--on-surface);
+    line-height: 1;
+}
+
+.goog-stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ── Google chip/status pill ── */
+.goog-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    line-height: 1.4;
+}
+
+.goog-chip.success {
+    background-color: var(--success-container);
+    color: var(--on-success-container);
+}
+
+.goog-chip.error {
+    background-color: var(--error-container);
+    color: var(--on-error-container);
+}
+
+.goog-chip.warning {
+    background-color: var(--warning-container);
+    color: var(--on-warning-container);
+}
+
+.goog-chip.info {
+    background-color: var(--primary-container);
+    color: var(--on-primary-container);
+}
+
+.goog-chip.neutral {
+    background-color: var(--surface-container);
+    color: var(--on-surface-variant);
+}
+
+/* ── Google avatar (initials circle) ── */
+.goog-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #174ea6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+/* ── Improved table header (Google Workspace style) ── */
+.goog-table th {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--on-surface-variant);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--outline-variant);
+    background-color: transparent;
+    white-space: nowrap;
+}
+
+.goog-table td {
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
+    color: var(--on-surface);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.goog-table tr:hover td {
+    background-color: var(--surface-container-low);
+}
+
+/* ── Google-style search bar ── */
+.goog-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--surface-container);
+    border-radius: 24px;
+    padding: 8px 16px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    min-width: 240px;
+}
+
+.goog-search:focus-within {
+    background-color: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.goog-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-size: 14px;
+    color: var(--on-surface);
+    width: 100%;
+}
+
+.goog-search mat-icon,
+.goog-search .search-icon {
+    color: var(--on-surface-variant);
+    font-size: 20px;
+}
+
+/* ── Google FAB (Floating Action Button) ── */
+.goog-fab {
+    position: fixed !important;
+    bottom: 24px;
+    right: 24px;
+    border-radius: 16px !important;
+    padding: 0 24px !important;
+    height: 56px !important;
+    font-family: 'Google Sans', 'Roboto', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    box-shadow: 0 4px 8px rgba(60,64,67,.3), 0 2px 4px rgba(60,64,67,.2) !important;
+    transition: box-shadow 0.2s, transform 0.15s !important;
+    gap: 8px;
+}
+
+.goog-fab:hover {
+    box-shadow: 0 6px 12px rgba(60,64,67,.3), 0 3px 6px rgba(60,64,67,.2) !important;
+    transform: translateY(-1px);
+}
+
+/* ── Divider with label ── */
+.goog-divider-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--on-surface-variant);
+    font-size: 12px;
+    font-weight: 500;
+    margin: 16px 0;
+}
+
+.goog-divider-label::before,
+.goog-divider-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--outline-variant);
+}
+
+/* ── Empty state (no data) ── */
+.goog-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    gap: 12px;
+    color: var(--on-surface-variant);
+    text-align: center;
+}
+
+.goog-empty-state mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.4;
+}
+
+.goog-empty-state p {
+    font-size: 16px;
+    color: var(--on-surface-variant);
+    margin: 0;
+}
+
+/* ── Dark mode adjustments for goog- utilities ── */
+body.dark-theme .goog-card {
+    background-color: var(--surface-container-low);
+    box-shadow: 0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+}
+
+body.dark-theme .goog-search {
+    background-color: var(--surface-container);
+}
+
+body.dark-theme .goog-table th {
+    color: var(--on-surface-variant);
+    border-bottom-color: var(--outline);
+}
+
+body.dark-theme .goog-table td {
+    color: var(--on-surface);
+    border-bottom-color: var(--outline);
+}
+
+body.dark-theme .goog-table tr:hover td {
+    background-color: var(--surface-container);
+}

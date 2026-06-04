@@ -7,6 +7,11 @@
     </div>
     
     <div class="header-actions">
+      <!-- Export CSV button for Admin & Boss -->
+      <button *ngIf="canExport()" mat-flat-button class="export-btn" (click)="exportCSV()" matTooltip="Exporter les relevés filtrés en CSV">
+        <mat-icon>download</mat-icon> Exporter CSV
+      </button>
+
       <mat-button-toggle-group [value]="viewMode" (change)="toggleView($event.value)" class="view-toggle">
         <mat-button-toggle value="list" aria-label="List View">
           <mat-icon>list</mat-icon>
@@ -15,16 +20,19 @@
           <mat-icon>calendar_today</mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
+
       <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
         <mat-icon>refresh</mat-icon> Réinitialiser
       </button>
+
       <!-- Admin-only threshold config button -->
       <button *ngIf="isAdmin()" mat-stroked-button class="config-btn"
               (click)="openThresholdConfig()"
               matTooltip="Configurer les seuils de conformité">
         <mat-icon>tune</mat-icon> Seuils
       </button>
-      <button mat-flat-button color="primary" class="ajouter-btn" (click)="openScheduleDialog()">
+
+      <button *ngIf="canAddOrEdit() || isAdmin()" mat-flat-button color="primary" class="ajouter-btn" (click)="openScheduleDialog()">
         <mat-icon>add</mat-icon> Ajouter
       </button>
     </div>
@@ -32,112 +40,7 @@
 
   <mat-progress-bar mode="indeterminate" *ngIf="isLoading" class="loading-bar"></mat-progress-bar>
 
-  <!-- DASHBOARD KPI METRICS (Admin & Boss Only) -->
-  <div *ngIf="isAdminOrBoss()" class="dashboard-analytics-section">
-    <!-- KPI METRICS GRID -->
-    <div class="kpi-grid">
-      <!-- Compliance Score -->
-      <mat-card class="kpi-card compliance">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon>verified</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Taux de Conformité</span>
-            <h2 class="kpi-value"
-                [class.success]="complianceRate >= conformeMin"
-                [class.warning]="complianceRate >= partielMin && complianceRate < conformeMin"
-                [class.error]="complianceRate < partielMin">
-              {{ complianceRate }}%
-            </h2>
-            <span class="kpi-desc">Respect global des horaires</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Total Records -->
-      <mat-card class="kpi-card total">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon>calendar_today</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Total Relevés</span>
-            <h2 class="kpi-value">{{ totalLogsCount }}</h2>
-            <span class="kpi-desc">Nombre de jours enregistrés</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Late Openings -->
-      <mat-card class="kpi-card late">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon>alarm_on</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Ouvertures en Retard</span>
-            <h2 class="kpi-value" [class.error]="lateOpeningsCount > 0">{{ lateOpeningsCount }}</h2>
-            <span class="kpi-desc">Retards par rapport à la théorie</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Early Closures -->
-      <mat-card class="kpi-card early">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon>alarm_off</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Fermetures Anticipées</span>
-            <h2 class="kpi-value" [class.error]="earlyClosuresCount > 0">{{ earlyClosuresCount }}</h2>
-            <span class="kpi-desc">Fermetures avant la théorie</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Monthly Compliance Score -->
-      <mat-card class="kpi-card compliance-month">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon style="color: var(--primary);">calendar_view_month</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Conformité (Mois)</span>
-            <h2 class="kpi-value"
-                [class.success]="monthlyComplianceRate >= conformeMin"
-                [class.warning]="monthlyComplianceRate >= partielMin && monthlyComplianceRate < conformeMin"
-                [class.error]="monthlyComplianceRate < partielMin">
-              {{ monthlyComplianceRate }}%
-            </h2>
-            <span class="kpi-desc">Moyenne du mois en cours</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Weekly Compliance Score -->
-      <mat-card class="kpi-card compliance-week">
-        <mat-card-content>
-          <div class="kpi-icon-wrapper">
-            <mat-icon style="color: #ab47bc;">calendar_view_week</mat-icon>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-title">Conformité (Semaine)</span>
-            <h2 class="kpi-value"
-                [class.success]="weeklyComplianceRate >= conformeMin"
-                [class.warning]="weeklyComplianceRate >= partielMin && weeklyComplianceRate < conformeMin"
-                [class.error]="weeklyComplianceRate < partielMin">
-              {{ weeklyComplianceRate }}%
-            </h2>
-            <span class="kpi-desc">Moyenne de la semaine en cours</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- FILTERS BAR -->
+  <!-- FILTERS BAR (Always global and active) -->
   <mat-card class="filter-card">
     <mat-card-content>
       <form [formGroup]="filterForm" (ngSubmit)="loadLogs()" class="filter-form">
@@ -172,196 +75,425 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- DASHBOARD VISUALS (Admin & Boss Only) -->
-  <div *ngIf="isAdminOrBoss()" class="dashboard-analytics-section">
-    <!-- TREND CHARTS -->
-    <div class="dashboard-visuals">
-      <!-- Monthly Trend -->
-      <mat-card class="chart-card">
-        <mat-card-header>
-          <mat-card-title>Courbe de Conformité Mensuelle</mat-card-title>
-          <mat-card-subtitle>Moyennes des scores calculés par mois</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="chart-container">
-            <canvas #trendChartCanvas></canvas>
-          </div>
-        </mat-card-content>
-      </mat-card>
+  <!-- TAB GROUP -->
+  <mat-tab-group (selectedTabChange)="onTabChange($event)" class="schedules-tabs">
+    
+    <!-- TAB 1: REGISTRE & CALENDRIER -->
+    <mat-tab>
+      <ng-template matTabLabel>
+        <mat-icon class="tab-icon">event_note</mat-icon>
+        <span>Registre & Calendrier</span>
+      </ng-template>
 
-      <!-- Weekly Trend Per Coffee -->
-      <mat-card class="chart-card">
-        <mat-card-header>
-          <mat-card-title>Performance Hebdomadaire par Café</mat-card-title>
-          <mat-card-subtitle>Scores de conformité hebdomadaires par établissement</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="chart-container">
-            <canvas #weeklyCoffeeChartCanvas></canvas>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
+      <div class="tab-content">
+        <!-- LOGS REGISTRY TABLE (Universal full-page view) -->
+        <mat-card class="table-card" *ngIf="viewMode === 'list'">
+          <mat-card-header class="table-card-header">
+            <mat-card-title>Registre Général des Horaires</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="table-responsive">
+              <table mat-table [dataSource]="dataSource" matSort class="w-100 font-sans">
+                <!-- Date -->
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+                  <td mat-cell *matCellDef="let log"> {{ log.date | date:'dd/MM/yyyy' }} </td>
+                </ng-container>
 
-  <!-- LOGS REGISTRY TABLE (Universal full-page view) -->
-  <mat-card class="table-card" *ngIf="viewMode === 'list'">
-    <mat-card-header class="table-card-header">
-      <mat-card-title>Registre Général des Horaires</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="table-responsive">
-        <table mat-table [dataSource]="dataSource" matSort class="w-100 font-sans">
-          <!-- Date -->
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
-            <td mat-cell *matCellDef="let log"> {{ log.date | date:'dd/MM/yyyy' }} </td>
-          </ng-container>
+                <!-- Café Name -->
+                <ng-container matColumnDef="coffeeName">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Café </th>
+                  <td mat-cell *matCellDef="let log"> 
+                    <div class="cafe-cell">
+                      <mat-icon class="cafe-icon text-muted">store</mat-icon>
+                      <span class="font-medium">{{ log.coffeeName }}</span>
+                    </div>
+                  </td>
+                </ng-container>
 
-          <!-- Café Name -->
-          <ng-container matColumnDef="coffeeName">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Café </th>
-            <td mat-cell *matCellDef="let log"> 
-              <div class="cafe-cell">
-                <mat-icon class="cafe-icon text-muted">store</mat-icon>
-                <span class="font-medium">{{ log.coffeeName }}</span>
+                <!-- Opening Time -->
+                <ng-container matColumnDef="opening">
+                  <th mat-header-cell *matHeaderCellDef> Ouverture Réelle </th>
+                  <td mat-cell *matCellDef="let log">
+                    <span class="time-text">{{ log.opening_time || '--:--' }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Closing Time -->
+                <ng-container matColumnDef="closing">
+                  <th mat-header-cell *matHeaderCellDef> Fermeture Réelle </th>
+                  <td mat-cell *matCellDef="let log">
+                    <span class="time-text">{{ log.closing_time || '--:--' }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Conformity Score Badge -->
+                <ng-container matColumnDef="score">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Score / Statut </th>
+                  <td mat-cell *matCellDef="let log">
+                    <span class="score-badge"
+                      [class.good]="log.score >= conformeMin"
+                      [class.partial]="log.score >= partielMin && log.score < conformeMin"
+                      [class.bad]="log.score < partielMin">
+                      <mat-icon class="badge-icon">
+                        {{ log.score >= conformeMin ? 'check_circle' : (log.score >= partielMin ? 'info' : 'warning') }}
+                      </mat-icon>
+                      <span>{{ log.score }}%</span>
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Controller -->
+                <ng-container matColumnDef="controllerName">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Saisi par </th>
+                  <td mat-cell *matCellDef="let log">
+                    <div class="user-cell">
+                      <mat-icon class="user-icon text-muted">person</mat-icon>
+                      <span>{{ log.controllerName }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let log">
+                    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu d'actions">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu" xPosition="before">
+                      <button mat-menu-item (click)="openScheduleDialog(log)">
+                        <mat-icon color="primary" style="margin-right: 8px; vertical-align: middle;">edit</mat-icon>
+                        <span>Modifier</span>
+                      </button>
+                      <button mat-menu-item *ngIf="isAdmin()" (click)="deleteLog(log.id)">
+                        <mat-icon color="warn" style="margin-right: 8px; vertical-align: middle;">delete</mat-icon>
+                        <span style="color: var(--error);">Supprimer</span>
+                      </button>
+                    </mat-menu>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+              
+              <!-- Empty State -->
+              <div class="empty-state" *ngIf="dataSource.data.length === 0">
+                <mat-icon class="empty-icon">schedule</mat-icon>
+                <h3>Aucun horaire enregistré</h3>
+                <p>Aucun enregistrement ne correspond aux filtres appliqués ou aucune donnée n'a été saisie.</p>
               </div>
-            </td>
-          </ng-container>
+            </div>
+            
+            <mat-paginator
+                [length]="totalItems"
+                [pageSize]="pageSize"
+                [pageIndex]="pageIndex"
+                [pageSizeOptions]="pageSizeOptions"
+                (page)="onPageChange($event)"
+                showFirstLastButtons
+                class="table-paginator"
+                aria-label="Sélectionner une page">
+            </mat-paginator>
+          </mat-card-content>
+        </mat-card>
 
-          <!-- Opening Time -->
-          <ng-container matColumnDef="opening">
-            <th mat-header-cell *matHeaderCellDef> Ouverture Réelle </th>
-            <td mat-cell *matCellDef="let log">
-              <span class="time-text">{{ log.opening_time || '--:--' }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Closing Time -->
-          <ng-container matColumnDef="closing">
-            <th mat-header-cell *matHeaderCellDef> Fermeture Réelle </th>
-            <td mat-cell *matCellDef="let log">
-              <span class="time-text">{{ log.closing_time || '--:--' }}</span>
-            </td>
-          </ng-container>
-
-          <!-- Conformity Score Badge -->
-          <ng-container matColumnDef="score">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Score / Statut </th>
-            <td mat-cell *matCellDef="let log">
-              <span class="score-badge"
-                [class.good]="log.score >= conformeMin"
-                [class.partial]="log.score >= partielMin && log.score < conformeMin"
-                [class.bad]="log.score < partielMin">
-                <mat-icon class="badge-icon">
-                  {{ log.score >= conformeMin ? 'check_circle' : (log.score >= partielMin ? 'info' : 'warning') }}
-                </mat-icon>
-                <span>{{ log.score }}%</span>
-              </span>
-            </td>
-          </ng-container>
-
-          <!-- Controller -->
-          <ng-container matColumnDef="controllerName">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Saisi par </th>
-            <td mat-cell *matCellDef="let log">
-              <div class="user-cell">
-                <mat-icon class="user-icon text-muted">person</mat-icon>
-                <span>{{ log.controllerName }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef> Actions </th>
-            <td mat-cell *matCellDef="let log">
-              <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu d'actions">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #menu="matMenu" xPosition="before">
-                <button mat-menu-item (click)="openScheduleDialog(log)">
-                  <mat-icon color="primary" style="margin-right: 8px; vertical-align: middle;">edit</mat-icon>
-                  <span>Modifier</span>
-                </button>
-                <button mat-menu-item *ngIf="isAdmin()" (click)="deleteLog(log.id)">
-                  <mat-icon color="warn" style="margin-right: 8px; vertical-align: middle;">delete</mat-icon>
-                  <span style="color: var(--error);">Supprimer</span>
-                </button>
-              </mat-menu>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-        
-        <!-- Empty State -->
-        <div class="empty-state" *ngIf="dataSource.data.length === 0">
-          <mat-icon class="empty-icon">schedule</mat-icon>
-          <h3>Aucun horaire enregistré</h3>
-          <p>Aucun enregistrement ne correspond aux filtres appliqués ou aucune donnée n'a été saisie.</p>
-        </div>
-      </div>
-      
-      <mat-paginator
-          [length]="totalItems"
-          [pageSize]="pageSize"
-          [pageIndex]="pageIndex"
-          [pageSizeOptions]="pageSizeOptions"
-          (page)="onPageChange($event)"
-          showFirstLastButtons
-          class="table-paginator"
-          aria-label="Sélectionner une page">
-      </mat-paginator>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Calendar View -->
-  <div class="calendar-view" *ngIf="viewMode === 'calendar'">
-      <div class="calendar-header">
-          <button mat-icon-button (click)="prevMonth()">
+        <!-- Calendar View -->
+        <div class="calendar-view" *ngIf="viewMode === 'calendar'">
+          <div class="calendar-header">
+            <button mat-icon-button (click)="prevMonth()">
               <mat-icon>chevron_left</mat-icon>
-          </button>
-          <div class="current-month-label">{{ currentMonth | date:'MMMM yyyy' | titlecase }}</div>
-          <button mat-icon-button (click)="nextMonth()">
+            </button>
+            <div class="current-month-label">{{ currentMonth | date:'MMMM yyyy' | titlecase }}</div>
+            <button mat-icon-button (click)="nextMonth()">
               <mat-icon>chevron_right</mat-icon>
-          </button>
-      </div>
+            </button>
+          </div>
 
-      <!-- Scroll Tip (Mobile Only) -->
-      <div class="calendar-scroll-tip">
-          <mat-icon>swap_horiz</mat-icon>
-          <span>Faites glisser horizontalement pour voir toute la semaine</span>
-      </div>
+          <!-- Scroll Tip (Mobile Only) -->
+          <div class="calendar-scroll-tip">
+            <mat-icon>swap_horiz</mat-icon>
+            <span>Faites glisser horizontalement pour voir toute la semaine</span>
+          </div>
 
-      <!-- Scrollable Grid Container -->
-      <div class="calendar-grid-container">
-          <div class="calendar-grid">
+          <!-- Scrollable Grid Container -->
+          <div class="calendar-grid-container">
+            <div class="calendar-grid">
               <!-- Week Header -->
               <div class="calendar-week-header">
-                  <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
+                <div class="week-day" *ngFor="let day of weekDays">{{ day }}</div>
               </div>
               <!-- Days -->
               <div class="calendar-days">
-                  <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.isCurrentMonth"
-                      [class.has-events]="day.logs.length > 0"
-                      (click)="openScheduleDialog(null, day.date)">
-                      <div class="day-number">{{ day.date | date:'d' }}</div>
-                      <div class="day-events">
-                          <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
-                                      'status-active': log.score >= conformeMin,
-                                      'status-warning': log.score >= partielMin && log.score < conformeMin,
-                                      'status-inactive': log.score < partielMin
-                                  }" (click)="openScheduleDialog(log); $event.stopPropagation()"
-                              [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
-                              <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--' }}</span>
-                              <span class="event-title">{{ log.coffeeName }}</span>
-                          </div>
-                      </div>
+                <div class="calendar-day" *ngFor="let day of calendarDays" [class.other-month]="!day.isCurrentMonth"
+                    [class.has-events]="day.logs.length > 0"
+                    (click)="openScheduleDialog(null, day.date)">
+                  <div class="day-number">{{ day.date | date:'d' }}</div>
+                  <div class="day-events">
+                    <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
+                            'status-active': log.score >= conformeMin,
+                            'status-warning': log.score >= partielMin && log.score < conformeMin,
+                            'status-inactive': log.score < partielMin
+                        }" (click)="openScheduleDialog(log); $event.stopPropagation()"
+                        [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
+                      <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--' }}</span>
+                      <span class="event-title">{{ log.coffeeName }}</span>
+                    </div>
                   </div>
+                </div>
               </div>
+            </div>
           </div>
+        </div>
       </div>
-  </div>
+    </mat-tab>
+
+    <!-- TAB 2: ANALYSES & KPIS (Restricted to Admin, Boss, Manager) -->
+    <mat-tab *ngIf="isAdminOrBoss()">
+      <ng-template matTabLabel>
+        <mat-icon class="tab-icon">analytics</mat-icon>
+        <span>Analyses & KPIs</span>
+      </ng-template>
+
+      <ng-template matTabContent>
+        <div class="tab-content">
+          <!-- DASHBOARD KPI METRICS -->
+          <div class="dashboard-analytics-section">
+            <div class="kpi-grid">
+              <!-- Compliance Score -->
+              <mat-card class="kpi-card compliance">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>verified</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Taux de Conformité</span>
+                    <h2 class="kpi-value"
+                        [class.success]="complianceRate >= conformeMin"
+                        [class.warning]="complianceRate >= partielMin && complianceRate < conformeMin"
+                        [class.error]="complianceRate < partielMin">
+                      {{ complianceRate }}%
+                    </h2>
+                    <span class="kpi-desc">Respect global des horaires</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Total Records -->
+              <mat-card class="kpi-card total">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>calendar_today</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Total Relevés</span>
+                    <h2 class="kpi-value">{{ totalLogsCount }}</h2>
+                    <span class="kpi-desc">Nombre de jours enregistrés</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Ponctualité Parfaite -->
+              <mat-card class="kpi-card perfect">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>workspace_premium</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Ponctualité Parfaite</span>
+                    <h2 class="kpi-value">{{ perfectDaysRate }}%</h2>
+                    <span class="kpi-desc">Jours avec un score de 100%</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Établissements Actifs -->
+              <mat-card class="kpi-card active-cafes">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>storefront</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Cafés Actifs</span>
+                    <h2 class="kpi-value">{{ activeCafesCount }}</h2>
+                    <span class="kpi-desc">Établissements avec relevés</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Top Établissement -->
+              <mat-card class="kpi-card top-cafe">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>trending_up</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Top Café</span>
+                    <h2 class="kpi-value" style="font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">
+                      {{ bestCoffeeSchedules.name }}
+                    </h2>
+                    <span class="kpi-desc">Score moyen: {{ bestCoffeeSchedules.score }}%</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Pire Établissement -->
+              <mat-card class="kpi-card worst-cafe">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>trending_down</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Pire Café</span>
+                    <h2 class="kpi-value" style="font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">
+                      {{ worstCoffeeSchedules.name }}
+                    </h2>
+                    <span class="kpi-desc">Score moyen: {{ worstCoffeeSchedules.score }}%</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Répartition des Statuts -->
+              <mat-card class="kpi-card status-distribution">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>pie_chart</mat-icon>
+                  </div>
+                  <div class="kpi-data" style="width: 100%;">
+                    <span class="kpi-title">Statuts des Jours</span>
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                      <span class="score-badge good" style="padding: 2px 6px; font-size: 11px;">
+                        {{ greenDaysCount }} Conf.
+                      </span>
+                      <span class="score-badge partial" style="padding: 2px 6px; font-size: 11px;">
+                        {{ orangeDaysCount }} Part.
+                      </span>
+                      <span class="score-badge bad" style="padding: 2px 6px; font-size: 11px;">
+                        {{ redDaysCount }} Crit.
+                      </span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Late Openings -->
+              <mat-card class="kpi-card late">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>alarm_on</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Ouvertures en Retard</span>
+                    <h2 class="kpi-value" [class.error]="lateOpeningsCount > 0">
+                      {{ lateOpeningsCount }} <span style="font-size: 0.95rem; font-weight: normal; color: var(--on-surface-variant);">({{ lateOpeningsRate }}%)</span>
+                    </h2>
+                    <span class="kpi-desc">Retards vs théorie</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Early Closures -->
+              <mat-card class="kpi-card early">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>alarm_off</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Fermetures Anticipées</span>
+                    <h2 class="kpi-value" [class.error]="earlyClosuresCount > 0">
+                      {{ earlyClosuresCount }} <span style="font-size: 0.95rem; font-weight: normal; color: var(--on-surface-variant);">({{ earlyClosuresRate }}%)</span>
+                    </h2>
+                    <span class="kpi-desc">Fermetures vs théorie</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Monthly Compliance Score -->
+              <mat-card class="kpi-card compliance-month">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>calendar_view_month</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Conformité (Mois)</span>
+                    <h2 class="kpi-value"
+                        [class.success]="monthlyComplianceRate >= conformeMin"
+                        [class.warning]="monthlyComplianceRate >= partielMin && monthlyComplianceRate < conformeMin"
+                        [class.error]="monthlyComplianceRate < partielMin">
+                      {{ monthlyComplianceRate }}%
+                    </h2>
+                    <span class="kpi-desc">Moyenne du mois en cours</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Weekly Compliance Score -->
+              <mat-card class="kpi-card compliance-week">
+                <mat-card-content>
+                  <div class="kpi-icon-wrapper">
+                    <mat-icon>calendar_view_week</mat-icon>
+                  </div>
+                  <div class="kpi-data">
+                    <span class="kpi-title">Conformité (Semaine)</span>
+                    <h2 class="kpi-value"
+                        [class.success]="weeklyComplianceRate >= conformeMin"
+                        [class.warning]="weeklyComplianceRate >= partielMin && weeklyComplianceRate < conformeMin"
+                        [class.error]="weeklyComplianceRate < partielMin">
+                      {{ weeklyComplianceRate }}%
+                    </h2>
+                    <span class="kpi-desc">Moyenne de la semaine</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- DASHBOARD VISUALS -->
+          <div class="dashboard-analytics-section">
+            <div class="dashboard-visuals">
+              <!-- Monthly Trend -->
+              <mat-card class="chart-card bar-chart">
+                <mat-card-header>
+                  <mat-card-title>Courbe de Conformité Mensuelle</mat-card-title>
+                  <mat-card-subtitle>Moyennes des scores calculés par mois</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="chart-container">
+                    <canvas #trendChartCanvas></canvas>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Weekly Trend Per Coffee -->
+              <mat-card class="chart-card bar-chart-full">
+                <mat-card-header>
+                  <mat-card-title>Performance Hebdomadaire par Café</mat-card-title>
+                  <mat-card-subtitle>Scores de conformité hebdomadaires par établissement</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="chart-container">
+                    <canvas #weeklyCoffeeChartCanvas></canvas>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <!-- Cafe Conformity Chart -->
+              <mat-card class="chart-card bar-chart-full">
+                <mat-card-header>
+                  <mat-card-title>Score Moyen par Café</mat-card-title>
+                  <mat-card-subtitle>Score moyen par établissement (respect des horaires)</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="chart-container">
+                    <canvas #cafeComplianceChartCanvas></canvas>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
 </div>
