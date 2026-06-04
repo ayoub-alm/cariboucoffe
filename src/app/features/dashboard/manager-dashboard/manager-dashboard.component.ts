@@ -548,32 +548,26 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     exportDailyLogsExcel() {
-        if (!this.filteredDailyLogs.length) return;
+        const filters = {
+            start_date: this.currentFilters.startDate ? this.formatDate(this.currentFilters.startDate) : undefined,
+            end_date: this.currentFilters.endDate ? this.formatDate(this.currentFilters.endDate) : undefined,
+            coffee_id: this.currentFilters.coffeeShop ? this.coffees.find(c => c.name === this.currentFilters.coffeeShop)?.id : undefined
+        };
 
-        const rows = this.filteredDailyLogs.map(log => ({
-            'Date': new DatePipe('en-US').transform(log.date, 'dd/MM/yyyy'),
-            'Café': log.coffeeName,
-            'Ouverture Réelle': log.opening_time || '--:--',
-            'Fermeture Réelle': log.closing_time || '--:--',
-            'Score de Conformité': log.score + '%',
-            'Statut': log.score >= this.conformeMin ? 'Conforme' : (log.score >= this.partielMin ? 'Partiel' : 'Non Conforme'),
-            'Saisi par': log.controllerName
-        }));
-
-        const replacer = (_key: string, value: any) => value === null ? '' : value;
-        const header = Object.keys(rows[0]);
-        const csv = rows.map(row =>
-            header.map(field => JSON.stringify((row as any)[field], replacer)).join(',')
-        );
-        csv.unshift(header.join(','));
-
-        const blob = new Blob(['\ufeff' + csv.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-        const url  = window.URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = `horaires_export_${new Date().getTime()}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+        this.dailyLogService.exportExcel(filters).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const timestamp = new Date().getTime();
+                a.download = `horaires_export_${timestamp}.xls`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            },
+            error: (err) => console.error('Error exporting daily logs to Excel', err)
+        });
     }
 
     initChart() {

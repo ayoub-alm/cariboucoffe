@@ -72,6 +72,21 @@ export class DailyLogService {
         return this.getLogs(filters, 1, 10000).pipe(map(r => r.items));
     }
 
+    exportExcel(filters?: { coffee_id?: number; start_date?: string; end_date?: string }): Observable<Blob> {
+        const params: any = {};
+        if (filters) {
+            if (filters.coffee_id !== undefined && filters.coffee_id !== null) {
+                params.coffee_id = filters.coffee_id.toString();
+            }
+            if (filters.start_date) params.start_date = filters.start_date;
+            if (filters.end_date)   params.end_date   = filters.end_date;
+        }
+        return this.http.get(`${API_URL}/daily-logs/export-excel`, {
+            params,
+            responseType: 'blob'
+        });
+    }
+
     createLog(log: DailyTimeRecordCreate): Observable<DailyTimeRecord> {
         return this.http.post<DailyTimeRecord>(`${API_URL}/daily-logs`, log);
     }

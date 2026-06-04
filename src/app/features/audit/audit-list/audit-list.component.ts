@@ -247,35 +247,19 @@ export class AuditListComponent {
     }
 
     exportExcel() {
-        // Fetch ALL filtered results (not just the current page) for export
-        this.auditService.getAllAudits(this.currentFilters).subscribe(allAudits => {
-            if (!allAudits.length) return;
-
-            const rows = allAudits.map(a => ({
-                'ID':             a.id,
-                'Café':           a.coffeeShop,
-                'Auditeur':       a.auditorName,
-                'Date':           new DatePipe('en-US').transform(a.date, 'dd/MM/yyyy'),
-                'Score':          a.score + '%',
-                'Statut':         a.status,
-                'Conclusion':     a.conclusion || a.actionsCorrectives || '',
-                'Etat Workflow':  a.workflowStatus
-            }));
-
-            const replacer = (_key: string, value: any) => value === null ? '' : value;
-            const header = Object.keys(rows[0]);
-            const csv = rows.map(row =>
-                header.map(field => JSON.stringify((row as any)[field], replacer)).join(',')
-            );
-            csv.unshift(header.join(','));
-
-            const blob = new Blob([csv.join('\r\n')], { type: 'text/csv' });
-            const url  = window.URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href     = url;
-            a.download = `audits_export_${new Date().getTime()}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+        this.auditService.exportExcel(this.currentFilters).subscribe({
+            next: (blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const timestamp = new Date().getTime();
+                a.download = `audits_export_${timestamp}.xls`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            },
+            error: (err) => console.error('Error exporting audits to Excel', err)
         });
     }
 

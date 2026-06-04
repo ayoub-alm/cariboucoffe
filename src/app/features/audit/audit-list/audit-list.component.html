@@ -76,7 +76,7 @@
                 </button>
                 <mat-menu #optionsMenu="matMenu">
                     <button mat-menu-item (click)="exportExcel()">
-                        <mat-icon>dataset</mat-icon> Exporter sous Excel (CSV)
+                        <mat-icon>dataset</mat-icon> Exporter sous Excel
                     </button>
                     <button mat-menu-item *ngIf="canDeleteAudit() && selection.hasValue()" (click)="bulkDelete()">
                         <mat-icon>delete</mat-icon> Supprimer la sélection

@@ -273,46 +273,33 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     }
   }
 
-  exportCSV() {
+  exportExcel() {
     if (!this.canExport()) return;
 
-    const headers = [
-      'Date',
-      'Café',
-      'Ouverture Réelle',
-      'Fermeture Réelle',
-      'Score (%)',
-      'Statut',
-      'Saisi par'
-    ];
+    const filters = this.filterForm.value;
+    const queryParams: { coffee_id?: number; start_date?: string; end_date?: string } = {};
 
-    const rows = this.allFilteredLogs.map(log => [
-      log.date,
-      log.coffeeName || '',
-      log.opening_time || '',
-      log.closing_time || '',
-      log.score.toString(),
-      log.status || '',
-      log.controllerName || ''
-    ]);
+    if (filters.coffee_id && filters.coffee_id !== 'all') {
+      queryParams.coffee_id = Number(filters.coffee_id);
+    }
+    if (filters.start_date) queryParams.start_date = this.formatDate(filters.start_date);
+    if (filters.end_date)   queryParams.end_date   = this.formatDate(filters.end_date);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
-
-    const bom = '\ufeff';
-    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    const dateStr = new Date().toISOString().slice(0, 10);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `export_horaires_${dateStr}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.dailyLogService.exportExcel(queryParams).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `export_horaires_${dateStr}.xls`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Error exporting schedules to Excel', err)
+    });
   }
 
   computeAdditionalKPIs(records: EnrichedLog[]) {

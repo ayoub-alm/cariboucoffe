@@ -7,10 +7,10 @@
     </div>
 
     <div class="header-actions">
-      <!-- Export CSV button for Admin & Boss -->
-      <button *ngIf="canExport()" mat-flat-button class="export-btn" (click)="exportCSV()"
-        matTooltip="Exporter les relevés filtrés en CSV">
-        <mat-icon>download</mat-icon> Exporter CSV
+      <!-- Export Excel button for Admin & Boss -->
+      <button *ngIf="canExport()" mat-flat-button class="export-btn" (click)="exportExcel()"
+        matTooltip="Exporter les relevés filtrés en Excel">
+        <mat-icon>download</mat-icon> Exporter Excel
       </button>
 
       <mat-button-toggle-group [value]="viewMode" (change)="toggleView($event.value)" class="view-toggle">
