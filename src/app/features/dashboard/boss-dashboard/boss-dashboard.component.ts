@@ -204,23 +204,23 @@ Chart.register(...registerables);
           font-weight: 500 !important;
           padding: 4px 18px !important;
           height: 40px !important;
-          background: linear-gradient(135deg, #107c41, #1f9a55) !important;
+          background: linear-gradient(135deg, #5faebc, #68b1c2) !important;
           color: white !important;
-          border: 1px solid #0e6c38 !important;
-          box-shadow: 0 2px 6px rgba(16, 124, 65, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+          border: 1px solid #68b1c2 !important;
+          box-shadow: 0 2px 6px rgba(104, 177, 194, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
           transition: all 0.2s ease-in-out !important;
           display: inline-flex !important;
           align-items: center !important;
           gap: 8px !important;
         }
         .export-kpi-btn:hover {
-          background: linear-gradient(135deg, #0f703b, #1b8a4b) !important;
-          box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+          background: linear-gradient(135deg, #5faebc, #68b1c2) !important;
+          box-shadow: 0 4px 12px rgba(104, 177, 194, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
           transform: translateY(-1px);
         }
         .export-kpi-btn:active {
           transform: translateY(0);
-          box-shadow: 0 1px 3px rgba(16, 124, 65, 0.2) !important;
+          box-shadow: 0 1px 3px rgba( 104, 177, 194, 0.2) !important;
         }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 24px; }

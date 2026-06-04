@@ -119,10 +119,10 @@ export interface ExportKpiDialogResult {
       padding: 8px 0 0 0;
     }
     .export-btn {
-      background: linear-gradient(135deg, #107c41, #1f9a55) !important;
+      background: linear-gradient(135deg, #68b1c2, #5faebc) !important;
       color: white !important;
-      border: 1px solid #0e6c38 !important;
-      box-shadow: 0 2px 6px rgba(16, 124, 65, 0.15) !important;
+      border: 1px solid #68b1c2 !important;
+      box-shadow: 0 2px 6px rgba( 104, 177, 194, 0.15) !important;
       font-weight: 500;
       border-radius: 20px;
       padding: 0 16px;
@@ -130,7 +130,7 @@ export interface ExportKpiDialogResult {
       transition: all 0.2s ease-in-out;
     }
     .export-btn:hover {
-      background: linear-gradient(135deg, #0f703b, #1b8a4b) !important;
+      background: linear-gradient(135deg, #5faebc, #68b1c2) !important;
       box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3) !important;
     }
     .export-btn[disabled] {
