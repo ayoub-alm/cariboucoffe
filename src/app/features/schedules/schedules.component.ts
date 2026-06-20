@@ -96,10 +96,52 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     return role ? [UserRole.ADMIN, UserRole.CONTROLLER].includes(role) : false;
   });
 
-  // ── Thresholds ──────────────────────────────────────────────────────────
+  // ── Thresholds (max tolerable lost minutes) ─────────────────────────────
   thresholds: ScheduleThreshold | null = null;
-  get conformeMin(): number { return this.thresholds?.green_min  ?? 100; }
-  get partielMin():  number { return this.thresholds?.orange_min ??  90; }
+  get greenMaxLoss(): number { return this.thresholds?.green_min  ?? 0; }
+  get orangeMaxLoss(): number { return this.thresholds?.orange_min ?? 60; }
+
+  isGreenStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'green';
+  }
+  isOrangeStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'orange';
+  }
+  isRedStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'red';
+  }
+  worstViolation(log: DailyTimeRecord): number {
+    return Math.max(log.late_minutes ?? 0, log.early_minutes ?? 0);
+  }
+  lostStatusClass(lost: number): 'success' | 'warning' | 'error' {
+    if (lost <= this.greenMaxLoss) return 'success';
+    if (lost <= this.orangeMaxLoss) return 'warning';
+    return 'error';
+  }
+  getConformityLabel(log: DailyTimeRecord): string {
+    return log.conformity_label || this.configService.getScheduleConformityLabel(log.status);
+  }
+  getConformityTooltip(log: DailyTimeRecord): string {
+    const expected = this.getExpectedTimes(log.coffee_id);
+    const issues: string[] = [];
+    if (log.is_late_opening) {
+      issues.push(`Ouverture en retard de ${Math.round(log.late_minutes ?? 0)} min (prévu ${expected.opening})`);
+    }
+    if (log.is_early_closing) {
+      issues.push(`Fermeture anticipée de ${Math.round(log.early_minutes ?? 0)} min (prévu ${expected.closing})`);
+    }
+    if (issues.length === 0) {
+      return `Conforme — ouverture et fermeture respectées (${expected.opening} - ${expected.closing})`;
+    }
+    return issues.join(' · ');
+  }
+  getExpectedTimes(coffeeId: number): { opening: string; closing: string } {
+    const coffee = this.coffees.find(c => c.id === coffeeId);
+    return {
+      opening: coffee?.opening_time || '--:--',
+      closing: coffee?.closing_time || '--:--',
+    };
+  }
 
   // ── State lists ─────────────────────────────────────────────────────────
   coffees: Coffee[] = [];
@@ -120,9 +162,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
   pageSizeOptions = [10, 25, 50, 100];
 
   // ── KPI stats (from server) ──────────────────────────────────────────────
-  complianceRate        = 0;
-  monthlyComplianceRate = 0;
-  weeklyComplianceRate  = 0;
+  averageCompliantMinutes = 0;
+  averageLostMinutes      = 0;
+  monthlyLostAverage      = 0;
+  weeklyLostAverage       = 0;
   totalLogsCount        = 0;
   lateOpeningsCount     = 0;
   earlyClosuresCount    = 0;
@@ -231,12 +274,13 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         this.totalItems = response.total;
 
         // KPI stats (computed by backend over ALL filtered records)
-        this.totalLogsCount        = response.total;
-        this.complianceRate        = Math.round(response.average_score);
-        this.lateOpeningsCount     = response.late_openings;
-        this.earlyClosuresCount    = response.early_closures;
-        this.monthlyComplianceRate = Math.round(response.monthly_average);
-        this.weeklyComplianceRate  = Math.round(response.weekly_average);
+        this.totalLogsCount         = response.total;
+        this.averageCompliantMinutes = Math.round(response.average_score);
+        this.averageLostMinutes     = Math.round(response.average_lost_minutes ?? 0);
+        this.lateOpeningsCount      = response.late_openings;
+        this.earlyClosuresCount     = response.early_closures;
+        this.monthlyLostAverage     = Math.round(response.monthly_average);
+        this.weeklyLostAverage      = Math.round(response.weekly_average);
 
         // Fetch all matching logs (unpaginated) to draw correct trends/averages across all records
         this.dailyLogService.getAllLogs(queryParams).subscribe({
@@ -306,16 +350,16 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     const total = records.length;
     
     // 1. Ponctualité Parfaite (%)
-    const perfectCount = records.filter(r => r.score === 100).length;
+    const perfectCount = records.filter(r => r.status === 'green').length;
     this.perfectDaysRate = total > 0 ? Math.round((perfectCount / total) * 100) : 0;
     
     // 2. Établissements Actifs
     this.activeCafesCount = new Set(records.map(r => r.coffee_id)).size;
     
     // 3. Status distribution
-    this.greenDaysCount = records.filter(r => r.score >= this.conformeMin).length;
-    this.orangeDaysCount = records.filter(r => r.score >= this.partielMin && r.score < this.conformeMin).length;
-    this.redDaysCount = records.filter(r => r.score < this.partielMin).length;
+    this.greenDaysCount = records.filter(r => this.isGreenStatus(r)).length;
+    this.orangeDaysCount = records.filter(r => this.isOrangeStatus(r)).length;
+    this.redDaysCount = records.filter(r => this.isRedStatus(r)).length;
     
     // 4. Late Openings & Early Closures rates
     this.lateOpeningsRate = total > 0 ? Math.round((this.lateOpeningsCount / total) * 100) : 0;
@@ -333,7 +377,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     let bestName = 'N/A';
     let bestVal = -1;
     let worstName = 'N/A';
-    let worstVal = 101;
+    let worstVal = Number.MAX_SAFE_INTEGER;
 
     Object.entries(cafeScores).forEach(([name, stats]) => {
       const avg = stats.count > 0 ? stats.sum / stats.count : 0;
@@ -353,8 +397,12 @@ export class SchedulesComponent implements OnInit, OnDestroy {
     };
     this.worstCoffeeSchedules = {
       name: worstName,
-      score: worstVal !== 101 ? Math.round(worstVal) : 0
+      score: worstVal !== Number.MAX_SAFE_INTEGER ? Math.round(worstVal) : 0
     };
+  }
+
+  formatScore(log: DailyTimeRecord): string {
+    return this.getConformityLabel(log);
   }
 
   /** Load ALL logs for the calendar month (ignores table pagination). */
@@ -422,7 +470,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         const d     = new Date(r.date);
         const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
         if (!monthlyMap[label]) monthlyMap[label] = { sum: 0, count: 0 };
-        monthlyMap[label].sum   += r.score;
+        monthlyMap[label].sum   += this.worstViolation(r);
         monthlyMap[label].count += 1;
       });
 
@@ -431,7 +479,8 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         const [mB, yB] = [monthNames.indexOf(b.split(' ')[0]), parseInt(b.split(' ')[1])];
         return yA !== yB ? yA - yB : mA - mB;
       });
-      const monthlyScores = monthlyLabels.map(lbl => Math.round(monthlyMap[lbl].sum / monthlyMap[lbl].count));
+      const monthlyLostAverages = monthlyLabels.map(lbl => Math.round(monthlyMap[lbl].sum / monthlyMap[lbl].count));
+      const monthlyMax = Math.max(...monthlyLostAverages, this.orangeMaxLoss + 10, 10);
 
       const primaryColor = this.themeService.getColor('--primary')  || '#1a73e8';
       const warningColor = '#f57c00';
@@ -444,10 +493,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         data: {
           labels: monthlyLabels.length > 0 ? monthlyLabels : ['Aucune donnée'],
           datasets: [{
-            label: 'Score de Conformité (%)',
-            data: monthlyScores.length > 0 ? monthlyScores : [0],
-            backgroundColor: monthlyScores.length > 0
-              ? monthlyScores.map(s => s >= this.conformeMin ? primaryColor : (s >= this.partielMin ? warningColor : errorColor))
+            label: 'Perte moyenne (min)',
+            data: monthlyLostAverages.length > 0 ? monthlyLostAverages : [0],
+            backgroundColor: monthlyLostAverages.length > 0
+              ? monthlyLostAverages.map(lost => lost <= this.greenMaxLoss ? primaryColor : (lost <= this.orangeMaxLoss ? warningColor : errorColor))
               : [primaryColor],
             borderRadius: 4,
             barThickness: 32
@@ -457,7 +506,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { max: 100, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
+            y: { max: monthlyMax, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
             x: { ticks: { color: textColor }, grid: { display: false } }
           },
           plugins: { legend: { display: false } }
@@ -492,7 +541,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         if (!weeklyMap[weekLabel]) weeklyMap[weekLabel] = {};
         if (!weeklyMap[weekLabel][coffeeName]) weeklyMap[weekLabel][coffeeName] = { sum: 0, count: 0 };
 
-        weeklyMap[weekLabel][coffeeName].sum += r.score;
+        weeklyMap[weekLabel][coffeeName].sum += this.worstViolation(r);
         weeklyMap[weekLabel][coffeeName].count += 1;
       });
 
@@ -501,6 +550,8 @@ export class SchedulesComponent implements OnInit, OnDestroy {
         const weekB = parseInt(b.replace('Semaine ', ''));
         return weekA - weekB;
       });
+
+      const weeklyMaxValues: number[] = [];
 
       const colorPalette = [
         '#1a73e8', // Blue
@@ -516,7 +567,10 @@ export class SchedulesComponent implements OnInit, OnDestroy {
       const weeklyDatasets = Array.from(uniqueCoffees).map((coffeeName, idx) => {
         const data = weeklyLabels.map(week => {
           const stats = weeklyMap[week][coffeeName];
-          return stats ? Math.round(stats.sum / stats.count) : null;
+          if (!stats) return null;
+          const avg = Math.round(stats.sum / stats.count);
+          weeklyMaxValues.push(avg);
+          return avg;
         });
         const color = colorPalette[idx % colorPalette.length];
         return {
@@ -531,6 +585,8 @@ export class SchedulesComponent implements OnInit, OnDestroy {
           pointHoverRadius: 6
         };
       });
+
+      const weeklyMax = Math.max(...weeklyMaxValues, this.orangeMaxLoss + 10, 10);
 
       this.weeklyChart = new Chart(this.weeklyCoffeeChartCanvas.nativeElement, {
         type: 'line',
@@ -547,7 +603,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { max: 100, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
+            y: { max: weeklyMax, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
             x: { ticks: { color: textColor }, grid: { display: false } }
           },
           plugins: {
@@ -578,26 +634,25 @@ export class SchedulesComponent implements OnInit, OnDestroy {
             coffeeScoreMap[coffeeName] = { total: 0, sum: 0 };
           }
           coffeeScoreMap[coffeeName].total += 1;
-          coffeeScoreMap[coffeeName].sum += r.score;
+          coffeeScoreMap[coffeeName].sum += this.worstViolation(r);
         });
 
         const coffeeLabels = Object.keys(coffeeScoreMap).sort();
-        const averageScores = coffeeLabels.map(name => {
+        const averageLostByCoffee = coffeeLabels.map(name => {
           const stats = coffeeScoreMap[name];
           return stats.total > 0 ? Math.round(stats.sum / stats.total) : 0;
         });
-
-        const errorColor = this.themeService.getColor('--error') || '#d93025';
+        const cafeChartMax = Math.max(...averageLostByCoffee, this.orangeMaxLoss + 10, 10);
 
         this.cafeComplianceChart = new Chart(this.cafeComplianceChartCanvas.nativeElement, {
           type: 'bar',
           data: {
             labels: coffeeLabels.length > 0 ? coffeeLabels.map(s => s.replace('Caribou ', '')) : ['Aucune donnée'],
             datasets: [{
-              label: 'Score Moyen (%)',
-              data: averageScores.length > 0 ? averageScores : [0],
-              backgroundColor: averageScores.length > 0
-                ? averageScores.map(score => score >= this.conformeMin ? primaryColor : (score >= this.partielMin ? warningColor : errorColor))
+              label: 'Perte moyenne (min)',
+              data: averageLostByCoffee.length > 0 ? averageLostByCoffee : [0],
+              backgroundColor: averageLostByCoffee.length > 0
+                ? averageLostByCoffee.map(lost => lost <= this.greenMaxLoss ? primaryColor : (lost <= this.orangeMaxLoss ? warningColor : errorColor))
                 : [primaryColor],
               borderRadius: 4,
               barThickness: 32
@@ -607,7 +662,7 @@ export class SchedulesComponent implements OnInit, OnDestroy {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              y: { max: 100, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
+              y: { max: cafeChartMax, min: 0, ticks: { color: textColor }, grid: { color: gridColor } },
               x: { ticks: { color: textColor }, grid: { display: false } }
             },
             plugins: { legend: { display: false } }

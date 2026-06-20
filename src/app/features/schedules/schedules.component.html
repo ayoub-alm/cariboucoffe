@@ -116,7 +116,10 @@
                 <ng-container matColumnDef="opening">
                   <th mat-header-cell *matHeaderCellDef> Ouverture Réelle </th>
                   <td mat-cell *matCellDef="let log">
-                    <span class="time-text">{{ log.opening_time || '--:--' }}</span>
+                    <span class="time-text" [class.time-violation]="log.is_late_opening"
+                      [matTooltip]="log.is_late_opening ? 'Retard de ' + (log.late_minutes || 0) + ' min (prévu ' + getExpectedTimes(log.coffee_id).opening + ')' : ''">
+                      {{ log.opening_time || '--:--' }}
+                    </span>
                   </td>
                 </ng-container>
 
@@ -124,21 +127,25 @@
                 <ng-container matColumnDef="closing">
                   <th mat-header-cell *matHeaderCellDef> Fermeture Réelle </th>
                   <td mat-cell *matCellDef="let log">
-                    <span class="time-text">{{ log.closing_time || '--:--' }}</span>
+                    <span class="time-text" [class.time-violation]="log.is_early_closing"
+                      [matTooltip]="log.is_early_closing ? 'Anticipée de ' + (log.early_minutes || 0) + ' min (prévu ' + getExpectedTimes(log.coffee_id).closing + ')' : ''">
+                      {{ log.closing_time || '--:--' }}
+                    </span>
                   </td>
                 </ng-container>
 
-                <!-- Conformity Score Badge -->
+                <!-- Conformity Badge -->
                 <ng-container matColumnDef="score">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Score / Statut </th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> Conformité </th>
                   <td mat-cell *matCellDef="let log">
-                    <span class="score-badge" [class.good]="log.score >= conformeMin"
-                      [class.partial]="log.score >= partielMin && log.score < conformeMin"
-                      [class.bad]="log.score < partielMin">
+                    <span class="score-badge" [class.good]="isGreenStatus(log)"
+                      [class.partial]="isOrangeStatus(log)"
+                      [class.bad]="isRedStatus(log)"
+                      [matTooltip]="getConformityTooltip(log)">
                       <mat-icon class="badge-icon">
-                        {{ log.score >= conformeMin ? 'check_circle' : (log.score >= partielMin ? 'info' : 'warning') }}
+                        {{ isGreenStatus(log) ? 'check_circle' : (isOrangeStatus(log) ? 'info' : 'warning') }}
                       </mat-icon>
-                      <span>{{ log.score }}%</span>
+                      <span>{{ getConformityLabel(log) }}</span>
                     </span>
                   </td>
                 </ng-container>
@@ -225,11 +232,11 @@
                   <div class="day-number">{{ day.date | date:'d' }}</div>
                   <div class="day-events">
                     <div class="audit-event-pill schedule-event-pill" *ngFor="let log of day.logs" [ngClass]="{
-                            'status-active': log.score >= conformeMin,
-                            'status-warning': log.score >= partielMin && log.score < conformeMin,
-                            'status-inactive': log.score < partielMin
+                            'status-active': isGreenStatus(log),
+                            'status-warning': isOrangeStatus(log),
+                            'status-inactive': isRedStatus(log)
                         }" (click)="openScheduleDialog(log); $event.stopPropagation()"
-                      [matTooltip]="log.coffeeName + ' (' + log.opening_time + ' - ' + log.closing_time + ') - ' + log.score + '%'">
+                      [matTooltip]="log.coffeeName + ' — ' + getConformityLabel(log) + ' (' + log.opening_time + ' - ' + log.closing_time + ')'">
                       <span class="event-time">{{ log.opening_time || '--:--' }} - {{ log.closing_time || '--:--'
                         }}</span>
                       <span class="event-title">{{ log.coffeeName }}</span>
@@ -262,13 +269,13 @@
                     <mat-icon>verified</mat-icon>
                   </div>
                   <div class="kpi-data">
-                    <span class="kpi-title">Taux de Conformité</span>
-                    <h2 class="kpi-value" [class.success]="complianceRate >= conformeMin"
-                      [class.warning]="complianceRate >= partielMin && complianceRate < conformeMin"
-                      [class.error]="complianceRate < partielMin">
-                      {{ complianceRate }}%
+                    <span class="kpi-title">Perte Moyenne</span>
+                    <h2 class="kpi-value" [class.success]="lostStatusClass(averageLostMinutes) === 'success'"
+                      [class.warning]="lostStatusClass(averageLostMinutes) === 'warning'"
+                      [class.error]="lostStatusClass(averageLostMinutes) === 'error'">
+                      {{ averageLostMinutes }} min
                     </h2>
-                    <span class="kpi-desc">Respect global des horaires</span>
+                    <span class="kpi-desc">Retard + fermeture anticipée (moyenne)</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -296,7 +303,7 @@
                   <div class="kpi-data">
                     <span class="kpi-title">Ponctualité Parfaite</span>
                     <h2 class="kpi-value">{{ perfectDaysRate }}%</h2>
-                    <span class="kpi-desc">Jours avec un score de 100%</span>
+                    <span class="kpi-desc">Jours conformes (ouverture et fermeture OK)</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -327,7 +334,7 @@
                       style="font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">
                       {{ bestCoffeeSchedules.name }}
                     </h2>
-                    <span class="kpi-desc">Score moyen: {{ bestCoffeeSchedules.score }}%</span>
+                    <span class="kpi-desc">Score moyen: {{ bestCoffeeSchedules.score }} min</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -344,7 +351,7 @@
                       style="font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">
                       {{ worstCoffeeSchedules.name }}
                     </h2>
-                    <span class="kpi-desc">Score moyen: {{ worstCoffeeSchedules.score }}%</span>
+                    <span class="kpi-desc">Score moyen: {{ worstCoffeeSchedules.score }} min</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -415,11 +422,11 @@
                     <mat-icon>calendar_view_month</mat-icon>
                   </div>
                   <div class="kpi-data">
-                    <span class="kpi-title">Conformité (Mois)</span>
-                    <h2 class="kpi-value" [class.success]="monthlyComplianceRate >= conformeMin"
-                      [class.warning]="monthlyComplianceRate >= partielMin && monthlyComplianceRate < conformeMin"
-                      [class.error]="monthlyComplianceRate < partielMin">
-                      {{ monthlyComplianceRate }}%
+                    <span class="kpi-title">Perte Moyenne (Mois)</span>
+                    <h2 class="kpi-value" [class.success]="lostStatusClass(monthlyLostAverage) === 'success'"
+                      [class.warning]="lostStatusClass(monthlyLostAverage) === 'warning'"
+                      [class.error]="lostStatusClass(monthlyLostAverage) === 'error'">
+                      {{ monthlyLostAverage }} min
                     </h2>
                     <span class="kpi-desc">Moyenne du mois en cours</span>
                   </div>
@@ -433,11 +440,11 @@
                     <mat-icon>calendar_view_week</mat-icon>
                   </div>
                   <div class="kpi-data">
-                    <span class="kpi-title">Conformité (Semaine)</span>
-                    <h2 class="kpi-value" [class.success]="weeklyComplianceRate >= conformeMin"
-                      [class.warning]="weeklyComplianceRate >= partielMin && weeklyComplianceRate < conformeMin"
-                      [class.error]="weeklyComplianceRate < partielMin">
-                      {{ weeklyComplianceRate }}%
+                    <span class="kpi-title">Perte Moyenne (Semaine)</span>
+                    <h2 class="kpi-value" [class.success]="lostStatusClass(weeklyLostAverage) === 'success'"
+                      [class.warning]="lostStatusClass(weeklyLostAverage) === 'warning'"
+                      [class.error]="lostStatusClass(weeklyLostAverage) === 'error'">
+                      {{ weeklyLostAverage }} min
                     </h2>
                     <span class="kpi-desc">Moyenne de la semaine</span>
                   </div>
@@ -455,7 +462,7 @@
               <mat-card class="chart-card bar-chart-full">
                 <mat-card-header>
                   <mat-card-title>Performance Hebdomadaire par Café</mat-card-title>
-                  <mat-card-subtitle>Scores de conformité hebdomadaires par établissement</mat-card-subtitle>
+                  <mat-card-subtitle>Perte moyenne hebdomadaire par établissement (minutes)</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="chart-container">
@@ -467,8 +474,8 @@
               <!-- Cafe Conformity Chart -->
               <mat-card class="chart-card bar-chart-full">
                 <mat-card-header>
-                  <mat-card-title>Score Moyen par Café</mat-card-title>
-                  <mat-card-subtitle>Score moyen par établissement (respect des horaires)</mat-card-subtitle>
+                  <mat-card-title>Perte Moyenne par Café</mat-card-title>
+                  <mat-card-subtitle>Perte moyenne par établissement (minutes perdues)</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="chart-container">
@@ -481,7 +488,7 @@
               <mat-card class="chart-card  bar-chart-full">
                 <mat-card-header>
                   <mat-card-title>Courbe de Conformité Mensuelle</mat-card-title>
-                  <mat-card-subtitle>Moyennes des scores calculés par mois</mat-card-subtitle>
+                  <mat-card-subtitle>Perte moyenne mensuelle (minutes)</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                   <div class="chart-container">

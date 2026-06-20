@@ -57,6 +57,29 @@ export class ConfigService {
         );
     }
 
+    /** Max tolerable lost minutes for green / orange schedule status. */
+    getScheduleThresholdsOrDefaults(): { greenMaxLoss: number; orangeMaxLoss: number } {
+        const t = this.scheduleThresholds();
+        return {
+            greenMaxLoss: t?.green_min ?? 0,
+            orangeMaxLoss: t?.orange_min ?? 60,
+        };
+    }
+
+    getScheduleStatus(lostMinutes: number, lateMinutes = lostMinutes, earlyMinutes = 0): 'green' | 'orange' | 'red' {
+        const { greenMaxLoss, orangeMaxLoss } = this.getScheduleThresholdsOrDefaults();
+        const worstViolation = Math.max(lateMinutes, earlyMinutes);
+        if (worstViolation <= greenMaxLoss) return 'green';
+        if (worstViolation <= orangeMaxLoss) return 'orange';
+        return 'red';
+    }
+
+    getScheduleConformityLabel(status: 'green' | 'orange' | 'red'): string {
+        if (status === 'green') return 'Conforme';
+        if (status === 'orange') return 'Partiel';
+        return 'Non-conforme';
+    }
+
     /**
      * Helper to get audit status based on score and current thresholds
      */

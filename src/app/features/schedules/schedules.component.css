@@ -322,6 +322,13 @@ td.mat-mdc-cell {
   color: var(--on-background);
 }
 
+.time-text.time-violation {
+  color: #d93025;
+  background: rgba(217, 48, 37, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
 /* BADGES */
 .score-badge {
   display: inline-flex;

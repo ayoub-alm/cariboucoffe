@@ -11,9 +11,10 @@ import { CoffeeService } from '../../../core/services/coffee.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Coffee } from '../../../core/models/coffee.model';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DailyTimeRecord } from '../../../core/services/daily-log.service';
 import { Chart, registerables } from 'chart.js';
-import { ThemeService } from '../../../core/services/theme.service';
+import { ConfigService } from '../../../core/services/config.service';
 
 Chart.register(...registerables);
 
@@ -28,7 +29,8 @@ Chart.register(...registerables);
     MatFormFieldModule,
     MatSelectModule,
     ReactiveFormsModule,
-    MatTableModule
+    MatTableModule,
+    MatTooltipModule,
   ],
   template: `
     <div class="dashboard-container">
@@ -62,8 +64,9 @@ Chart.register(...registerables);
             <div *ngFor="let log of logs" class="agenda-card">
               <div class="agenda-header">
                 <span class="agenda-date">{{ log.date | date:'dd/MM/yyyy' }}</span>
-                <span class="score-badge" [class.good]="log.score >= 100" [class.partial]="log.score >= 90 && log.score < 100" [class.bad]="log.score < 90">
-                  {{ log.score }}%
+                <span class="score-badge" [class.good]="isGreenStatus(log)" [class.partial]="isOrangeStatus(log)" [class.bad]="isRedStatus(log)"
+                  [matTooltip]="getConformityTooltip(log)">
+                  {{ getConformityLabel(log) }}
                 </span>
               </div>
               <div class="agenda-body">
@@ -130,10 +133,13 @@ export class ControllerDashboardComponent implements OnInit, OnDestroy {
   private dailyLogService = inject(DailyLogService);
   private coffeeService = inject(CoffeeService);
   private authService = inject(AuthService);
+  private configService = inject(ConfigService);
   form: FormGroup;
   coffees: Coffee[] = [];
-  logs: (DailyTimeRecord & { score: number })[] = [];
+  logs: DailyTimeRecord[] = [];
   today = new Date();
+  greenMaxLoss = 0;
+  orangeMaxLoss = 60;
 
   constructor() {
     this.form = this.fb.group({
@@ -142,6 +148,14 @@ export class ControllerDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.configService.getScheduleThresholds().subscribe({
+      next: (t) => {
+        this.greenMaxLoss = t.green_min ?? 0;
+        this.orangeMaxLoss = t.orange_min ?? 60;
+      },
+      error: () => { /* defaults */ }
+    });
+
     this.coffeeService.getCoffees().subscribe(coffees => {
       this.coffees = coffees;
       const user = this.authService.currentUser();
@@ -167,9 +181,26 @@ export class ControllerDashboardComponent implements OnInit, OnDestroy {
 
     // getAllLogs passes coffee_id to the backend — no client-side filtering needed
     this.dailyLogService.getAllLogs({ coffee_id: myCoffeeId }).subscribe(logs => {
-      // Backend already computes score; just sort desc by date
-      this.logs = (logs as any[])
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      this.logs = logs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
+  }
+
+  isGreenStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'green';
+  }
+  isOrangeStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'orange';
+  }
+  isRedStatus(log: DailyTimeRecord): boolean {
+    return log.status === 'red';
+  }
+  getConformityLabel(log: DailyTimeRecord): string {
+    return log.conformity_label || 'Non-conforme';
+  }
+  getConformityTooltip(log: DailyTimeRecord): string {
+    const issues: string[] = [];
+    if (log.is_late_opening) issues.push(`Ouverture en retard (${log.late_minutes} min)`);
+    if (log.is_early_closing) issues.push(`Fermeture anticipée (${log.early_minutes} min)`);
+    return issues.length ? issues.join(' · ') : 'Ouverture et fermeture conformes';
   }
 }

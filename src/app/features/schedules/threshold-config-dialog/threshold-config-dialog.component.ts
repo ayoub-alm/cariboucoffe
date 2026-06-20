@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ConfigService, ScheduleThreshold } from '../../../core/services/config.service';
 
@@ -21,7 +20,6 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
     MatInputModule,
     MatFormFieldModule,
     MatIconModule,
-    MatSliderModule,
     MatSnackBarModule
   ],
   template: `
@@ -32,97 +30,83 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
 
     <mat-dialog-content class="dialog-content">
       <p class="dialog-desc">
-        Définissez les seuils de score pour le code couleur des horaires.
-        Ces paramètres s'appliquent à toutes les vues de la page Horaires.
+        La conformité est calculée sur les horaires d'ouverture et de fermeture du café.
+        Une ouverture en retard ou une fermeture anticipée est une non-conformité.
+        Les seuils (en minutes) définissent la couleur : Vert, Orange ou Rouge.
       </p>
 
       <!-- Preview -->
       <div class="preview-section">
         <div class="preview-bar">
-          <div class="preview-segment green"
-               [style.width]="(100 - conformeMin) + '%'">
-            <span>✅ Vert ≥ {{ conformeMin }}%</span>
+          <div class="preview-segment green" [style.flex]="greenMaxLoss === 0 ? '1' : '0 0 35%'">
+            <span>✅ Vert ≤ {{ greenMaxLoss }} min perdus</span>
           </div>
-          <div class="preview-segment orange"
-               [style.width]="(conformeMin - partielMin) + '%'">
-            <span>🟠 Orange</span>
+          <div class="preview-segment orange" [style.flex]="'1'">
+            <span>🟠 Orange ≤ {{ orangeMaxLoss }} min perdus</span>
           </div>
-          <div class="preview-segment red"
-               [style.width]="partielMin + '%'">
-            <span>🔴 Rouge &lt; {{ partielMin }}%</span>
+          <div class="preview-segment red" [style.flex]="'0 0 25%'">
+            <span>🔴 Rouge &gt; {{ orangeMaxLoss }} min</span>
           </div>
-        </div>
-        <div class="preview-labels">
-          <span class="label-red">0%</span>
-          <span class="label-orange" [style.left]="partielMin + '%'">{{ partielMin }}%</span>
-          <span class="label-green" [style.left]="conformeMin + '%'">{{ conformeMin }}%</span>
-          <span class="label-green-end">100%</span>
         </div>
       </div>
 
       <form [formGroup]="form" class="form-container">
-        <!-- Green Threshold -->
         <div class="threshold-row">
           <div class="threshold-label">
             <span class="dot green-dot"></span>
             <div>
               <strong>Seuil Vert (Conforme)</strong>
-              <p>Score ≥ à cette valeur → Vert</p>
+              <p>Ouverture et fermeture OK — écart max autorisé</p>
             </div>
           </div>
           <mat-form-field appearance="outline" class="threshold-input">
-            <mat-label>Seuil Vert (%)</mat-label>
-            <input matInput type="number" formControlName="conforme_min" min="1" max="100"
+            <mat-label>Perte max Vert (min)</mat-label>
+            <input matInput type="number" formControlName="green_max_loss" min="0" max="1440"
                    (input)="updatePreview()">
-            <span matSuffix>%</span>
-            <mat-error *ngIf="form.get('conforme_min')?.hasError('required')">Requis</mat-error>
-            <mat-error *ngIf="form.get('conforme_min')?.hasError('min')">Minimum 1</mat-error>
-            <mat-error *ngIf="form.get('conforme_min')?.hasError('max')">Maximum 100</mat-error>
+            <span matSuffix>min</span>
+            <mat-error *ngIf="form.get('green_max_loss')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="form.get('green_max_loss')?.hasError('min')">Minimum 0</mat-error>
           </mat-form-field>
         </div>
 
-        <!-- Orange Threshold -->
         <div class="threshold-row">
           <div class="threshold-label">
             <span class="dot orange-dot"></span>
             <div>
               <strong>Seuil Orange (Partiel)</strong>
-              <p>Score ≥ à cette valeur ET &lt; seuil vert → Orange</p>
+              <p>Retard ouverture / fermeture anticipée toléré</p>
             </div>
           </div>
           <mat-form-field appearance="outline" class="threshold-input">
-            <mat-label>Seuil Orange (%)</mat-label>
-            <input matInput type="number" formControlName="partiel_min" min="1" max="100"
+            <mat-label>Perte max Orange (min)</mat-label>
+            <input matInput type="number" formControlName="orange_max_loss" min="0" max="1440"
                    (input)="updatePreview()">
-            <span matSuffix>%</span>
-            <mat-error *ngIf="form.get('partiel_min')?.hasError('required')">Requis</mat-error>
-            <mat-error *ngIf="form.get('partiel_min')?.hasError('min')">Minimum 1</mat-error>
+            <span matSuffix>min</span>
+            <mat-error *ngIf="form.get('orange_max_loss')?.hasError('required')">Requis</mat-error>
+            <mat-error *ngIf="form.get('orange_max_loss')?.hasError('min')">Minimum 0</mat-error>
           </mat-form-field>
         </div>
 
-        <!-- Cross-validation -->
         <div class="form-error-banner" *ngIf="form.hasError('thresholdOrder')">
           <mat-icon class="banner-icon">warning</mat-icon>
-          <span>Le seuil Orange doit être inférieur au seuil Vert.</span>
+          <span>Le seuil Orange doit être supérieur ou égal au seuil Vert.</span>
         </div>
 
-        <!-- Red info -->
         <div class="info-row">
           <span class="dot red-dot"></span>
           <div>
             <strong>Rouge (Non-conforme)</strong>
-            <p>Score &lt; seuil Orange → Rouge automatiquement</p>
+            <p>Ouverture trop tard ou fermeture trop tôt — hors seuil Orange</p>
           </div>
         </div>
       </form>
 
-      <!-- Current Values Display -->
       <div class="current-values">
         <h4>Résumé des seuils actifs :</h4>
         <div class="values-grid">
-          <div class="value-chip green-chip">✅ Conforme : ≥ {{ conformeMin }}%</div>
-          <div class="value-chip orange-chip">🟠 Partiel : {{ partielMin }}% – {{ conformeMin - 1 }}%</div>
-          <div class="value-chip red-chip">🔴 Non-conforme : &lt; {{ partielMin }}%</div>
+          <div class="value-chip green-chip">✅ Conforme : écart ≤ {{ greenMaxLoss }} min</div>
+          <div class="value-chip orange-chip">🟠 Partiel : écart ≤ {{ orangeMaxLoss }} min</div>
+          <div class="value-chip red-chip">🔴 Non-conforme : écart &gt; {{ orangeMaxLoss }} min</div>
         </div>
       </div>
     </mat-dialog-content>
@@ -146,7 +130,6 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
     .dialog-content { padding: 8px 24px 24px 24px !important; min-width: 520px; }
     .dialog-desc { color: var(--on-surface-variant); font-size: 14px; margin: 0 0 20px 0; }
 
-    /* Preview Bar */
     .preview-section { margin-bottom: 24px; }
     .preview-bar {
       display: flex; border-radius: 8px; overflow: hidden; height: 44px;
@@ -155,19 +138,13 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
     .preview-segment {
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 600; color: #fff;
-      transition: width 0.3s ease; overflow: hidden; min-width: 0;
+      transition: flex 0.3s ease; overflow: hidden; min-width: 0;
     }
     .preview-segment span { white-space: nowrap; padding: 0 4px; }
     .preview-segment.green { background: #1e8e3e; }
     .preview-segment.orange { background: #f57c00; }
     .preview-segment.red { background: #d93025; }
-    .preview-labels {
-      position: relative; display: flex;
-      justify-content: space-between; margin-top: 4px;
-      font-size: 11px; color: var(--on-surface-variant);
-    }
 
-    /* Form */
     .form-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
     .threshold-row {
       display: flex; align-items: center; gap: 16px;
@@ -181,7 +158,7 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
     .threshold-label div { display: flex; flex-direction: column; }
     .threshold-label strong { font-size: 14px; color: var(--on-surface); }
     .threshold-label p { font-size: 12px; color: var(--on-surface-variant); margin: 2px 0 0 0; }
-    .threshold-input { width: 140px; flex-shrink: 0; margin-bottom: -1.25em; }
+    .threshold-input { width: 160px; flex-shrink: 0; margin-bottom: -1.25em; }
 
     .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
     .green-dot { background: #1e8e3e; }
@@ -206,7 +183,6 @@ import { ConfigService, ScheduleThreshold } from '../../../core/services/config.
     }
     .banner-icon { font-size: 18px; width: 18px; height: 18px; }
 
-    /* Current Values */
     .current-values { margin-top: 8px; }
     .current-values h4 { font-size: 13px; color: var(--on-surface-variant); margin: 0 0 8px 0; }
     .values-grid { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -230,19 +206,19 @@ export class ThresholdConfigDialogComponent implements OnInit {
 
   form: FormGroup;
   isSaving = false;
-  conformeMin = 100;
-  partielMin = 90;
+  greenMaxLoss = 0;
+  orangeMaxLoss = 60;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { current: ScheduleThreshold | null }
   ) {
     const t = data.current;
-    this.conformeMin = t?.green_min ?? 100;
-    this.partielMin = t?.orange_min ?? 90;
+    this.greenMaxLoss = t?.green_min ?? 0;
+    this.orangeMaxLoss = t?.orange_min ?? 60;
 
     this.form = this.fb.group({
-      conforme_min: [this.conformeMin, [Validators.required, Validators.min(1), Validators.max(100)]],
-      partiel_min: [this.partielMin, [Validators.required, Validators.min(1)]]
+      green_max_loss: [this.greenMaxLoss, [Validators.required, Validators.min(0), Validators.max(1440)]],
+      orange_max_loss: [this.orangeMaxLoss, [Validators.required, Validators.min(0), Validators.max(1440)]]
     }, { validators: this.thresholdOrderValidator });
   }
 
@@ -252,14 +228,14 @@ export class ThresholdConfigDialogComponent implements OnInit {
 
   updatePreview() {
     const v = this.form.value;
-    this.conformeMin = Math.min(Math.max(v.conforme_min ?? 100, 1), 100);
-    this.partielMin = Math.min(Math.max(v.partiel_min ?? 90, 1), 100);
+    this.greenMaxLoss = Math.min(Math.max(v.green_max_loss ?? 0, 0), 1440);
+    this.orangeMaxLoss = Math.min(Math.max(v.orange_max_loss ?? 60, 0), 1440);
   }
 
   thresholdOrderValidator(group: FormGroup) {
-    const conforme = group.get('conforme_min')?.value;
-    const partiel = group.get('partiel_min')?.value;
-    if (conforme != null && partiel != null && partiel >= conforme) {
+    const green = group.get('green_max_loss')?.value;
+    const orange = group.get('orange_max_loss')?.value;
+    if (green != null && orange != null && orange < green) {
       return { thresholdOrder: true };
     }
     return null;
@@ -270,8 +246,8 @@ export class ThresholdConfigDialogComponent implements OnInit {
     this.isSaving = true;
     const val = this.form.value;
     this.configService.updateScheduleThresholds({
-      green_min: val.conforme_min,
-      orange_min: val.partiel_min
+      green_min: val.green_max_loss,
+      orange_min: val.orange_max_loss
     }).subscribe({
       next: (updated) => {
         this.isSaving = false;

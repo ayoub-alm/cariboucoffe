@@ -10,8 +10,15 @@ export interface DailyTimeRecord {
     closing_time: string;
     coffee_id: number;
     controller_id: number;
-    score: number;          // computed by backend
-    status: 'green' | 'orange' | 'red'; // computed by backend
+    score: number;              // compliant minutes within expected window
+    config_range: number;       // expected opening window in minutes
+    late_minutes: number;
+    early_minutes: number;
+    lost_minutes: number;       // late + early minutes
+    is_late_opening: boolean;
+    is_early_closing: boolean;
+    status: 'green' | 'orange' | 'red';
+    conformity_label: 'Conforme' | 'Partiel' | 'Non-conforme';
 }
 
 export interface DailyTimeRecordCreate {
@@ -27,11 +34,15 @@ export interface DailyLogListResponse {
     page: number;
     size: number;
     pages: number;
-    /** Average compliance score over ALL filtered records (not just current page) */
+    /** Average compliant minutes over ALL filtered records (not just current page) */
     average_score: number;
+    /** Average lost minutes (late + early) over ALL filtered records */
+    average_lost_minutes: number;
     late_openings: number;
     early_closures: number;
+    /** Average lost minutes for the current month */
     monthly_average: number;
+    /** Average lost minutes for the current week */
     weekly_average: number;
 }
 

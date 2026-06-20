@@ -16,6 +16,7 @@ import { DashboardDataService } from '../../../core/services/dashboard-data.serv
 import { ThemeService } from '../../../core/services/theme.service';
 import { effect } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-log.service';
 import { CoffeeService } from '../../../core/services/coffee.service';
 import { UserService } from '../../../core/services/user.service';
@@ -29,7 +30,7 @@ type EnrichedLog = DailyTimeRecord & { coffeeName?: string; controllerName?: str
 @Component({
     selector: 'app-manager-dashboard',
     standalone: true,
-    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, FilterBarComponent, MatTableModule, MatDialogModule, ExportKpiDialogComponent],
+    imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, FilterBarComponent, MatTableModule, MatDialogModule, MatTooltipModule, ExportKpiDialogComponent],
     template: `
     <div class="manager-dashboard">
         <div class="welcome-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
@@ -237,13 +238,14 @@ type EnrichedLog = DailyTimeRecord & { coffeeName?: string; controllerName?: str
                         <th mat-header-cell *matHeaderCellDef style="font-weight: 600; padding: 12px 16px; font-size: 13px; text-transform: uppercase;"> Score </th>
                         <td mat-cell *matCellDef="let log" style="padding: 12px 16px;">
                             <span class="score-badge"
-                                [class.good]="log.score >= conformeMin"
-                                [class.partial]="log.score >= partielMin && log.score < conformeMin"
-                                [class.bad]="log.score < partielMin">
+                                [class.good]="isGreenStatus(log)"
+                                [class.partial]="isOrangeStatus(log)"
+                                [class.bad]="isRedStatus(log)">
+                                [matTooltip]="getConformityTooltip(log)">
                                 <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px; vertical-align: middle;">
-                                    {{ log.score >= conformeMin ? 'check_circle' : (log.score >= partielMin ? 'info' : 'warning') }}
+                                    {{ isGreenStatus(log) ? 'check_circle' : (isOrangeStatus(log) ? 'info' : 'warning') }}
                                 </mat-icon>
-                                <span style="vertical-align: middle;">{{ log.score }}%</span>
+                                <span style="vertical-align: middle;">{{ getConformityLabel(log) }}</span>
                             </span>
                         </td>
                     </ng-container>
@@ -429,8 +431,27 @@ export class ManagerDashboardComponent implements OnInit, AfterViewInit, OnDestr
     filteredDailyLogs: EnrichedLog[] = [];
     displayedColumns: string[] = ['date', 'coffeeName', 'opening', 'closing', 'score'];
 
-    get conformeMin(): number { return this.thresholds?.green_min  ?? 100; }
-    get partielMin():  number { return this.thresholds?.orange_min ??  90; }
+    get greenMaxLoss(): number { return this.thresholds?.green_min ?? 0; }
+    get orangeMaxLoss(): number { return this.thresholds?.orange_min ?? 60; }
+
+    isGreenStatus(log: DailyTimeRecord): boolean {
+        return log.status === 'green';
+    }
+    isOrangeStatus(log: DailyTimeRecord): boolean {
+        return log.status === 'orange';
+    }
+    isRedStatus(log: DailyTimeRecord): boolean {
+        return log.status === 'red';
+    }
+    getConformityLabel(log: DailyTimeRecord): string {
+        return log.conformity_label || 'Non-conforme';
+    }
+    getConformityTooltip(log: DailyTimeRecord): string {
+        const issues: string[] = [];
+        if (log.is_late_opening) issues.push(`Ouverture en retard (${log.late_minutes} min)`);
+        if (log.is_early_closing) issues.push(`Fermeture anticipée (${log.early_minutes} min)`);
+        return issues.length ? issues.join(' · ') : 'Ouverture et fermeture conformes';
+    }
 
     constructor() {
         effect(() => {
