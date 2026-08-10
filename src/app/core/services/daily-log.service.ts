@@ -19,6 +19,8 @@ export interface DailyTimeRecord {
     is_early_closing: boolean;
     status: 'green' | 'orange' | 'red';
     conformity_label: 'Conforme' | 'Partiel' | 'Non-conforme';
+    expected_opening: string;
+    expected_closing: string;
 }
 
 export interface DailyTimeRecordCreate {

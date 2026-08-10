@@ -297,6 +297,10 @@ tr.mat-mdc-row:hover {
   background-color: var(--surface-container-lowest);
 }
 
+tr.mat-mdc-row.clickable-row {
+  cursor: pointer;
+}
+
 td.mat-mdc-cell {
   font-size: 14px;
   color: var(--on-surface);

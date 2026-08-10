@@ -25,4 +25,12 @@ export class CoffeeService {
     deleteCoffee(id: number): Observable<Coffee> {
         return this.http.delete<Coffee>(`${API_URL}/coffees/${id}`);
     }
+
+    getSchedules(coffeeId: number): Observable<any[]> {
+        return this.http.get<any[]>(`${API_URL}/coffees/${coffeeId}/schedules`);
+    }
+
+    updateSchedules(coffeeId: number, schedules: any[]): Observable<any[]> {
+        return this.http.put<any[]>(`${API_URL}/coffees/${coffeeId}/schedules`, schedules);
+    }
 }

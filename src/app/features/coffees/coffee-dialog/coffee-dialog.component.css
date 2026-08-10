@@ -1,0 +1,192 @@
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      padding: 24px 24px 16px;
+      position: relative;
+      border-bottom: 1px solid var(--outline-variant);
+      margin-bottom: 8px;
+    }
+
+    .header-icon-container {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--primary-container);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+    }
+
+    .header-icon-container mat-icon {
+      font-size: 28px;
+      height: 28px;
+      width: 28px;
+    }
+
+    .header-title-container h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .header-subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--on-surface-variant);
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      color: var(--on-surface-variant);
+    }
+
+    .modern-dialog-content {
+      padding: 16px 24px !important;
+      width: 100%;
+    }
+
+    .form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 4px;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .status-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface-variant);
+      border-radius: 12px;
+      margin-top: 4px;
+    }
+
+    .status-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--on-surface);
+    }
+
+    .status-hint {
+      font-size: 12px;
+      color: var(--on-surface-variant);
+    }
+
+    /* Schedules Styles */
+    .schedules-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .schedule-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .schedule-row:hover {
+      background: #f5f5f5;
+    }
+
+    .schedule-row.is-closed {
+      background: #fefefe;
+      opacity: 0.7;
+    }
+
+    .schedule-row.is-closed .time-field {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .schedule-day-col {
+      flex: 0 0 100px;
+    }
+
+    .day-label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .schedule-closed-col {
+      flex: 0 0 100px;
+    }
+
+    .schedule-times-col {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .time-field {
+      flex: 1;
+      margin-bottom: -1.25em; /* remove extra space at bottom of form field */
+    }
+
+    @media (max-width: 700px) {
+      .schedule-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .schedule-times-col {
+        width: 100%;
+      }
+    }
+
+    .dialog-footer {
+      padding: 16px 24px 24px !important;
+    }
+
+    .btn-cancel {
+      font-weight: 500;
+      padding: 0 16px;
+      margin-right: 12px !important;
+    }
+
+    .btn-save {
+      border-radius: 12px !important;
+      padding: 0 24px !important;
+      height: 44px !important;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(var(--primary-rgb, 26, 115, 232), 0.2);
+    }
+
+    ::ng-deep .mat-mdc-form-field-icon-prefix {
+      padding-right: 12px !important;
+      color: var(--on-surface-variant);
+    }

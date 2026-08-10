@@ -199,8 +199,8 @@ export class ControllerDashboardComponent implements OnInit, OnDestroy {
   }
   getConformityTooltip(log: DailyTimeRecord): string {
     const issues: string[] = [];
-    if (log.is_late_opening) issues.push(`Ouverture en retard (${log.late_minutes} min)`);
-    if (log.is_early_closing) issues.push(`Fermeture anticipée (${log.early_minutes} min)`);
+    if (log.is_late_opening) issues.push(`Ouverture en retard (${log.late_minutes} min, prévu ${log.expected_opening})`);
+    if (log.is_early_closing) issues.push(`Fermeture anticipée (${log.early_minutes} min, prévu ${log.expected_closing})`);
     return issues.length ? issues.join(' · ') : 'Ouverture et fermeture conformes';
   }
 }

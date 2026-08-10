@@ -1,3 +1,12 @@
+export interface CoffeeSchedule {
+    id?: number;
+    coffee_id?: number;
+    day_of_week: number;
+    is_closed: boolean;
+    opening_time?: string;
+    closing_time?: string;
+}
+
 export interface Coffee {
     id: number;
     ref?: string;
@@ -6,6 +15,7 @@ export interface Coffee {
     active: boolean;
     opening_time?: string;
     closing_time?: string;
+    schedules?: CoffeeSchedule[];
 }
 
 export interface CoffeeCreate {
@@ -13,8 +23,7 @@ export interface CoffeeCreate {
     name: string;
     location: string;
     active: boolean;
-    opening_time?: string;
-    closing_time?: string;
+    schedules?: CoffeeSchedule[];
 }
 
 export interface CoffeeUpdate {
@@ -22,6 +31,5 @@ export interface CoffeeUpdate {
     name?: string;
     location?: string;
     active?: boolean;
-    opening_time?: string;
-    closing_time?: string;
+    schedules?: CoffeeSchedule[];
 }

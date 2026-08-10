@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Coffee } from '../../../core/models/coffee.model';
 import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-log.service';
 
@@ -25,17 +26,23 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
     MatFormFieldModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   template: `
     <h2 mat-dialog-title class="dialog-title">
       <div class="title-content">
-        <mat-icon>{{ isEdit ? 'edit_calendar' : 'add_moderator' }}</mat-icon>
-        <span>{{ isEdit ? 'Modifier les Horaires' : 'Enregistrer de Nouveaux Horaires' }}</span>
+        <mat-icon>{{ isEdit ? (isViewMode ? 'visibility' : 'edit_calendar') : 'add_moderator' }}</mat-icon>
+        <span>{{ isEdit ? (isViewMode ? 'Détails des Horaires' : 'Modifier les Horaires') : 'Enregistrer de Nouveaux Horaires' }}</span>
       </div>
-      <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Fermer la boîte de dialogue">
-        <mat-icon>close</mat-icon>
-      </button>
+      <div class="header-actions">
+        <button *ngIf="isEdit && isViewMode" mat-icon-button (click)="toggleEditMode()" aria-label="Modifier" matTooltip="Modifier les horaires" class="edit-btn">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Fermer la boîte de dialogue">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </h2>
 
     <mat-dialog-content class="dialog-content font-sans">
@@ -63,13 +70,18 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
         </div>
 
         <!-- Theoretical Operating Hours Helper -->
-        <div class="theoretical-info" *ngIf="selectedTheoreticalOpening">
+        <div class="theoretical-info" *ngIf="selectedTheoreticalOpening || isClosedDay">
           <mat-icon class="info-icon">info_outline</mat-icon>
           <div class="theoretical-text">
             <span>Horaires théoriques de ce café : </span>
-            <strong>Ouverture {{ selectedTheoreticalOpening }}</strong>
-            <span> &bull; </span>
-            <strong>Fermeture {{ selectedTheoreticalClosing }}</strong>
+            <ng-container *ngIf="isClosedDay; else openDay">
+              <strong>Fermé ce jour</strong>
+            </ng-container>
+            <ng-template #openDay>
+              <strong>Ouverture {{ selectedTheoreticalOpening }}</strong>
+              <span> &bull; </span>
+              <strong>Fermeture {{ selectedTheoreticalClosing }}</strong>
+            </ng-template>
           </div>
         </div>
 
@@ -81,7 +93,7 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
 
         <div class="form-row inputs-row">
           <!-- Opening Time -->
-          <div class="time-box">
+          <div class="time-box" [class.read-only]="isViewMode">
             <h3>Ouverture</h3>
             <p class="time-desc">Heure réelle d'ouverture constatée.</p>
             <mat-form-field appearance="outline" class="full-width">
@@ -91,7 +103,7 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
           </div>
 
           <!-- Closing Time -->
-          <div class="time-box">
+          <div class="time-box" [class.read-only]="isViewMode">
             <h3>Fermeture</h3>
             <p class="time-desc">Heure réelle de fermeture constatée.</p>
             <mat-form-field appearance="outline" class="full-width">
@@ -104,8 +116,8 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="dialog-actions">
-      <button mat-button mat-dialog-close>Annuler</button>
-      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()" class="action-btn">
+      <button mat-button mat-dialog-close>{{ isViewMode ? 'Fermer' : 'Annuler' }}</button>
+      <button *ngIf="!isViewMode" mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()" class="action-btn">
         <mat-icon>save</mat-icon>
         <span>{{ isEdit ? 'Mettre à jour' : 'Enregistrer' }}</span>
       </button>
@@ -130,9 +142,17 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
       align-items: center;
       gap: 10px;
     }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: -8px -8px -8px auto;
+    }
+    .edit-btn {
+      color: var(--primary);
+    }
     .close-btn {
       color: var(--on-surface-variant);
-      margin: -8px -8px -8px auto;
     }
     .dialog-content {
       padding: 16px 20px !important;
@@ -183,6 +203,11 @@ import { DailyLogService, DailyTimeRecord } from '../../../core/services/daily-l
       background-color: var(--surface-container-high);
       border-radius: 12px;
       border: 1px solid var(--outline-variant);
+      transition: all 0.2s ease;
+    }
+    .time-box.read-only {
+      opacity: 0.8;
+      background-color: var(--surface-container);
     }
     .time-box h3 {
       margin: 0 0 4px 0;
@@ -254,9 +279,11 @@ export class ScheduleDialogComponent implements OnInit {
   form: FormGroup;
   coffees: Coffee[] = [];
   isEdit = false;
+  isViewMode = false;
 
   selectedTheoreticalOpening = '';
   selectedTheoreticalClosing = '';
+  isClosedDay = false;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: {
@@ -268,38 +295,55 @@ export class ScheduleDialogComponent implements OnInit {
   ) {
     this.coffees = data.coffees;
     this.isEdit = !!data.log;
+    this.isViewMode = this.isEdit; // Start in view mode if editing existing log
 
     this.form = this.fb.group({
-      coffee_id: [data.log?.coffee_id || data.defaultCoffeeId || '', Validators.required],
-      date: [data.log ? new Date(data.log.date) : (data.defaultDate || new Date()), Validators.required],
-      opening_time: [data.log?.opening_time || ''],
-      closing_time: [data.log?.closing_time || '']
+      coffee_id: [{ value: data.log?.coffee_id || data.defaultCoffeeId || '', disabled: this.isEdit }, Validators.required],
+      date: [{ value: data.log ? new Date(data.log.date) : (data.defaultDate || new Date()), disabled: this.isEdit }, Validators.required],
+      opening_time: [{ value: data.log?.opening_time || '', disabled: this.isViewMode }],
+      closing_time: [{ value: data.log?.closing_time || '', disabled: this.isViewMode }]
     }, { validators: this.atLeastOneTimeValidator });
-
-    // If editing, make coffee selection and date read-only to avoid changing key IDs
-    if (this.isEdit) {
-      this.form.get('coffee_id')?.disable();
-      this.form.get('date')?.disable();
-    }
   }
 
   ngOnInit() {
     this.form.get('coffee_id')?.valueChanges.subscribe(() => this.updateTheoreticalTimes());
+    this.form.get('date')?.valueChanges.subscribe(() => this.updateTheoreticalTimes());
     this.updateTheoreticalTimes();
+  }
+  
+  toggleEditMode() {
+    this.isViewMode = false;
+    this.form.get('opening_time')?.enable();
+    this.form.get('closing_time')?.enable();
   }
 
   updateTheoreticalTimes() {
-    const coffeeId = this.form.get('coffee_id')?.value;
-    if (!coffeeId) {
+    const coffeeId = this.form.get('coffee_id')?.value || this.form.get('coffee_id')?.getRawValue();
+    const dateValue = this.form.get('date')?.value || this.form.get('date')?.getRawValue();
+    
+    if (!coffeeId || !dateValue) {
       this.selectedTheoreticalOpening = '';
       this.selectedTheoreticalClosing = '';
+      this.isClosedDay = false;
       return;
     }
 
     const coffee = this.coffees.find(c => c.id === coffeeId);
     if (coffee) {
-      this.selectedTheoreticalOpening = coffee.opening_time || 'Non spécifié';
-      this.selectedTheoreticalClosing = coffee.closing_time || 'Non spécifié';
+      const d = new Date(dateValue);
+      const dayOfWeek = d.getDay(); // 0 (Sun) to 6 (Sat)
+      
+      const schedule = coffee.schedules?.find(s => s.day_of_week === dayOfWeek);
+      
+      if (schedule) {
+        this.isClosedDay = !!schedule.is_closed;
+        this.selectedTheoreticalOpening = schedule.opening_time || 'Non spécifié';
+        this.selectedTheoreticalClosing = schedule.closing_time || 'Non spécifié';
+      } else {
+        this.isClosedDay = false;
+        this.selectedTheoreticalOpening = coffee.opening_time || 'Non spécifié';
+        this.selectedTheoreticalClosing = coffee.closing_time || 'Non spécifié';
+      }
     }
   }
 

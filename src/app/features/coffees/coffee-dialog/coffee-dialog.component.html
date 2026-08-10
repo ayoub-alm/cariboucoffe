@@ -1,0 +1,88 @@
+    <div class="dialog-header">
+      <div class="header-icon-container">
+        <mat-icon>{{ data ? 'edit' : 'add_business' }}</mat-icon>
+      </div>
+      <div class="header-title-container">
+        <h2 mat-dialog-title>{{ data ? 'Modifier' : 'Ajouter' }} un Café</h2>
+        <p class="header-subtitle">{{ data ? 'Mettez à jour les informations du point de vente' : 'Enregistrez un nouvel établissement dans le système' }}</p>
+      </div>
+      <button mat-icon-button mat-dialog-close class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="modern-dialog-content">
+      <form [formGroup]="form" class="form-grid">
+        
+        <div class="form-section">
+          <h3 class="section-title">Informations Générales</h3>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom du café</mat-label>
+            <mat-icon matPrefix>store</mat-icon>
+            <input matInput formControlName="name" placeholder="Ex. Caribou Anfa">
+            <mat-error *ngIf="form.get('name')?.hasError('required')">Le nom est requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Référence (Réf.)</mat-label>
+            <mat-icon matPrefix>tag</mat-icon>
+            <input matInput formControlName="ref" placeholder="Ex. CAF-001">
+            <mat-hint>Générée automatiquement si laissée vide</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Localisation & Statut</h3>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Emplacement / Ville</mat-label>
+            <mat-icon matPrefix>location_on</mat-icon>
+            <input matInput formControlName="location" placeholder="Ex. Casablanca">
+            <mat-error *ngIf="form.get('location')?.hasError('required')">L'emplacement est requis</mat-error>
+          </mat-form-field>
+
+          <div class="status-container">
+            <div class="status-info">
+              <span class="status-label">Statut opérationnel</span>
+              <span class="status-hint">{{ form.get('active')?.value ? 'Le café est actuellement actif' : 'Le café est actuellement inactif' }}</span>
+            </div>
+            <mat-slide-toggle formControlName="active" color="primary"></mat-slide-toggle>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Horaires par jour</h3>
+          <div formArrayName="schedules" class="schedules-container">
+            <div *ngFor="let schedule of schedulesArray.controls; let i = index" [formGroupName]="i" class="schedule-row" [class.is-closed]="schedule.get('is_closed')?.value">
+              <div class="schedule-day-col">
+                <span class="day-label">{{ getDayName(schedule.get('day_of_week')?.value) }}</span>
+              </div>
+              <div class="schedule-closed-col">
+                <mat-checkbox formControlName="is_closed" color="primary">Fermé</mat-checkbox>
+              </div>
+              <div class="schedule-times-col">
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Ouverture</mat-label>
+                  <input matInput type="time" formControlName="opening_time">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Fermeture</mat-label>
+                  <input matInput type="time" formControlName="closing_time">
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-footer">
+      <button mat-button mat-dialog-close class="btn-cancel">Annuler</button>
+      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()" class="btn-save">
+        <mat-icon style="margin-right: 8px;">{{ data ? 'save' : 'add' }}</mat-icon>
+        {{ data ? 'Mettre à jour' : 'Créer' }}
+      </button>
+    </mat-dialog-actions>
