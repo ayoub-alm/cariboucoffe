@@ -1,5 +1,5 @@
 import { Component, inject, ViewChild, computed, signal } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule, AsyncPipe, Location } from '@angular/common';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, shareReplay } from 'rxjs/operators';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -66,6 +66,7 @@ export class AuditStepperComponent {
     private snackBar = inject(MatSnackBar);
     private dialog = inject(MatDialog);
     private breakpointObserver = inject(BreakpointObserver);
+    private location = inject(Location);
 
     isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
@@ -472,7 +473,7 @@ export class AuditStepperComponent {
 
         // Update URL if this was a new audit (so page refresh loads it)
         if (isNew) {
-            this.router.navigate(['/audits', res.id, 'edit'], { replaceUrl: true });
+            this.location.replaceState('/audits/' + res.id + '/edit');
         }
 
         // Only update photo state when we actually uploaded new photos

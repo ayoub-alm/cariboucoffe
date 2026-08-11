@@ -8,7 +8,31 @@ import { UserRole } from './core/models/user.model';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 
 export const routes: Routes = [
+    { 
+        path: '', 
+        loadComponent: () => import('./features/public/landing/landing.component').then(m => m.LandingComponent), 
+        canActivate: [noAuthGuard],
+        pathMatch: 'full' 
+    },
     { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
+
+    // ── Error pages — accessible without auth ────────────────────────────
+    {
+        path: '404',
+        loadComponent: () => import('./features/errors/not-found/not-found.component').then(m => m.NotFoundComponent),
+        title: '404 — Page introuvable · Caribou Coffee'
+    },
+    {
+        path: '500',
+        loadComponent: () => import('./features/errors/server-error/server-error.component').then(m => m.ServerErrorComponent),
+        title: '500 — Erreur serveur · Caribou Coffee'
+    },
+    {
+        path: '503',
+        loadComponent: () => import('./features/errors/service-unavailable/service-unavailable.component').then(m => m.ServiceUnavailableComponent),
+        title: '503 — Service indisponible · Caribou Coffee'
+    },
+
     {
         path: '',
         component: NavComponent,
@@ -99,5 +123,8 @@ export const routes: Routes = [
             },
         ]
     },
-    { path: '**', redirectTo: 'login' }
+
+    // ── Catch-all → 404 ───────────────────────────────────────────────────
+    { path: '**', redirectTo: '/404' }
 ];
+

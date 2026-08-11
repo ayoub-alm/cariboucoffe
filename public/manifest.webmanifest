@@ -9,8 +9,8 @@
   "scope": "./",
   "start_url": "./",
   "id": "/",
-  "background_color": "#ffffff",
-  "theme_color": "#1a73e8",
+  "background_color": "#1b130e",
+  "theme_color": "#4a3728",
   "categories": ["business", "productivity"],
   "prefer_related_applications": false,
   "icons": [
